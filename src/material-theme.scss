@@ -1,0 +1,48 @@
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+html {
+  color-scheme: light;
+
+  @include mat.theme((
+    color: (
+      theme-type: light,
+      primary: mat.$azure-palette,
+      tertiary: mat.$cyan-palette,
+    ),
+    typography: Onest,
+    density: 0,
+  ));
+
+  @include mat.theme-overrides((
+    primary: var(--ps-primary),
+    on-primary: #ffffff,
+    primary-container: var(--ps-badge-blue-bg),
+    on-primary-container: var(--ps-primary),
+    secondary: var(--ps-brand),
+    on-secondary: #ffffff,
+    secondary-container: var(--ps-active-soft),
+    on-secondary-container: var(--ps-brand),
+    tertiary: var(--ps-brand),
+    on-tertiary: #ffffff,
+    tertiary-container: var(--ps-active-soft),
+    on-tertiary-container: var(--ps-brand),
+    background: var(--ps-background),
+    on-background: var(--ps-text-primary),
+    surface: var(--ps-card),
+    on-surface: var(--ps-text-primary),
+    surface-variant: var(--ps-active-soft),
+    on-surface-variant: var(--ps-text-secondary),
+    surface-container-lowest: #ffffff,
+    surface-container-low: var(--ps-card),
+    surface-container: var(--ps-card),
+    surface-container-high: var(--ps-card),
+    surface-container-highest: var(--ps-background),
+    surface-dim: var(--ps-background),
+    surface-bright: var(--ps-card),
+    surface-tint: var(--ps-primary),
+    outline: var(--ps-border),
+    outline-variant: var(--ps-border),
+  ));
+}

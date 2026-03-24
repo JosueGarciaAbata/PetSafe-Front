@@ -1,0 +1,152 @@
+<div
+  class="relative z-10 flex w-full max-w-[560px] flex-col items-center rounded-[16px] border border-border bg-card p-10 shadow-sm sm:p-12"
+>
+  <app-logo [className]="'mb-6'"></app-logo>
+
+  <div class="mb-10 text-center">
+    <h2
+      class="mb-4 text-[30px] font-bold leading-tight tracking-tight text-text-primary sm:text-[32px]"
+    >
+      Bienvenido a PetSafe
+    </h2>
+    <p class="text-base leading-relaxed text-text-secondary">Inicia sesion para continuar</p>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="flex w-full flex-col gap-6">
+    <div class="flex flex-col gap-2">
+      <label class="ml-1 text-sm font-medium text-text-primary">Correo electronico</label>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+        <span matPrefix class="ml-3 mr-3 inline-flex text-text-secondary">
+          <svg
+            viewBox="0 0 24 24"
+            class="h-[18px] w-[18px]"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <path d="M4 6.75h16v10.5H4z"></path>
+            <path d="m4.5 7.25 7.5 6 7.5-6"></path>
+          </svg>
+        </span>
+        <input
+          matInput
+          type="email"
+          placeholder="ejemplo@correo.com"
+          formControlName="email"
+          autocomplete="email"
+          class="text-text-primary placeholder:text-text-secondary/40"
+        />
+
+        @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+          <mat-error>El correo es obligatorio.</mat-error>
+        }
+
+        @if (form.controls.email.touched && form.controls.email.hasError('email')) {
+          <mat-error>Ingresa un correo valido.</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="ml-1 text-sm font-medium text-text-primary">Contrasena</label>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+        <span matPrefix class="ml-3 mr-3 inline-flex text-text-secondary">
+          <svg
+            viewBox="0 0 24 24"
+            class="h-[18px] w-[18px]"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <path d="M6.5 10.5V8a5.5 5.5 0 0 1 11 0v2.5"></path>
+            <rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect>
+          </svg>
+        </span>
+        <input
+          matInput
+          [type]="showPassword ? 'text' : 'password'"
+          placeholder="Ingresa tu contrasena"
+          formControlName="password"
+          autocomplete="current-password"
+          class="text-text-primary placeholder:text-text-secondary/40"
+        />
+
+        <button
+          matSuffix
+          type="button"
+          (click)="togglePasswordVisibility()"
+          class="mr-2 inline-flex h-10 w-10 items-center justify-center rounded-full text-text-secondary transition-colors hover:text-brand"
+          aria-label="Mostrar u ocultar contrasena"
+        >
+          @if (showPassword) {
+            <svg
+              viewBox="0 0 24 24"
+              class="h-[18px] w-[18px]"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+            >
+              <path d="M3 12s3.5-6.5 9-6.5 9 6.5 9 6.5-3.5 6.5-9 6.5S3 12 3 12Z"></path>
+              <circle cx="12" cy="12" r="2.5"></circle>
+              <path d="M4 4l16 16"></path>
+            </svg>
+          } @else {
+            <svg
+              viewBox="0 0 24 24"
+              class="h-[18px] w-[18px]"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+            >
+              <path d="M3 12s3.5-6.5 9-6.5 9 6.5 9 6.5-3.5 6.5-9 6.5S3 12 3 12Z"></path>
+              <circle cx="12" cy="12" r="2.5"></circle>
+            </svg>
+          }
+        </button>
+
+        @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+          <mat-error>La contrasena es obligatoria.</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="mt-1 flex items-center justify-between">
+      <label class="group flex cursor-pointer items-center gap-2">
+        <div class="relative flex items-center justify-center">
+          <input
+            type="checkbox"
+            class="peer h-5 w-5 cursor-pointer appearance-none rounded-md border-2 border-border transition-all checked:border-brand checked:bg-brand"
+            formControlName="rememberMe"
+          />
+          <svg
+            viewBox="0 0 24 24"
+            class="pointer-events-none absolute h-[14px] w-[14px] text-white opacity-0 transition-opacity peer-checked:opacity-100"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.4"
+          >
+            <path d="m5 12 4 4 10-10" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </div>
+        <span class="text-sm text-text-secondary transition-colors group-hover:text-text-primary">
+          Recordarme
+        </span>
+      </label>
+
+      <a routerLink="/recovery" class="text-sm font-medium text-primary hover:underline">
+        Olvidaste tu contrasena?
+      </a>
+    </div>
+
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      class="mt-4 flex h-[48px] w-full items-center justify-center gap-2 rounded-[10px] !bg-primary font-semibold !text-white shadow-sm transition-colors hover:!opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+    >
+      Iniciar sesion
+    </button>
+  </form>
+</div>

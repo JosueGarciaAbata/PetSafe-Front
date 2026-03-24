@@ -1,0 +1,35 @@
+<div class="flex h-screen w-full overflow-hidden bg-background font-sans">
+  <div class="relative hidden h-full lg:flex lg:w-[54%]">
+    @if (!heroImageFailed) {
+      <img
+        [src]="heroImage"
+        alt="Emotional bond with a dog"
+        class="absolute inset-0 h-full w-full object-cover"
+        (error)="onHeroImageError()"
+      />
+    } @else {
+      <div class="absolute inset-0 bg-[linear-gradient(135deg,var(--ps-active-soft)_0%,var(--ps-background)_42%,var(--ps-border)_100%)]"></div>
+    }
+
+    <div class="pointer-events-none absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-brand/20"></div>
+    <div class="pointer-events-none absolute inset-0 bg-brand/10"></div>
+    <div class="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-background to-transparent"></div>
+
+    <div class="pointer-events-none absolute bottom-12 left-12 max-w-md text-white drop-shadow-lg">
+      <h3 class="mb-2 text-3xl font-bold">Cuidamos lo que mas quieres</h3>
+      <p class="text-lg font-medium leading-relaxed opacity-90">
+        Gestion integral para clinicas veterinarias que priorizan el bienestar animal.
+      </p>
+    </div>
+  </div>
+
+  <div class="relative flex w-full items-center justify-center overflow-hidden p-6 sm:p-12 lg:w-[46%]">
+    <div class="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand/5 blur-[120px]"></div>
+
+    <div class="absolute left-8 top-8 lg:hidden">
+      <app-logo [className]="'scale-90'"></app-logo>
+    </div>
+
+    <app-login-form></app-login-form>
+  </div>
+</div>
