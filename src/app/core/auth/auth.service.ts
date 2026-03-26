@@ -1,6 +1,10 @@
 import { Injectable } from '@angular/core';
 import { jwtDecode } from 'jwt-decode';
-import { AuthJwtPayload, AuthLoginResponse, AuthUserDto } from './auth.model';
+import {
+  AuthJwtPayload,
+  AuthLoginResponse,
+  AuthStoredUser,
+} from './auth.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -25,13 +29,13 @@ export class AuthService {
     localStorage.setItem(AuthService.accessTokenKey, normalizedToken);
   }
 
-  saveUser(user: AuthUserDto): void {
+  saveUser(user: AuthStoredUser): void {
     localStorage.setItem(AuthService.userKey, JSON.stringify(user));
   }
 
   saveSession(session: AuthLoginResponse): void {
-    this.saveAccessToken(session.access_token);
-    this.saveUser(session.usuario);
+    this.saveAccessToken(session.accessToken);
+    this.saveUser(this.mapUser(session.user));
   }
 
   clearToken(): void {
@@ -56,7 +60,7 @@ export class AuthService {
     return this.decodeToken(token);
   }
 
-  getUser(): AuthUserDto | null {
+  getUser(): AuthStoredUser | null {
     const storedUser = localStorage.getItem(AuthService.userKey);
 
     if (!storedUser) {
@@ -64,20 +68,38 @@ export class AuthService {
     }
 
     try {
-      const parsedUser = JSON.parse(storedUser) as AuthUserDto;
+      const parsedUser = JSON.parse(storedUser) as Record<string, unknown>;
+
+      if (!parsedUser || typeof parsedUser !== 'object') {
+        return null;
+      }
+
+      const id = parsedUser['id'];
+      const correo = parsedUser['correo'] ?? parsedUser['email'];
+      const nombres = parsedUser['nombres'] ?? parsedUser['firstName'];
+      const apellidos = parsedUser['apellidos'] ?? parsedUser['lastName'];
+      const roles = parsedUser['roles'];
+      const isVet = parsedUser['isVet'];
 
       if (
-        !parsedUser ||
-        typeof parsedUser !== 'object' ||
-        typeof parsedUser.id !== 'string' ||
-        typeof parsedUser.correo !== 'string' ||
-        typeof parsedUser.nombres !== 'string' ||
-        typeof parsedUser.apellidos !== 'string'
+        (typeof id !== 'string' && typeof id !== 'number') ||
+        typeof correo !== 'string' ||
+        typeof nombres !== 'string' ||
+        typeof apellidos !== 'string' ||
+        !Array.isArray(roles) ||
+        typeof isVet !== 'boolean'
       ) {
         return null;
       }
 
-      return parsedUser;
+      return {
+        id: String(id),
+        correo,
+        nombres,
+        apellidos,
+        roles: roles.filter((value): value is string => typeof value === 'string'),
+        isVet,
+      };
     } catch {
       return null;
     }
@@ -99,6 +121,17 @@ export class AuthService {
 
     const currentRoles = new Set(this.getRoles(token));
     return requiredRoles.some((role) => currentRoles.has(this.normalizeRole(role)));
+  }
+
+  private mapUser(user: AuthLoginResponse['user']): AuthStoredUser {
+    return {
+      id: String(user.id),
+      correo: user.email,
+      nombres: user.firstName,
+      apellidos: user.lastName,
+      roles: user.roles,
+      isVet: user.isVet,
+    };
   }
 
   private decodeToken(token: string | null): AuthJwtPayload | null {

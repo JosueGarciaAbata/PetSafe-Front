@@ -1,13 +1,11 @@
 <div class="fixed inset-0 z-[120] bg-black/40 backdrop-blur-[2px]" (click)="close()"></div>
 
 <div class="fixed inset-0 z-[130] flex items-center justify-center p-4">
-  <div
-    class="w-full max-w-[640px] overflow-hidden rounded-[16px] border border-border bg-card shadow-2xl"
-  >
+  <div class="w-full max-w-[720px] overflow-hidden rounded-[16px] border border-border bg-card shadow-2xl">
     <div class="flex items-center justify-between border-b border-border bg-white px-6 py-5">
       <div class="flex flex-col gap-1">
         <h2 class="text-xl font-bold text-text-primary">Editar propietario</h2>
-        <p class="text-sm text-text-secondary">Actualiza la informacion basica del tutor.</p>
+        <p class="text-sm text-text-secondary">Actualiza la información del cliente.</p>
       </div>
 
       <button
@@ -16,14 +14,7 @@
         class="inline-flex h-10 w-10 items-center justify-center rounded-full text-text-secondary transition-all hover:bg-background hover:text-text-primary"
         aria-label="Cerrar modal"
       >
-        <svg
-          viewBox="0 0 24 24"
-          class="h-5 w-5"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-        >
+        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <path d="M6 6l12 12M18 6 6 18"></path>
         </svg>
       </button>
@@ -36,12 +27,13 @@
 
           <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Nombre</label>
+              <label class="text-sm font-semibold text-text-primary">Nombres</label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
                 <input
                   matInput
                   type="text"
-                  [value]="owner.nombre"
+                  [value]="firstName"
+                  (input)="setFirstName($any($event.target).value)"
                   placeholder="Ej. Adriana"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
@@ -49,12 +41,13 @@
             </div>
 
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Apellido</label>
+              <label class="text-sm font-semibold text-text-primary">Apellidos</label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
                 <input
                   matInput
                   type="text"
-                  [value]="owner.apellido"
+                  [value]="lastName"
+                  (input)="setLastName($any($event.target).value)"
                   placeholder="Ej. Montes"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
@@ -62,41 +55,27 @@
             </div>
 
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Cedula</label>
+              <label class="text-sm font-semibold text-text-primary">Género</label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
-                <input
-                  matInput
-                  type="text"
-                  [value]="owner.cedula ?? ''"
-                  placeholder="Ej. 1234567890"
-                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
-                />
+                <mat-select [value]="editGender" (valueChange)="setGender($event)">
+                  @for (option of genderOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
               </mat-form-field>
             </div>
 
             <div class="flex flex-col gap-2">
-              <span class="text-sm font-semibold text-text-primary">Genero</span>
-              <mat-radio-group [value]="editGender" class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <mat-radio-button
-                  value="Femenino"
-                  (change)="setGender('Femenino')"
-                  class="owners-radio-option w-full rounded-xl border border-border bg-white px-4 py-3"
-                  [class.border-brand]="editGender === 'Femenino'"
-                  [class.bg-active-soft]="editGender === 'Femenino'"
-                >
-                  Femenino
-                </mat-radio-button>
-
-                <mat-radio-button
-                  value="Masculino"
-                  (change)="setGender('Masculino')"
-                  class="owners-radio-option w-full rounded-xl border border-border bg-white px-4 py-3"
-                  [class.border-brand]="editGender === 'Masculino'"
-                  [class.bg-active-soft]="editGender === 'Masculino'"
-                >
-                  Masculino
-                </mat-radio-button>
-              </mat-radio-group>
+              <label class="text-sm font-semibold text-text-primary">Fecha de nacimiento</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
+                <input
+                  matInput
+                  type="date"
+                  [value]="birthDate"
+                  (input)="setBirthDate($any($event.target).value)"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                />
+              </mat-form-field>
             </div>
           </div>
         </section>
@@ -106,12 +85,13 @@
 
           <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Telefono</label>
+              <label class="text-sm font-semibold text-text-primary">Teléfono</label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
                 <input
                   matInput
                   type="tel"
-                  [value]="owner.numero_telefonico"
+                  [value]="phone"
+                  (input)="setPhone($any($event.target).value)"
                   placeholder="+593 000 000 000"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
@@ -119,17 +99,36 @@
             </div>
 
             <div class="flex flex-col gap-2 md:col-span-2">
-              <label class="text-sm font-semibold text-text-primary">Direccion</label>
+              <label class="text-sm font-semibold text-text-primary">Dirección</label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
                 <input
                   matInput
                   type="text"
-                  [value]="owner.contacto.direccion"
+                  [value]="address"
+                  (input)="setAddress($any($event.target).value)"
                   placeholder="Ej. Calle Mayor 12, Madrid"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
               </mat-form-field>
             </div>
+          </div>
+        </section>
+
+        <section class="flex flex-col gap-5">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-brand">Notas</h3>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-text-primary">Observaciones</label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
+              <textarea
+                matInput
+                rows="3"
+                [value]="notes"
+                (input)="setNotes($any($event.target).value)"
+                placeholder="Notas internas del cliente"
+                class="text-sm text-text-primary placeholder:text-text-secondary/50"
+              ></textarea>
+            </mat-form-field>
           </div>
         </section>
       </div>

@@ -2,7 +2,7 @@
   display: block;
 }
 
-:host .owners-field {
+:host .pets-field {
   --mat-form-field-container-height: 48px;
   --mat-form-field-container-vertical-padding: 12px;
   --mdc-outlined-text-field-container-shape: 12px;
@@ -14,17 +14,17 @@
   --mdc-outlined-text-field-focus-label-text-color: var(--ps-brand);
 }
 
-:host ::ng-deep .owners-field .mat-mdc-form-field-subscript-wrapper {
+:host ::ng-deep .pets-field .mat-mdc-form-field-subscript-wrapper {
   display: none;
 }
 
-:host ::ng-deep .owners-field .mat-mdc-form-field-infix {
+:host ::ng-deep .pets-field .mat-mdc-form-field-infix {
   min-height: 48px;
   padding-top: 13px;
   padding-bottom: 13px;
 }
 
-:host ::ng-deep .owners-radio-option {
+:host ::ng-deep .pets-radio-option {
   display: block;
   box-sizing: border-box;
   min-width: 0;
@@ -34,7 +34,7 @@
   --mdc-radio-unselected-icon-color: var(--ps-text-secondary);
 }
 
-:host ::ng-deep .owners-radio-option .mdc-form-field {
+:host ::ng-deep .pets-radio-option .mdc-form-field {
   display: flex;
   width: 100%;
   min-width: 0;
@@ -42,7 +42,7 @@
   gap: 0.75rem;
 }
 
-:host ::ng-deep .owners-radio-option .mdc-label {
+:host ::ng-deep .pets-radio-option .mdc-label {
   overflow: hidden;
   color: var(--ps-text-primary);
   font-size: 0.8125rem;

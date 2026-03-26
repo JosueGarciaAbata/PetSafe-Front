@@ -33,13 +33,13 @@ export class LoginFormComponent {
   private readonly cdr = inject(ChangeDetectorRef);
 
   protected readonly validationMessages = {
-    correoRequired: 'El correo es obligatorio',
-    correoInvalid: 'Ingrese un correo electrónico válido',
-    passwordRequired: 'La contraseña es obligatoria',
+    emailRequired: 'El correo es obligatorio',
+    emailInvalid: 'Ingrese un correo electronico valido',
+    passwordRequired: 'La contrasena es obligatoria',
   } as const;
 
   protected readonly form = this.fb.nonNullable.group({
-    correo: ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]],
   });
 

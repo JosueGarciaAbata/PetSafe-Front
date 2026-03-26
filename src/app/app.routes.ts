@@ -49,16 +49,13 @@ export const routes: Routes = [
         canActivate: [authGuard],
         data: { roles: adminRoles },
         loadComponent: () =>
-          import('@app/owners/owners-page.component').then((m) => m.OwnersPageComponent),
+          import('@app/owners/list/owners-page.component').then((m) => m.OwnersPageComponent),
       },
       {
         path: 'pets',
         canActivate: [authGuard],
         data: { roles: adminRoles },
-        loadComponent: () =>
-          import('@app/internal-section-page/internal-section-page.component').then(
-            (m) => m.InternalSectionPageComponent,
-          ),
+        loadComponent: () => import('@app/pets/list/pets-page.component').then((m) => m.PetsPageComponent),
       },
       {
         path: 'appointments',
