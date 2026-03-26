@@ -1,4 +1,9 @@
-import { ApplicationConfig, ErrorHandler, provideBrowserGlobalErrorListeners } from '@angular/core';
+import {
+  ApplicationConfig,
+  ErrorHandler,
+  provideBrowserGlobalErrorListeners,
+} from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 
 import { GlobalErrorHandler } from '@app/core/errors/global-error.handler';
@@ -11,6 +16,7 @@ export const appConfig: ApplicationConfig = {
       useClass: GlobalErrorHandler,
     },
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes)
-  ]
+    provideHttpClient(),
+    provideRouter(routes),
+  ],
 };

@@ -33,16 +33,16 @@
           matInput
           type="email"
           placeholder="ejemplo@correo.com"
-          formControlName="email"
+          formControlName="correo"
           autocomplete="email"
           class="text-text-primary placeholder:text-text-secondary/40"
         />
 
-        @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+        @if (form.controls.correo.touched && form.controls.correo.hasError('required')) {
           <mat-error>El correo es obligatorio.</mat-error>
         }
 
-        @if (form.controls.email.touched && form.controls.email.hasError('email')) {
+        @if (form.controls.correo.touched && form.controls.correo.hasError('email')) {
           <mat-error>Ingresa un correo valido.</mat-error>
         }
       </mat-form-field>
@@ -112,41 +112,35 @@
       </mat-form-field>
     </div>
 
-    <div class="mt-1 flex items-center justify-between">
-      <label class="group flex cursor-pointer items-center gap-2">
-        <div class="relative flex items-center justify-center">
-          <input
-            type="checkbox"
-            class="peer h-5 w-5 cursor-pointer appearance-none rounded-md border-2 border-border transition-all checked:border-brand checked:bg-brand"
-            formControlName="rememberMe"
-          />
-          <svg
-            viewBox="0 0 24 24"
-            class="pointer-events-none absolute h-[14px] w-[14px] text-white opacity-0 transition-opacity peer-checked:opacity-100"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.4"
-          >
-            <path d="m5 12 4 4 10-10" stroke-linecap="round" stroke-linejoin="round"></path>
-          </svg>
-        </div>
-        <span class="text-sm text-text-secondary transition-colors group-hover:text-text-primary">
-          Recordarme
-        </span>
-      </label>
-
+    <div class="mt-1 flex items-center justify-end">
       <a routerLink="/recovery" class="text-sm font-medium text-primary hover:underline">
         Olvidaste tu contrasena?
       </a>
     </div>
 
+    @if (loginErrorMessage) {
+      <mat-error class="block whitespace-pre-line text-center text-sm font-medium">
+        {{ loginErrorMessage }}
+      </mat-error>
+    }
+
     <button
       mat-raised-button
       color="primary"
       type="submit"
+      [disabled]="isSubmitting"
       class="mt-4 flex h-[48px] w-full items-center justify-center gap-2 rounded-[10px] !bg-primary font-semibold !text-white shadow-sm transition-colors hover:!opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
     >
-      Iniciar sesion
+      @if (isSubmitting) {
+        <span class="inline-flex items-center gap-2">
+          <span
+            class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
+          ></span>
+          Iniciando sesion...
+        </span>
+      } @else {
+        <span>Iniciar sesion</span>
+      }
     </button>
   </form>
 </div>

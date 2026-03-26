@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
@@ -6,6 +6,8 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { RouterLink } from '@angular/router';
+import { AuthService } from '@app/core/auth/auth.service';
 
 @Component({
   selector: 'app-test-ui',
@@ -18,6 +20,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     MatFormFieldModule,
     MatInputModule,
     MatToolbarModule,
+    RouterLink,
   ],
   template: `
     <section class="demo-shell">
@@ -108,6 +111,32 @@ import { MatToolbarModule } from '@angular/material/toolbar';
         <button mat-stroked-button type="button" (click)="throwTestError()">
           Provocar error
         </button>
+      </div>
+
+      <div class="test-strip auth-strip">
+        <div>
+          <strong>Prueba de roles</strong>
+          <p>{{ authMessage }}</p>
+        </div>
+        <div class="auth-actions">
+          <button mat-flat-button class="brand-cta" type="button" (click)="setAdminToken()">
+            Cargar ADMIN
+          </button>
+          <button mat-stroked-button type="button" (click)="setViewerToken()">Cargar USER</button>
+          <button mat-button type="button" (click)="clearToken()">Limpiar token</button>
+        </div>
+      </div>
+
+      <div class="test-strip auth-strip">
+        <div>
+          <strong>Rutas protegidas</strong>
+          <p>Abre cada seccion para validar que solo ADMIN puede entrar.</p>
+        </div>
+        <div class="auth-links-actions">
+          <a mat-flat-button class="brand-cta" routerLink="/dashboard">Dashboard</a>
+          <a mat-stroked-button routerLink="/pets">Pets</a>
+          <a mat-stroked-button routerLink="/owners">Owners</a>
+        </div>
       </div>
     </section>
   `,
@@ -261,6 +290,18 @@ import { MatToolbarModule } from '@angular/material/toolbar';
       color: var(--ps-text-secondary);
     }
 
+    .auth-strip p {
+      max-width: 58ch;
+    }
+
+    .auth-actions,
+    .auth-links-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
     mat-form-field {
       width: 100%;
     }
@@ -322,7 +363,43 @@ import { MatToolbarModule } from '@angular/material/toolbar';
   `,
 })
 export class TestUiComponent {
+  private readonly authService = inject(AuthService);
+  protected authMessage = 'Carga un token de prueba y luego abre una ruta protegida.';
+
   throwTestError(): void {
     throw new Error('Intentional test error from TestUiComponent');
+  }
+
+  protected setAdminToken(): void {
+    this.authService.saveToken(this.buildMockToken(['ADMIN']));
+    this.authMessage = 'Token ADMIN cargado. Ahora puedes entrar a /dashboard, /pets y /owners.';
+  }
+
+  protected setViewerToken(): void {
+    this.authService.saveToken(this.buildMockToken(['USER']));
+    this.authMessage = 'Token USER cargado. El acceso a rutas protegidas debe redirigir a /unauthorized.';
+  }
+
+  protected clearToken(): void {
+    this.authService.clearToken();
+    this.authMessage = 'Token eliminado. Las rutas protegidas deben redirigir a /login.';
+  }
+
+  private buildMockToken(roles: string[]): string {
+    const header = this.base64UrlEncode(JSON.stringify({ alg: 'none', typ: 'JWT' }));
+    const payload = this.base64UrlEncode(
+      JSON.stringify({
+        sub: 'test-user',
+        roles,
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 60 * 60,
+      }),
+    );
+
+    return `${header}.${payload}.test-signature`;
+  }
+
+  private base64UrlEncode(value: string): string {
+    return btoa(value).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
   }
 }

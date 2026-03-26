@@ -1,29 +1,130 @@
 import { Routes } from '@angular/router';
+import { authGuard } from '@app/core/auth/auth.guard';
 import { ErrorPageComponent } from '@app/error-page/error-page';
 import { LoginPageComponent } from '@app/login/login-page.component';
-import { RecoveryPageComponent } from '@app/recovery/recovery-page.component';
-import { TestUiComponent } from '@app/test-ui/test-ui';
+
+const adminRoles = ['ADMIN'] as const;
 
 export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'login'
+    redirectTo: 'login',
   },
   {
     path: 'login',
-    component: LoginPageComponent
+    component: LoginPageComponent,
   },
   {
     path: 'recovery',
-    component: RecoveryPageComponent
+    loadComponent: () =>
+      import('@app/recovery/recovery-page.component').then((m) => m.RecoveryPageComponent),
   },
   {
     path: 'error',
-    component: ErrorPageComponent
+    component: ErrorPageComponent,
   },
   {
-    path: 'test-ui',
-    component: TestUiComponent
-  }
+    path: 'unauthorized',
+    loadComponent: () =>
+      import('@app/unauthorized/unauthorized-page.component').then(
+        (m) => m.UnauthorizedPageComponent,
+      ),
+  },
+  {
+    path: '',
+    loadComponent: () => import('@app/shell/app-shell.component').then((m) => m.AppShellComponent),
+    children: [
+      {
+        path: 'dashboard',
+        canActivate: [authGuard],
+        data: { roles: adminRoles },
+        loadComponent: () =>
+          import('@app/internal-section-page/internal-section-page.component').then(
+            (m) => m.InternalSectionPageComponent,
+          ),
+      },
+      {
+        path: 'owners',
+        canActivate: [authGuard],
+        data: { roles: adminRoles },
+        loadComponent: () =>
+          import('@app/internal-section-page/internal-section-page.component').then(
+            (m) => m.InternalSectionPageComponent,
+          ),
+      },
+      {
+        path: 'pets',
+        canActivate: [authGuard],
+        data: { roles: adminRoles },
+        loadComponent: () =>
+          import('@app/internal-section-page/internal-section-page.component').then(
+            (m) => m.InternalSectionPageComponent,
+          ),
+      },
+      {
+        path: 'appointments',
+        canActivate: [authGuard],
+        data: { roles: adminRoles },
+        loadComponent: () =>
+          import('@app/internal-section-page/internal-section-page.component').then(
+            (m) => m.InternalSectionPageComponent,
+          ),
+      },
+      {
+        path: 'history',
+        canActivate: [authGuard],
+        data: { roles: adminRoles },
+        loadComponent: () =>
+          import('@app/internal-section-page/internal-section-page.component').then(
+            (m) => m.InternalSectionPageComponent,
+          ),
+      },
+      {
+        path: 'treatments',
+        canActivate: [authGuard],
+        data: { roles: adminRoles },
+        loadComponent: () =>
+          import('@app/internal-section-page/internal-section-page.component').then(
+            (m) => m.InternalSectionPageComponent,
+          ),
+      },
+      {
+        path: 'adoption',
+        canActivate: [authGuard],
+        data: { roles: adminRoles },
+        loadComponent: () =>
+          import('@app/internal-section-page/internal-section-page.component').then(
+            (m) => m.InternalSectionPageComponent,
+          ),
+      },
+      {
+        path: 'reports',
+        canActivate: [authGuard],
+        data: { roles: adminRoles },
+        loadComponent: () =>
+          import('@app/internal-section-page/internal-section-page.component').then(
+            (m) => m.InternalSectionPageComponent,
+          ),
+      },
+      {
+        path: 'settings',
+        canActivate: [authGuard],
+        data: { roles: adminRoles },
+        loadComponent: () =>
+          import('@app/internal-section-page/internal-section-page.component').then(
+            (m) => m.InternalSectionPageComponent,
+          ),
+      },
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'dashboard',
+      },
+    ],
+  },
+  {
+    path: '**',
+    redirectTo: 'login',
+  },
 ];

@@ -1,0 +1,30 @@
+<section class="flex min-h-screen w-full items-center justify-center bg-background px-6 py-10 font-sans">
+  <div class="w-full max-w-[640px] rounded-[24px] border border-border bg-card p-8 shadow-sm sm:p-10">
+    <app-logo [className]="'mb-8'"></app-logo>
+
+    <div class="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-active-soft text-brand">
+      <svg viewBox="0 0 24 24" class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M8 11V8a4 4 0 0 1 8 0v3"></path>
+        <rect x="5" y="11" width="14" height="8" rx="2.5"></rect>
+        <path d="M12 14v2"></path>
+      </svg>
+    </div>
+
+    <h1 class="text-[32px] font-bold leading-tight tracking-tight text-text-primary sm:text-[40px]">
+      Acceso restringido
+    </h1>
+    <p class="mt-4 max-w-xl text-base leading-relaxed text-text-secondary">
+      Tu sesion actual no tiene el rol necesario para entrar a esta seccion. Inicia sesion con una cuenta
+      autorizada e intenta de nuevo.
+    </p>
+
+    <div class="mt-8">
+      <a
+        routerLink="/login"
+        class="inline-flex items-center justify-center rounded-[10px] bg-primary px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:opacity-90"
+      >
+        Volver al login
+      </a>
+    </div>
+  </div>
+</section>

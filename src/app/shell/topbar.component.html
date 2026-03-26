@@ -1,0 +1,49 @@
+<header class="sticky top-0 z-20 flex h-[72px] w-full items-center justify-between border-b border-border bg-card px-8 shadow-sm">
+  <div class="max-w-[480px] flex-1">
+    <div class="group relative">
+      <div class="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary transition-colors group-focus-within:text-brand">
+        <app-shell-icon name="search" [size]="18"></app-shell-icon>
+      </div>
+      <input
+        type="text"
+        placeholder="Buscar mascotas, propietarios, citas..."
+        class="h-11 w-full rounded-xl border border-border bg-white pl-11 pr-4 text-sm text-text-primary transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+      />
+    </div>
+  </div>
+
+  <div class="flex items-center gap-6">
+    <div class="hidden items-center gap-2 border-r border-border pr-6 text-sm font-medium text-text-secondary xl:flex">
+      <app-shell-icon name="calendar" [size]="18"></app-shell-icon>
+      <span class="capitalize">{{ today }}</span>
+    </div>
+
+    <button
+      type="button"
+      class="group relative rounded-xl border border-border bg-white p-2.5 text-text-secondary shadow-sm transition-all hover:border-brand/20 hover:bg-active-soft hover:text-brand"
+    >
+      <app-shell-icon name="bell" [size]="20"></app-shell-icon>
+      <span class="absolute right-2 top-2 h-2.5 w-2.5 rounded-full border-2 border-white bg-red-500 ring-2 ring-red-500/20"></span>
+    </button>
+
+    <button
+      type="button"
+      class="group flex items-center gap-3 rounded-2xl border border-border bg-white px-4 py-1.5 shadow-sm transition-all hover:border-brand/20 hover:bg-active-soft"
+    >
+      <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/10 text-brand">
+        <app-shell-icon name="user" [size]="20"></app-shell-icon>
+      </div>
+      <div class="flex flex-col items-start leading-tight">
+        <span class="text-sm font-bold text-text-primary">{{ userName }}</span>
+        <span class="text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+          {{ userRole }}
+        </span>
+      </div>
+      <app-shell-icon
+        name="chevronDown"
+        [size]="14"
+        className="text-text-secondary transition-colors group-hover:text-brand"
+      ></app-shell-icon>
+    </button>
+  </div>
+</header>
