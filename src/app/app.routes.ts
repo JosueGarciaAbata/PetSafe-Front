@@ -49,9 +49,7 @@ export const routes: Routes = [
         canActivate: [authGuard],
         data: { roles: adminRoles },
         loadComponent: () =>
-          import('@app/internal-section-page/internal-section-page.component').then(
-            (m) => m.InternalSectionPageComponent,
-          ),
+          import('@app/owners/owners-page.component').then((m) => m.OwnersPageComponent),
       },
       {
         path: 'pets',

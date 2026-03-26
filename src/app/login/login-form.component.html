@@ -39,11 +39,11 @@
         />
 
         @if (form.controls.correo.touched && form.controls.correo.hasError('required')) {
-          <mat-error>El correo es obligatorio.</mat-error>
+          <mat-error>{{ validationMessages.correoRequired }}</mat-error>
         }
 
         @if (form.controls.correo.touched && form.controls.correo.hasError('email')) {
-          <mat-error>Ingresa un correo valido.</mat-error>
+          <mat-error>{{ validationMessages.correoInvalid }}</mat-error>
         }
       </mat-form-field>
     </div>
@@ -107,7 +107,7 @@
         </button>
 
         @if (form.controls.password.touched && form.controls.password.hasError('required')) {
-          <mat-error>La contrasena es obligatoria.</mat-error>
+          <mat-error>{{ validationMessages.passwordRequired }}</mat-error>
         }
       </mat-form-field>
     </div>
