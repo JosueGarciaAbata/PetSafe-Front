@@ -1,0 +1,213 @@
+<div class="fixed inset-0 z-[120] bg-black/40 backdrop-blur-[2px]" (click)="close()"></div>
+
+<div class="fixed inset-0 z-[130] flex items-center justify-center p-4">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="save()"
+    novalidate
+    class="flex w-full max-w-[720px] max-h-[90vh] flex-col overflow-hidden rounded-[16px] border border-border bg-card shadow-2xl"
+  >
+    <div class="shrink-0 border-b border-border bg-white px-6 py-5">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex flex-col gap-1">
+          <h2 class="text-xl font-bold text-text-primary">Editar propietario</h2>
+          <p class="text-sm text-text-secondary">Actualiza la informacion del cliente.</p>
+        </div>
+
+        <button
+          type="button"
+          (click)="close()"
+          [disabled]="isSaving"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full text-text-secondary transition-all hover:bg-background hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-60"
+          aria-label="Cerrar modal"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <path d="M6 6l12 12M18 6 6 18"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6">
+      <div class="flex flex-col gap-6">
+        <section class="flex flex-col gap-5">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-brand">Datos personales</h3>
+
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Nombres</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
+                <input
+                  matInput
+                  formControlName="firstName"
+                  type="text"
+                  placeholder="Ej. Adriana"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                />
+                @if (form.controls.firstName.touched && form.controls.firstName.hasError('required')) {
+                  <mat-error>Los nombres son obligatorios.</mat-error>
+                }
+                @if (form.controls.firstName.touched && form.controls.firstName.hasError('maxlength')) {
+                  <mat-error>Los nombres no pueden superar los {{ nameMaxLength }} caracteres.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Apellidos</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
+                <input
+                  matInput
+                  formControlName="lastName"
+                  type="text"
+                  placeholder="Ej. Montes"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                />
+                @if (form.controls.lastName.touched && form.controls.lastName.hasError('required')) {
+                  <mat-error>Los apellidos son obligatorios.</mat-error>
+                }
+                @if (form.controls.lastName.touched && form.controls.lastName.hasError('maxlength')) {
+                  <mat-error>Los apellidos no pueden superar los {{ nameMaxLength }} caracteres.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Genero</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
+                <mat-select formControlName="gender">
+                  @for (option of genderOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Fecha de nacimiento</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
+                <input
+                  matInput
+                  formControlName="birthDate"
+                  type="date"
+                  [attr.min]="minBirthDate"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                />
+                @if (form.controls.birthDate.touched && form.controls.birthDate.hasError('minDate')) {
+                  <mat-error>La fecha de nacimiento debe ser {{ minBirthDate }} o posterior.</mat-error>
+                }
+                @if (form.controls.birthDate.touched && form.controls.birthDate.hasError('invalidDate')) {
+                  <mat-error>Ingresa una fecha de nacimiento valida.</mat-error>
+                }
+                <mat-hint>Opcional. Ano minimo 1970.</mat-hint>
+              </mat-form-field>
+            </div>
+          </div>
+        </section>
+
+        <section class="flex flex-col gap-5">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-brand">Contacto</h3>
+
+          <div class="grid grid-cols-1 gap-5">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Telefono</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
+                <input
+                  matInput
+                  formControlName="phone"
+                  type="tel"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="0991234567"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                />
+                @if (form.controls.phone.touched && form.controls.phone.hasError('pattern')) {
+                  <mat-error>El telefono solo debe contener numeros.</mat-error>
+                }
+                <mat-hint>Opcional. Solo numeros.</mat-hint>
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Direccion</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
+                <input
+                  matInput
+                  formControlName="address"
+                  type="text"
+                  placeholder="Ej. Calle Mayor 12, Madrid"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                />
+                @if (form.controls.address.touched && form.controls.address.hasError('maxlength')) {
+                  <mat-error>
+                    La direccion no puede superar los {{ addressMaxLength }} caracteres.
+                  </mat-error>
+                }
+                <mat-hint>Opcional. Maximo {{ addressMaxLength }} caracteres.</mat-hint>
+                <mat-hint align="end">{{ form.controls.address.value.length }}/{{ addressMaxLength }}</mat-hint>
+              </mat-form-field>
+            </div>
+          </div>
+        </section>
+
+        <section class="flex flex-col gap-5">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-brand">Notas</h3>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-text-primary">Observaciones</label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
+              <textarea
+                matInput
+                formControlName="notes"
+                rows="3"
+                placeholder="Notas internas del cliente"
+                class="text-sm text-text-primary placeholder:text-text-secondary/50"
+              ></textarea>
+              @if (form.controls.notes.touched && form.controls.notes.hasError('maxlength')) {
+                <mat-error>
+                  Las observaciones no pueden superar los {{ notesMaxLength }} caracteres.
+                </mat-error>
+              }
+              <mat-hint>Opcional. Maximo {{ notesMaxLength }} caracteres.</mat-hint>
+              <mat-hint align="end">{{ form.controls.notes.value.length }}/{{ notesMaxLength }}</mat-hint>
+            </mat-form-field>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="shrink-0 border-t border-border bg-white px-6 py-5">
+      @if (errorMessage) {
+        <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">
+          {{ errorMessage }}
+        </div>
+      }
+
+      <div class="flex items-center justify-end gap-3">
+        <button
+          type="button"
+          (click)="close()"
+          [disabled]="isSaving"
+          class="cursor-pointer rounded-xl px-6 py-3 text-sm font-bold text-text-secondary transition-all hover:bg-background disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          [disabled]="isSaving"
+          class="cursor-pointer rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {{ isSaving ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+      </div>
+    </div>
+  </form>
+</div>

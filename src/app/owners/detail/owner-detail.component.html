@@ -1,0 +1,298 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-6 pb-12">
+  <button
+    type="button"
+    (click)="goBack()"
+    class="inline-flex items-center gap-2 self-start text-sm font-medium text-text-secondary transition-colors hover:text-brand"
+  >
+    <svg
+      viewBox="0 0 24 24"
+      class="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="m15 18-6-6 6-6"></path>
+    </svg>
+    <span>Volver a propietarios</span>
+  </button>
+
+  <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    @if (isLoading && !owner) {
+      <header class="flex flex-col gap-2">
+        <div class="h-8 w-72 animate-pulse rounded-lg bg-background"></div>
+        <div class="h-4 w-96 animate-pulse rounded-lg bg-background"></div>
+      </header>
+      <div class="flex gap-3">
+        <div class="h-11 w-44 animate-pulse rounded-xl bg-background"></div>
+        <div class="h-11 w-44 animate-pulse rounded-xl bg-background"></div>
+      </div>
+    } @else if (owner) {
+      <header class="flex flex-col gap-1">
+        <h1 class="text-[28px] font-bold text-text-primary">{{ buildFullName() }}</h1>
+        <p class="text-base text-text-secondary">
+          Detalle del propietario y su informacion principal
+        </p>
+      </header>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          (click)="openEditOwnerModal()"
+          class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background"
+        >
+          <span>Editar propietario</span>
+        </button>
+
+        <!--  <button
+          type="button"
+          class="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90"
+        >
+          <span>Registrar mascota</span>
+        </button> -->
+      </div>
+    } @else {
+      <header class="flex flex-col gap-2">
+        <div class="h-8 w-72 animate-pulse rounded-lg bg-background"></div>
+        <div class="h-4 w-96 animate-pulse rounded-lg bg-background"></div>
+      </header>
+    }
+  </div>
+
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <div class="flex flex-col gap-6 lg:col-span-1">
+      @if (isLoading && !owner) {
+        <section class="rounded-[16px] border border-border bg-card p-6 shadow-sm">
+          <div class="flex flex-col items-center gap-4 text-center">
+            <div class="h-24 w-24 animate-pulse rounded-full bg-background"></div>
+            <div class="flex flex-col gap-2">
+              <div class="h-6 w-40 animate-pulse rounded-lg bg-background"></div>
+              <div class="h-4 w-28 animate-pulse rounded-lg bg-background"></div>
+            </div>
+          </div>
+
+          <div class="my-6 h-px bg-border"></div>
+
+          <div class="flex flex-col gap-4">
+            <div class="h-8 w-full animate-pulse rounded-lg bg-background"></div>
+            <div class="h-8 w-full animate-pulse rounded-lg bg-background"></div>
+            <div class="h-8 w-full animate-pulse rounded-lg bg-background"></div>
+            <div class="h-8 w-full animate-pulse rounded-lg bg-background"></div>
+          </div>
+        </section>
+
+        <section class="rounded-[16px] border border-border bg-white p-6 shadow-sm">
+          <div class="h-5 w-32 animate-pulse rounded-lg bg-background"></div>
+          <div class="mt-4 h-24 animate-pulse rounded-xl bg-background"></div>
+        </section>
+      } @else if (owner) {
+        <section
+          class="flex flex-col gap-6 rounded-[16px] border border-border bg-card p-6 shadow-sm"
+        >
+          <div class="flex flex-col items-center gap-3 text-center">
+            <div
+              class="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white bg-active-soft shadow-md"
+            >
+              <span class="text-2xl font-bold uppercase text-brand">{{ buildInitials() }}</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-xl font-bold text-text-primary">{{ buildFullName() }}</span>
+              <span class="text-sm text-text-secondary"
+                >ID: {{ owner.person.identification ?? owner.id }}</span
+              >
+            </div>
+          </div>
+
+          <div class="h-px bg-border"></div>
+
+          <div class="flex flex-col gap-4">
+            <div class="flex items-center gap-3">
+              <div
+                class="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-white text-text-secondary"
+              >
+                G
+              </div>
+              <div class="flex flex-col">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary"
+                  >Genero</span
+                >
+                <span class="text-sm font-semibold text-text-primary">{{
+                  buildGenderLabel()
+                }}</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <div
+                class="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-white text-text-secondary"
+              >
+                @
+              </div>
+              <div class="flex flex-col">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary"
+                  >Correo</span
+                >
+                <span class="text-sm font-semibold text-text-primary">{{
+                  owner.email ?? 'Sin correo registrado'
+                }}</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <div
+                class="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-white text-text-secondary"
+              >
+                T
+              </div>
+              <div class="flex flex-col">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary"
+                  >Telefono</span
+                >
+                <span class="text-sm font-semibold text-text-primary">{{
+                  owner.person.phone ?? 'Sin telefono registrado'
+                }}</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <div
+                class="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-white text-text-secondary"
+              >
+                D
+              </div>
+              <div class="flex flex-col">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary"
+                  >Direccion</span
+                >
+                <span class="text-sm font-semibold text-text-primary">{{
+                  owner.person.address ?? 'Sin direccion registrada'
+                }}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="flex flex-col gap-4 rounded-[16px] border border-border bg-white p-6 shadow-sm"
+        >
+          <h3 class="text-sm font-bold text-text-primary">Observaciones</h3>
+          <div class="rounded-xl border border-dashed border-border bg-background/70 p-4">
+            <p class="text-sm text-text-secondary">
+              {{ owner.notes ?? 'Sin observaciones registradas para este cliente.' }}
+            </p>
+          </div>
+        </section>
+      } @else {
+        <section class="rounded-[16px] border border-border bg-card p-6 shadow-sm">
+          <div class="h-24 animate-pulse rounded-[16px] bg-background"></div>
+        </section>
+
+        <section class="rounded-[16px] border border-border bg-white p-6 shadow-sm">
+          <div class="h-24 animate-pulse rounded-[16px] bg-background"></div>
+        </section>
+      }
+    </div>
+
+    <div class="flex flex-col gap-6 lg:col-span-2">
+      <section class="flex flex-col gap-4">
+        <div class="flex items-center justify-between gap-2 px-1">
+          <h3 class="text-[17px] font-bold text-text-primary">Mascotas asociadas</h3>
+          @if (!isPetsLoading && pets.length > 0) {
+            <span class="text-xs font-medium text-text-secondary">{{ pets.length }} cargadas</span>
+          }
+        </div>
+
+        @if (isPetsLoading) {
+          <div class="rounded-[16px] border border-border bg-card p-6 shadow-sm">
+            <div class="flex flex-col gap-4">
+              <div class="h-5 w-40 animate-pulse rounded-lg bg-background"></div>
+              <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div class="h-16 animate-pulse rounded-xl bg-background"></div>
+                <div class="h-16 animate-pulse rounded-xl bg-background"></div>
+              </div>
+            </div>
+          </div>
+        } @else if (loadPetError) {
+          <div
+            class="rounded-[16px] border border-border bg-card p-6 text-sm text-text-secondary shadow-sm"
+          >
+            {{ loadPetError }}
+          </div>
+        } @else if (pets.length === 0) {
+          <div
+            class="rounded-[16px] border border-border bg-card p-8 text-center text-sm text-text-secondary shadow-sm"
+          >
+            Sin mascotas asociadas
+          </div>
+        } @else {
+          <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+            @for (pet of pets; track pet.id) {
+              <article
+                class="flex flex-col gap-2 rounded-[16px] border border-border bg-card p-4 shadow-sm"
+              >
+                <div class="flex items-center justify-between gap-3">
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="flex h-11 w-11 items-center justify-center rounded-full bg-active-soft text-sm font-bold uppercase text-brand"
+                    >
+                      {{ pet.name.slice(0, 1) }}
+                    </div>
+                    <div class="flex flex-col">
+                      <span class="text-sm font-bold text-text-primary">{{ pet.name }}</span>
+                      <span class="text-xs text-text-secondary"
+                        >{{ buildPetSpeciesBreedLabel(pet) }}</span
+                      >
+                    </div>
+                  </div>
+                  <div
+                    class="rounded-full border border-border bg-white px-3 py-1 text-[11px] font-semibold text-text-secondary"
+                  >
+                    #{{ pet.id }}
+                  </div>
+                </div>
+                <div class="flex flex-wrap gap-2 text-[11px] text-text-secondary">
+                  <span class="rounded-full bg-background px-2.5 py-1">{{ buildPetColorLabel(pet) }}</span>
+                  <span class="rounded-full bg-background px-2.5 py-1">
+                    Nacimiento: {{ pet.birthDate ? pet.birthDate.slice(0, 10) : 'No registrada' }}
+                  </span>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </section>
+
+      <!--   <section class="flex flex-col gap-4">
+        <div class="flex items-center gap-2 px-1">
+          <h3 class="text-[17px] font-bold text-text-primary">Actividad reciente</h3>
+        </div>
+        <div class="rounded-[16px] border border-border bg-card p-8 shadow-sm">
+          <div class="flex flex-col items-center gap-3 text-center">
+            <div
+              class="flex h-12 w-12 items-center justify-center rounded-full bg-background text-text-secondary"
+            >
+              A
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-sm font-bold text-text-primary">Pendiente de cargar actividad</span>
+              <p class="text-xs text-text-secondary">
+                Aqui se mostrara el historial reciente del cliente.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section> -->
+    </div>
+  </div>
+
+  @if (isEditOwnerModalOpen && owner) {
+    <app-edit-owner-modal
+      [owner]="owner"
+      [isSaving]="isEditOwnerSaving"
+      [errorMessage]="editOwnerErrorMessage"
+      (closed)="closeEditOwnerModal()"
+      (saved)="saveEditOwnerDraft($event)"
+    />
+  }
+</div>

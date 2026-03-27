@@ -1,3 +1,38 @@
-/* You can add global styles to this file, and also import other style files */
+@config '../tailwind.config.js';
+@import 'tailwindcss';
 
-@import "tailwindcss";
+@theme {
+  --font-sans: "Onest", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue",
+    Arial, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+:root {
+  --ps-brand: #2f605e;
+  --ps-primary: #1e3a8a;
+  --ps-background: #eff3f5;
+  --ps-card: #f8fafc;
+  --ps-active-soft: #eaf3f2;
+  --ps-border: #e4e8ee;
+  --ps-text-primary: #1f2937;
+  --ps-text-secondary: #6b7280;
+  --ps-success-bg: #ecfdf3;
+  --ps-success-text: #16a34a;
+  --ps-badge-blue-bg: #eef4ff;
+  --ps-badge-blue-text: #3b82f6;
+  --ps-badge-purple-bg: #f5f0ff;
+  --ps-badge-purple-text: #8b5cf6;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--ps-background);
+  color: var(--ps-text-primary);
+  font-family: var(--font-sans);
+}

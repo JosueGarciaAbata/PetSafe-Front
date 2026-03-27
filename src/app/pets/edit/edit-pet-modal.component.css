@@ -1,0 +1,52 @@
+:host {
+  display: block;
+}
+
+:host .pets-field {
+  --mat-form-field-container-height: 48px;
+  --mat-form-field-container-vertical-padding: 12px;
+  --mdc-outlined-text-field-container-shape: 12px;
+  --mdc-outlined-text-field-container-color: #ffffff;
+  --mdc-outlined-text-field-outline-color: var(--ps-border);
+  --mdc-outlined-text-field-hover-outline-color: var(--ps-border);
+  --mdc-outlined-text-field-focus-outline-color: var(--ps-brand);
+  --mdc-outlined-text-field-caret-color: var(--ps-brand);
+  --mdc-outlined-text-field-focus-label-text-color: var(--ps-brand);
+}
+
+:host ::ng-deep .pets-field .mat-mdc-form-field-subscript-wrapper {
+  padding-inline: 4px;
+}
+
+:host ::ng-deep .pets-field .mat-mdc-form-field-infix {
+  min-height: 48px;
+  padding-top: 13px;
+  padding-bottom: 13px;
+}
+
+:host ::ng-deep .pets-radio-option {
+  display: block;
+  box-sizing: border-box;
+  min-width: 0;
+  --mdc-radio-selected-icon-color: var(--ps-brand);
+  --mdc-radio-selected-hover-icon-color: var(--ps-brand);
+  --mdc-radio-selected-focus-icon-color: var(--ps-brand);
+  --mdc-radio-unselected-icon-color: var(--ps-text-secondary);
+}
+
+:host ::ng-deep .pets-radio-option .mdc-form-field {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+:host ::ng-deep .pets-radio-option .mdc-label {
+  overflow: hidden;
+  color: var(--ps-text-primary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -1,0 +1,122 @@
+<div class="flex h-screen w-full overflow-hidden bg-background font-sans">
+  <div class="relative flex w-full items-center justify-center overflow-hidden p-6 sm:p-12 lg:w-[46%]">
+    <div class="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand/5 blur-[120px]"></div>
+
+    <div class="absolute left-8 top-8 lg:hidden">
+      <app-logo [className]="'scale-90'"></app-logo>
+    </div>
+
+    <div class="relative z-10 flex w-full max-w-[500px] flex-col items-center rounded-[16px] border border-border bg-card p-8 shadow-sm sm:p-10">
+      <app-logo [className]="'mb-6'"></app-logo>
+
+      <div class="mb-10 text-center">
+        <h2 class="mb-4 text-[30px] font-bold leading-tight tracking-tight text-text-primary sm:text-[32px]">
+          Recuperar contrasena
+        </h2>
+        <p class="mx-auto max-w-[360px] text-base leading-relaxed text-text-secondary">
+          Ingresa tu correo electronico y te enviaremos instrucciones para restablecer tu contrasena.
+        </p>
+      </div>
+
+      @if (!isSubmitted) {
+        <form [formGroup]="form" (ngSubmit)="handleSubmit()" class="flex w-full flex-col gap-6">
+          <div class="flex flex-col gap-2">
+            <label class="ml-1 text-sm font-medium text-text-primary">Correo electronico</label>
+
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+              <span matPrefix class="ml-3 mr-3 inline-flex text-text-secondary">
+                <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M4 6.75h16v10.5H4z"></path>
+                  <path d="m4.5 7.25 7.5 6 7.5-6"></path>
+                </svg>
+              </span>
+              <input
+                matInput
+                type="email"
+                placeholder="ejemplo@correo.com"
+                formControlName="email"
+                autocomplete="email"
+                [disabled]="isLoading"
+                class="text-text-primary placeholder:text-text-secondary/40"
+              />
+
+              @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+                <mat-error>El correo es obligatorio.</mat-error>
+              }
+
+              @if (form.controls.email.touched && form.controls.email.hasError('email')) {
+                <mat-error>Ingresa un correo valido.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="isLoading"
+            class="mt-1 flex h-[48px] w-full items-center justify-center gap-2 rounded-[10px] !bg-primary font-semibold !text-white shadow-sm transition-colors hover:!opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            @if (isLoading) {
+              <span class="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+              <span>Enviando...</span>
+            } @else {
+              <span>Enviar instrucciones</span>
+            }
+          </button>
+        </form>
+      } @else {
+        <div class="w-full flex flex-col gap-4">
+          <div class="flex items-start gap-3 rounded-[10px] border border-success-bg bg-success-bg p-4">
+            <svg
+              viewBox="0 0 24 24"
+              class="mt-0.5 h-5 w-5 shrink-0 text-success-text"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M9 12.75 11.25 15 15 9.75" stroke-linecap="round" stroke-linejoin="round"></path>
+              <circle cx="12" cy="12" r="9"></circle>
+            </svg>
+            <p class="text-sm font-medium leading-snug text-success-text">
+              Revisa tu correo electronico para continuar con el proceso. Hemos enviado las instrucciones a
+              <span class="font-bold">{{ submittedEmail }}</span>.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            (click)="resetForm()"
+            class="self-center mt-2 text-sm text-text-secondary transition-colors hover:text-text-primary"
+          >
+            ¿No recibiste el correo? Intentar de nuevo
+          </button>
+        </div>
+      }
+
+      <a routerLink="/login" class="mt-10 flex items-center gap-2 text-sm font-medium text-primary transition-all hover:underline">
+        <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M15 19 8 12l7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        Volver al inicio de sesion
+      </a>
+    </div>
+  </div>
+
+  <div class="relative hidden h-full lg:flex lg:w-[54%]">
+    @if (!heroImageFailed) {
+      <img
+        [src]="heroImage"
+        alt="Young female veterinarian with a puppy"
+        class="absolute inset-0 h-full w-full object-cover"
+        (error)="onHeroImageError()"
+      />
+    } @else {
+      <div class="absolute inset-0 bg-[linear-gradient(135deg,var(--ps-active-soft)_0%,var(--ps-background)_42%,var(--ps-border)_100%)]"></div>
+    }
+
+    <div class="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-brand/20"></div>
+    <div class="pointer-events-none absolute inset-0 bg-brand/10"></div>
+    <div class="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-background to-transparent"></div>
+  </div>
+</div>

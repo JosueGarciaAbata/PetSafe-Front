@@ -1,0 +1,29 @@
+:host {
+  display: block;
+}
+
+:host .owners-field {
+  --mat-form-field-container-height: 48px;
+  --mat-form-field-container-vertical-padding: 12px;
+  --mdc-outlined-text-field-container-shape: 12px;
+  --mdc-outlined-text-field-container-color: #ffffff;
+  --mdc-outlined-text-field-outline-color: var(--ps-border);
+  --mdc-outlined-text-field-hover-outline-color: var(--ps-border);
+  --mdc-outlined-text-field-focus-outline-color: var(--ps-brand);
+  --mdc-outlined-text-field-caret-color: var(--ps-brand);
+  --mdc-outlined-text-field-focus-label-text-color: var(--ps-brand);
+}
+
+:host ::ng-deep .owners-search-field .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+:host ::ng-deep .owners-field .mat-mdc-form-field-infix {
+  min-height: 48px;
+  padding-top: 13px;
+  padding-bottom: 13px;
+}
+
+:host ::ng-deep .owners-search-field .mat-mdc-form-field-infix {
+  padding-left: 0;
+}
