@@ -11,6 +11,7 @@ import {
   EMPTY_PAGINATION_META,
   PaginationMeta,
 } from '@app/shared/pagination/pagination.model';
+import { ClientTutorBasicApiResponse } from '@app/owners/models/client-tutor-basic.model';
 import { CreatePetModalComponent } from '../create/create-pet-modal.component';
 import { PetDetailComponent } from '../detail/pet-detail.component';
 import { PetListItemApiResponse } from '../models/pet-list.model';
@@ -38,10 +39,19 @@ export class PetsPageComponent implements OnInit {
   protected loadError: string | null = null;
   protected isCreateModalOpen = false;
   protected selectedPetId: string | null = null;
+  protected pendingTutor: ClientTutorBasicApiResponse | null = null;
 
   ngOnInit(): void {
-    const state = history.state as { petId?: string | number } | null;
+    const state = history.state as
+      | {
+          petId?: string | number;
+          openCreateModal?: boolean;
+          initialTutor?: ClientTutorBasicApiResponse | null;
+        }
+      | null;
     this.selectedPetId = state?.petId != null ? String(state.petId) : null;
+    this.pendingTutor = state?.initialTutor ?? null;
+    this.isCreateModalOpen = Boolean(state?.openCreateModal);
     void this.loadPets(1);
   }
 
@@ -56,11 +66,13 @@ export class PetsPageComponent implements OnInit {
   }
 
   protected openCreateModal(): void {
+    this.pendingTutor = null;
     this.isCreateModalOpen = true;
   }
 
   protected closeCreateModal(): void {
     this.isCreateModalOpen = false;
+    this.pendingTutor = null;
   }
 
   protected openPetDetail(pet: PetListItemApiResponse): void {

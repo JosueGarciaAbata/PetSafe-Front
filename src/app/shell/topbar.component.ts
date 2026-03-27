@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { AuthService } from '@app/core/auth/auth.service';
 import { ShellIconComponent } from './shell-icon.component';
 
@@ -11,6 +11,8 @@ import { ShellIconComponent } from './shell-icon.component';
 })
 export class TopBarComponent {
   private readonly authService = inject(AuthService);
+  @Input() sidebarOpen = true;
+  @Output() readonly toggleSidebar = new EventEmitter<void>();
 
   protected readonly today = new Intl.DateTimeFormat('es-ES', {
     weekday: 'long',
