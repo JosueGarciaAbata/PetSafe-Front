@@ -107,6 +107,16 @@ export class OwnerDetailComponent {
     return mapClientGenderLabel(this.owner?.person.gender);
   }
 
+  protected buildPetSpeciesBreedLabel(pet: ClientPetApiResponse): string {
+    const species = pet.species?.name?.trim() || 'Sin especie registrada';
+    const breed = pet.breed?.name?.trim() || 'Sin raza registrada';
+    return `${species} - ${breed}`;
+  }
+
+  protected buildPetColorLabel(pet: ClientPetApiResponse): string {
+    return pet.color?.name?.trim() || 'Sin color registrado';
+  }
+
   private async loadOwner(
     ownerId: string,
     requestToken: number,

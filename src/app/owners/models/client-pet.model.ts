@@ -17,7 +17,7 @@ export interface ClientPetApiResponse {
   id: number;
   name: string;
   birthDate: string | null;
-  species: ClientPetSpeciesApiResponse;
-  breed: ClientPetBreedApiResponse;
-  color: ClientPetColorApiResponse;
+  species: ClientPetSpeciesApiResponse | null;
+  breed: ClientPetBreedApiResponse | null;
+  color: ClientPetColorApiResponse | null;
 }

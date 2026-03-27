@@ -5,6 +5,10 @@ import { buildApiUrl } from '@app/core/config/api.config';
 import { CreateClientRequest } from '../models/client-create.model';
 import { ClientPetApiResponse } from '../models/client-pet.model';
 import { ClientResponseApiResponse } from '../models/client-detail.model';
+import {
+  ClientTutorBasicListApiResponse,
+  ClientTutorBasicQuery,
+} from '../models/client-tutor-basic.model';
 import { UpdateClientRequest } from '../models/client-update.model';
 import {
   ClientSummaryListApiResponse,
@@ -16,6 +20,7 @@ export class OwnersApiService {
   private readonly http = inject(HttpClient);
   private readonly listUrl = buildApiUrl('clients/summary/list');
   private readonly createUrl = buildApiUrl('clients');
+  private readonly tutorsBasicUrl = buildApiUrl('clients/tutors/basic');
 
   listSummary(query: ClientSummaryQuery): Observable<ClientSummaryListApiResponse> {
     let params = new HttpParams()
@@ -35,6 +40,23 @@ export class OwnersApiService {
 
   createClient(payload: CreateClientRequest): Observable<unknown> {
     return this.http.post<unknown>(this.createUrl, payload);
+  }
+
+  listBasicTutors(
+    query: ClientTutorBasicQuery,
+  ): Observable<ClientTutorBasicListApiResponse> {
+    let params = new HttpParams()
+      .set('page', query.page)
+      .set('limit', query.limit);
+
+    const searchTerm = query.search?.trim();
+    if (searchTerm) {
+      params = params.set('search', searchTerm);
+    }
+
+    return this.http.get<ClientTutorBasicListApiResponse>(this.tutorsBasicUrl, {
+      params,
+    });
   }
 
   updateClient(

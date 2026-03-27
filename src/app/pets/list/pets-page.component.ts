@@ -1,75 +1,189 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { PetApiResponse } from '../models/pet.model';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  inject,
+} from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { PaginationComponent } from '@app/shared/pagination/pagination.component';
+import {
+  EMPTY_PAGINATION_META,
+  PaginationMeta,
+} from '@app/shared/pagination/pagination.model';
+import { CreatePetModalComponent } from '../create/create-pet-modal.component';
 import { PetDetailComponent } from '../detail/pet-detail.component';
-
-const MOCK_PET: PetApiResponse = {
-  id: 'pet-001',
-  nombre: 'Luna',
-  especie: 'Perro',
-  raza: 'Golden Retriever',
-  imagen:
-    'https://images.unsplash.com/photo-1754080809425-fb52b95d1069?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnb2xkZW4lMjByZXRyaWV2ZXIlMjBoZWFkJTIwcG9ydHJhaXQlMjByb3VuZGVkfGVufDF8fHx8MTc3Mzg3NDE0N3ww',
-  tutor: {
-    id: '43f00bfc-aadb-4701-b67b-9f5832e43b70',
-    nombre: 'Adriana',
-    apellido: 'Montes',
-    contacto: '+34 612 345 678',
-    email: 'adriana.montes@email.com',
-    direccion: 'Calle Mayor 12, Madrid',
-  },
-  edad: '3 años',
-  genero: 'Hembra',
-  pesoKg: '26',
-  color: 'Dorado',
-  esterilizado: 'Sí',
-  fechaNacimiento: '2023-03-15',
-  observaciones: 'Alérgica a ciertos tipos de gramíneas. Muy dócil durante las consultas.',
-};
+import { PetListItemApiResponse } from '../models/pet-list.model';
+import { PetsApiService } from '../services/pets-api.service';
 
 @Component({
   selector: 'app-pets-page',
   standalone: true,
-  imports: [PetDetailComponent],
+  imports: [PaginationComponent, CreatePetModalComponent, PetDetailComponent],
   templateUrl: './pets-page.component.html',
   styleUrl: './pets-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PetsPageComponent {
-  protected readonly pets: readonly PetApiResponse[] = [MOCK_PET];
+export class PetsPageComponent implements OnInit {
+  private readonly petsApi = inject(PetsApiService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly pageSize = 10;
+  private requestVersion = 0;
+  private searchTimer?: ReturnType<typeof setTimeout>;
+
+  protected pets: PetListItemApiResponse[] = [];
+  protected meta: PaginationMeta = EMPTY_PAGINATION_META;
+  protected searchValue = '';
+  protected isLoading = false;
+  protected loadError: string | null = null;
+  protected isCreateModalOpen = false;
   protected selectedPetId: string | null = null;
 
-  protected get selectedPet(): PetApiResponse | null {
-    if (!this.selectedPetId) {
-      return null;
-    }
-
-    return this.pets.find((pet) => pet.id === this.selectedPetId) ?? null;
+  ngOnInit(): void {
+    const state = history.state as { petId?: string | number } | null;
+    this.selectedPetId = state?.petId != null ? String(state.petId) : null;
+    void this.loadPets(1);
   }
 
-  protected openPetDetail(pet: PetApiResponse): void {
-    this.selectedPetId = pet.id;
+  protected onSearchInput(value: string): void {
+    this.searchValue = value;
+    this.scheduleSearch();
+  }
+
+  protected onPageChange(page: number): void {
+    this.clearSearchTimer();
+    void this.loadPets(page);
+  }
+
+  protected openCreateModal(): void {
+    this.isCreateModalOpen = true;
+  }
+
+  protected closeCreateModal(): void {
+    this.isCreateModalOpen = false;
+  }
+
+  protected openPetDetail(pet: PetListItemApiResponse): void {
+    this.selectedPetId = String(pet.id);
   }
 
   protected closePetDetail(): void {
     this.selectedPetId = null;
   }
 
+  protected onCreateSaved(): void {
+    this.closeCreateModal();
+    this.clearSearchTimer();
+    void this.loadPets(1);
+  }
+
   protected getInitials(name: string): string {
-    return name.charAt(0).toUpperCase();
+    return name.trim().charAt(0).toUpperCase() || 'P';
   }
 
-  protected buildPetSubtitle(pet: PetApiResponse): string {
-    const species = pet.especie?.trim() || 'Sin especie registrada';
-    const breed = pet.raza?.trim() || 'Sin raza registrada';
-
-    return `${species} · ${breed}`;
+  protected buildPetSubtitle(pet: PetListItemApiResponse): string {
+    const species = pet.species?.name?.trim() || 'Sin especie registrada';
+    const breed = pet.breed?.name?.trim() || 'Sin raza registrada';
+    return `${species} - ${breed}`;
   }
 
-  protected buildTutorName(pet: PetApiResponse): string {
-    return `${pet.tutor.nombre} ${pet.tutor.apellido}`.trim();
+  protected buildTutorName(pet: PetListItemApiResponse): string {
+    return pet.tutorName?.trim() || 'Sin tutor registrado';
   }
 
-  protected buildBasicInfo(pet: PetApiResponse): string {
-    return `${pet.edad} · ${pet.genero} · ${pet.pesoKg} kg`;
+  protected buildTutorContact(pet: PetListItemApiResponse): string {
+    return pet.tutorContact?.trim() || 'Sin contacto registrado';
+  }
+
+  protected buildAgeLabel(pet: PetListItemApiResponse): string {
+    if (pet.ageYears === null || pet.ageYears === undefined) {
+      return 'Edad no registrada';
+    }
+
+    return `${pet.ageYears} ${pet.ageYears === 1 ? 'ano' : 'anos'}`;
+  }
+
+  protected buildSexLabel(pet: PetListItemApiResponse): string {
+    switch ((pet.sex ?? '').trim().toUpperCase()) {
+      case 'MACHO':
+        return 'Macho';
+      case 'HEMBRA':
+        return 'Hembra';
+      default:
+        return 'No especificado';
+    }
+  }
+
+  protected buildWeightLabel(pet: PetListItemApiResponse): string {
+    if (pet.currentWeight === null || pet.currentWeight === undefined) {
+      return 'Peso no registrado';
+    }
+
+    return `${pet.currentWeight} kg`;
+  }
+
+  protected buildBasicInfo(pet: PetListItemApiResponse): string {
+    return `${this.buildAgeLabel(pet)} - ${this.buildSexLabel(pet)} - ${this.buildWeightLabel(pet)}`;
+  }
+
+  protected buildBirthDateLabel(pet: PetListItemApiResponse): string {
+    if (!pet.birthDate) {
+      return 'Nacimiento no registrado';
+    }
+
+    return `Nacimiento: ${pet.birthDate.slice(0, 10)}`;
+  }
+
+  private scheduleSearch(): void {
+    this.clearSearchTimer();
+    this.searchTimer = setTimeout(() => {
+      void this.loadPets(1);
+    }, 300);
+  }
+
+  private clearSearchTimer(): void {
+    if (this.searchTimer !== undefined) {
+      clearTimeout(this.searchTimer);
+      this.searchTimer = undefined;
+    }
+  }
+
+  private async loadPets(page: number): Promise<void> {
+    const requestToken = ++this.requestVersion;
+    this.isLoading = true;
+    this.loadError = null;
+    this.pets = [];
+    this.cdr.detectChanges();
+
+    try {
+      const response = await firstValueFrom(
+        this.petsApi.list({
+          page,
+          limit: this.pageSize,
+          search: this.searchValue.trim() || undefined,
+        }),
+      );
+
+      if (requestToken !== this.requestVersion) {
+        return;
+      }
+
+      this.pets = response.data;
+      this.meta = response.meta;
+    } catch {
+      if (requestToken !== this.requestVersion) {
+        return;
+      }
+
+      this.loadError = 'No se pudo cargar el listado de mascotas.';
+      this.meta = EMPTY_PAGINATION_META;
+    } finally {
+      if (requestToken !== this.requestVersion) {
+        return;
+      }
+
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
   }
 }

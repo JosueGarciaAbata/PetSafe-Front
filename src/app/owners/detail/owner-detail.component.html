@@ -45,12 +45,12 @@
           <span>Editar propietario</span>
         </button>
 
-        <button
+        <!--  <button
           type="button"
           class="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90"
         >
           <span>Registrar mascota</span>
-        </button>
+        </button> -->
       </div>
     } @else {
       <header class="flex flex-col gap-2">
@@ -87,7 +87,9 @@
           <div class="mt-4 h-24 animate-pulse rounded-xl bg-background"></div>
         </section>
       } @else if (owner) {
-        <section class="flex flex-col gap-6 rounded-[16px] border border-border bg-card p-6 shadow-sm">
+        <section
+          class="flex flex-col gap-6 rounded-[16px] border border-border bg-card p-6 shadow-sm"
+        >
           <div class="flex flex-col items-center gap-3 text-center">
             <div
               class="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white bg-active-soft shadow-md"
@@ -171,7 +173,9 @@
           </div>
         </section>
 
-        <section class="flex flex-col gap-4 rounded-[16px] border border-border bg-white p-6 shadow-sm">
+        <section
+          class="flex flex-col gap-4 rounded-[16px] border border-border bg-white p-6 shadow-sm"
+        >
           <h3 class="text-sm font-bold text-text-primary">Observaciones</h3>
           <div class="rounded-xl border border-dashed border-border bg-background/70 p-4">
             <p class="text-sm text-text-secondary">
@@ -210,17 +214,23 @@
             </div>
           </div>
         } @else if (loadPetError) {
-          <div class="rounded-[16px] border border-border bg-card p-6 text-sm text-text-secondary shadow-sm">
+          <div
+            class="rounded-[16px] border border-border bg-card p-6 text-sm text-text-secondary shadow-sm"
+          >
             {{ loadPetError }}
           </div>
         } @else if (pets.length === 0) {
-          <div class="rounded-[16px] border border-border bg-card p-8 text-center text-sm text-text-secondary shadow-sm">
+          <div
+            class="rounded-[16px] border border-border bg-card p-8 text-center text-sm text-text-secondary shadow-sm"
+          >
             Sin mascotas asociadas
           </div>
         } @else {
           <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
             @for (pet of pets; track pet.id) {
-              <article class="flex flex-col gap-2 rounded-[16px] border border-border bg-card p-4 shadow-sm">
+              <article
+                class="flex flex-col gap-2 rounded-[16px] border border-border bg-card p-4 shadow-sm"
+              >
                 <div class="flex items-center justify-between gap-3">
                   <div class="flex items-center gap-3">
                     <div
@@ -231,7 +241,7 @@
                     <div class="flex flex-col">
                       <span class="text-sm font-bold text-text-primary">{{ pet.name }}</span>
                       <span class="text-xs text-text-secondary"
-                        >{{ pet.species.name }} - {{ pet.breed.name }}</span
+                        >{{ buildPetSpeciesBreedLabel(pet) }}</span
                       >
                     </div>
                   </div>
@@ -242,7 +252,7 @@
                   </div>
                 </div>
                 <div class="flex flex-wrap gap-2 text-[11px] text-text-secondary">
-                  <span class="rounded-full bg-background px-2.5 py-1">{{ pet.color.name }}</span>
+                  <span class="rounded-full bg-background px-2.5 py-1">{{ buildPetColorLabel(pet) }}</span>
                   <span class="rounded-full bg-background px-2.5 py-1">
                     Nacimiento: {{ pet.birthDate ? pet.birthDate.slice(0, 10) : 'No registrada' }}
                   </span>
@@ -253,13 +263,15 @@
         }
       </section>
 
-      <section class="flex flex-col gap-4">
+      <!--   <section class="flex flex-col gap-4">
         <div class="flex items-center gap-2 px-1">
           <h3 class="text-[17px] font-bold text-text-primary">Actividad reciente</h3>
         </div>
         <div class="rounded-[16px] border border-border bg-card p-8 shadow-sm">
           <div class="flex flex-col items-center gap-3 text-center">
-            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-background text-text-secondary">
+            <div
+              class="flex h-12 w-12 items-center justify-center rounded-full bg-background text-text-secondary"
+            >
               A
             </div>
             <div class="flex flex-col gap-1">
@@ -270,11 +282,11 @@
             </div>
           </div>
         </div>
-      </section>
+      </section> -->
     </div>
   </div>
 
-    @if (isEditOwnerModalOpen && owner) {
+  @if (isEditOwnerModalOpen && owner) {
     <app-edit-owner-modal
       [owner]="owner"
       (closed)="closeEditOwnerModal()"

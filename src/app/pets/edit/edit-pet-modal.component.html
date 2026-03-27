@@ -5,7 +5,7 @@
     <div class="flex items-center justify-between border-b border-border bg-white px-6 py-5">
       <div class="flex flex-col gap-1">
         <h2 class="text-xl font-bold text-text-primary">Editar mascota</h2>
-        <p class="text-sm text-text-secondary">Actualiza la información básica del paciente.</p>
+        <p class="text-sm text-text-secondary">Actualiza la informacion basica del paciente.</p>
       </div>
 
       <button
@@ -29,30 +29,18 @@
 
     <div class="max-h-[70vh] overflow-y-auto p-6">
       <div class="flex flex-col gap-6">
-        <section class="flex flex-col gap-5">
-          <h3 class="text-sm font-bold uppercase tracking-wider text-brand">Identificación</h3>
+        <section class="grid gap-5">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-brand">Identificacion</h3>
 
           <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <div class="md:col-span-2 flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Tutor</label>
-              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
-                <input
-                  matInput
-                  type="text"
-                  [value]="buildTutorName()"
-                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
-                  readonly
-                />
-              </mat-form-field>
-            </div>
-
             <div class="flex flex-col gap-2">
               <label class="text-sm font-semibold text-text-primary">Nombre</label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
                 <input
                   matInput
                   type="text"
-                  [value]="pet.nombre"
+                  [ngModel]="name"
+                  (ngModelChange)="name = $event"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
               </mat-form-field>
@@ -64,38 +52,11 @@
                 <input
                   matInput
                   type="text"
-                  [ngModel]="speciesValue"
-                  (ngModelChange)="onSpeciesChanged($event)"
-                  [matAutocomplete]="speciesAuto"
-                  autocomplete="off"
+                  [value]="speciesName || 'Sin especie registrada'"
+                  readonly
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
-                @if (canCreateSpecies()) {
-                  <button
-                    matSuffix
-                    type="button"
-                    (click)="createSpecies()"
-                    class="ml-2 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[#2F605E]/15 bg-[#EAF3F2] text-sm font-bold text-[#2F605E] transition-all hover:bg-[#2F605E] hover:text-white"
-                    aria-label="Crear especie"
-                    title="Crear especie"
-                  >
-                    +
-                  </button>
-                }
               </mat-form-field>
-              <mat-autocomplete
-                #speciesAuto="matAutocomplete"
-                autoActiveFirstOption
-                (optionSelected)="selectSpecies($event.option.value)"
-              >
-                @for (option of speciesOptions(); track option) {
-                  <mat-option [value]="option">{{ option }}</mat-option>
-                }
-
-                @if (speciesValue.trim() && speciesOptions().length === 0) {
-                  <mat-option disabled>No se encontraron resultados</mat-option>
-                }
-              </mat-autocomplete>
             </div>
 
             <div class="flex flex-col gap-2 md:col-span-2">
@@ -104,85 +65,45 @@
                 <input
                   matInput
                   type="text"
-                  [ngModel]="breedValue"
-                  (ngModelChange)="onBreedChanged($event)"
-                  [matAutocomplete]="breedAuto"
-                  [disabled]="!speciesValue.trim()"
-                  [placeholder]="speciesValue.trim() ? 'Buscar o escribir raza' : 'Selecciona o escribe una especie primero'"
-                  autocomplete="off"
+                  [ngModel]="breedName"
+                  (ngModelChange)="breedName = $event"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
-                @if (canCreateBreed()) {
-                  <button
-                    matSuffix
-                    type="button"
-                    (click)="createBreed()"
-                    class="ml-2 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[#2F605E]/15 bg-[#EAF3F2] text-sm font-bold text-[#2F605E] transition-all hover:bg-[#2F605E] hover:text-white"
-                    aria-label="Crear raza"
-                    title="Crear raza"
-                  >
-                    +
-                  </button>
-                }
               </mat-form-field>
-              <mat-autocomplete
-                #breedAuto="matAutocomplete"
-                autoActiveFirstOption
-                (optionSelected)="selectBreed($event.option.value)"
-              >
-                @if (speciesValue.trim()) {
-                  @for (option of breedOptions(); track option) {
-                    <mat-option [value]="option">{{ option }}</mat-option>
-                  }
-
-                  @if (breedValue.trim() && breedOptions().length === 0) {
-                    <mat-option disabled>No se encontraron resultados</mat-option>
-                  }
-                }
-              </mat-autocomplete>
             </div>
           </div>
         </section>
 
-        <section class="flex flex-col gap-5">
-          <h3 class="text-sm font-bold uppercase tracking-wider text-brand">Datos básicos</h3>
+        <section class="grid gap-5">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-brand">Datos basicos</h3>
 
           <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div class="flex flex-col gap-2">
               <span class="text-sm font-semibold text-text-primary">Sexo</span>
-              <mat-radio-group [value]="editGender" class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <mat-radio-button
-                  value="Macho"
-                  (change)="setGender('Macho')"
-                  class="pets-radio-option w-full rounded-xl border border-border bg-white px-4 py-3"
-                  [class.border-brand]="editGender === 'Macho'"
-                  [class.bg-active-soft]="editGender === 'Macho'"
+              <div class="flex h-12 rounded-xl bg-background p-1">
+                <button
+                  type="button"
+                  (click)="setGender('Macho')"
+                  class="flex-1 rounded-lg text-xs font-bold transition-all"
+                  [class.bg-white]="editGender === 'Macho'"
+                  [class.text-brand]="editGender === 'Macho'"
+                  [class.shadow-sm]="editGender === 'Macho'"
+                  [class.text-text-secondary]="editGender !== 'Macho'"
                 >
                   Macho
-                </mat-radio-button>
-
-                <mat-radio-button
-                  value="Hembra"
-                  (change)="setGender('Hembra')"
-                  class="pets-radio-option w-full rounded-xl border border-border bg-white px-4 py-3"
-                  [class.border-brand]="editGender === 'Hembra'"
-                  [class.bg-active-soft]="editGender === 'Hembra'"
+                </button>
+                <button
+                  type="button"
+                  (click)="setGender('Hembra')"
+                  class="flex-1 rounded-lg text-xs font-bold transition-all"
+                  [class.bg-white]="editGender === 'Hembra'"
+                  [class.text-brand]="editGender === 'Hembra'"
+                  [class.shadow-sm]="editGender === 'Hembra'"
+                  [class.text-text-secondary]="editGender !== 'Hembra'"
                 >
                   Hembra
-                </mat-radio-button>
-              </mat-radio-group>
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Edad</label>
-              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
-                <input
-                  matInput
-                  type="text"
-                  [value]="pet.edad"
-                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
-                />
-              </mat-form-field>
+                </button>
+              </div>
             </div>
 
             <div class="flex flex-col gap-2">
@@ -191,21 +112,24 @@
                 <input
                   matInput
                   type="date"
-                  [value]="pet.fechaNacimiento ?? ''"
+                  [ngModel]="birthDate"
+                  (ngModelChange)="birthDate = $event"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
               </mat-form-field>
             </div>
 
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Peso (kg)</label>
+              <label class="text-sm font-semibold text-text-primary">Peso</label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
                 <input
                   matInput
                   type="number"
-                  [value]="pet.pesoKg"
+                  [ngModel]="weightKg"
+                  (ngModelChange)="weightKg = $event"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                <span matTextSuffix class="text-xs font-bold text-text-secondary">kg</span>
               </mat-form-field>
             </div>
 
@@ -215,63 +139,39 @@
                 <input
                   matInput
                   type="text"
-                  [ngModel]="colorValue"
-                  (ngModelChange)="onColorChanged($event)"
-                  [matAutocomplete]="colorAuto"
-                  autocomplete="off"
+                  [value]="colorName || 'Sin color registrado'"
+                  readonly
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
-                @if (canCreateColor()) {
-                  <button
-                    matSuffix
-                    type="button"
-                    (click)="createColor()"
-                    class="ml-2 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[#2F605E]/15 bg-[#EAF3F2] text-sm font-bold text-[#2F605E] transition-all hover:bg-[#2F605E] hover:text-white"
-                    aria-label="Crear color"
-                    title="Crear color"
-                  >
-                    +
-                  </button>
-                }
               </mat-form-field>
-              <mat-autocomplete
-                #colorAuto="matAutocomplete"
-                autoActiveFirstOption
-                (optionSelected)="selectColor($event.option.value)"
-              >
-                @for (option of colorOptions(); track option) {
-                  <mat-option [value]="option">{{ option }}</mat-option>
-                }
-
-                @if (colorValue.trim() && colorOptions().length === 0) {
-                  <mat-option disabled>No se encontraron resultados</mat-option>
-                }
-              </mat-autocomplete>
             </div>
 
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-2 md:col-span-2">
               <span class="text-sm font-semibold text-text-primary">Esterilizado</span>
-              <mat-radio-group [value]="editSterilized" class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <mat-radio-button
-                  value="Sí"
-                  (change)="setSterilized('Sí')"
-                  class="pets-radio-option w-full rounded-xl border border-border bg-white px-4 py-3"
-                  [class.border-brand]="editSterilized === 'Sí'"
-                  [class.bg-active-soft]="editSterilized === 'Sí'"
+              <div class="flex h-12 rounded-xl bg-background p-1">
+                <button
+                  type="button"
+                  (click)="setSterilized('Si')"
+                  class="flex-1 rounded-lg text-xs font-bold transition-all"
+                  [class.bg-white]="editSterilized === 'Si'"
+                  [class.text-brand]="editSterilized === 'Si'"
+                  [class.shadow-sm]="editSterilized === 'Si'"
+                  [class.text-text-secondary]="editSterilized !== 'Si'"
                 >
-                  Sí
-                </mat-radio-button>
-
-                <mat-radio-button
-                  value="No"
-                  (change)="setSterilized('No')"
-                  class="pets-radio-option w-full rounded-xl border border-border bg-white px-4 py-3"
-                  [class.border-brand]="editSterilized === 'No'"
-                  [class.bg-active-soft]="editSterilized === 'No'"
+                  Si
+                </button>
+                <button
+                  type="button"
+                  (click)="setSterilized('No')"
+                  class="flex-1 rounded-lg text-xs font-bold transition-all"
+                  [class.bg-white]="editSterilized === 'No'"
+                  [class.text-brand]="editSterilized === 'No'"
+                  [class.shadow-sm]="editSterilized === 'No'"
+                  [class.text-text-secondary]="editSterilized !== 'No'"
                 >
                   No
-                </mat-radio-button>
-              </mat-radio-group>
+                </button>
+              </div>
             </div>
           </div>
         </section>
