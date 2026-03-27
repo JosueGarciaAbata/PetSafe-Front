@@ -33,17 +33,17 @@
           matInput
           type="email"
           placeholder="ejemplo@correo.com"
-          formControlName="correo"
+          formControlName="email"
           autocomplete="email"
           class="text-text-primary placeholder:text-text-secondary/40"
         />
 
-        @if (form.controls.correo.touched && form.controls.correo.hasError('required')) {
-          <mat-error>El correo es obligatorio.</mat-error>
+        @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+          <mat-error>{{ validationMessages.emailRequired }}</mat-error>
         }
 
-        @if (form.controls.correo.touched && form.controls.correo.hasError('email')) {
-          <mat-error>Ingresa un correo valido.</mat-error>
+        @if (form.controls.email.touched && form.controls.email.hasError('email')) {
+          <mat-error>{{ validationMessages.emailInvalid }}</mat-error>
         }
       </mat-form-field>
     </div>
@@ -107,7 +107,7 @@
         </button>
 
         @if (form.controls.password.touched && form.controls.password.hasError('required')) {
-          <mat-error>La contrasena es obligatoria.</mat-error>
+          <mat-error>{{ validationMessages.passwordRequired }}</mat-error>
         }
       </mat-form-field>
     </div>

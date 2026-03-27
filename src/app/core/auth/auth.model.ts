@@ -1,26 +1,38 @@
 export interface AuthJwtPayload {
   sub?: string;
   correo?: string;
+  email?: string;
   exp?: number;
   iat?: number;
   roles?: string | readonly string[];
 }
 
 export interface AuthLoginRequest {
-  correo: string;
+  email: string;
   password: string;
 }
 
 export interface AuthLoginResponse {
-  access_token: string;
-  usuario: AuthUserDto;
+  accessToken: string;
+  user: AuthLoginUserResponse;
 }
 
-export interface AuthUserDto {
+export interface AuthLoginUserResponse {
+  id: number;
+  email: string;
+  roles: readonly string[];
+  firstName: string;
+  lastName: string;
+  isVet: boolean;
+}
+
+export interface AuthStoredUser {
   id: string;
   correo: string;
   nombres: string;
   apellidos: string;
+  roles: readonly string[];
+  isVet: boolean;
 }
 
 export interface AuthApiErrorResponse {

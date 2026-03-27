@@ -1,0 +1,42 @@
+<div class="flex flex-col items-center justify-between gap-4 border-t border-border bg-[#F8FAFC] p-6 sm:flex-row">
+  <span class="text-xs font-medium text-text-secondary">
+    Mostrando {{ startItem }}-{{ endItem }} de {{ meta.totalItems }} {{ itemLabel }}
+  </span>
+
+  <div class="flex flex-wrap items-center gap-1">
+    <button
+      type="button"
+      (click)="changePage(meta.currentPage - 1)"
+      [disabled]="!meta.hasPrevPage"
+      class="rounded-lg px-3 py-1.5 text-xs font-bold text-text-secondary transition-all hover:bg-[#EFF3F5] hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      Anterior
+    </button>
+
+    @for (page of visiblePages; track $index) {
+      @if (page === 'ellipsis') {
+        <span class="px-2 text-xs font-bold text-text-secondary">...</span>
+      } @else {
+        <button
+          type="button"
+          (click)="changePage(page)"
+          class="flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-xs font-bold transition-all hover:bg-[#EFF3F5] hover:text-text-primary"
+          [class.bg-active-soft]="meta.currentPage === page"
+          [class.text-brand]="meta.currentPage === page"
+          [class.text-text-secondary]="meta.currentPage !== page"
+        >
+          {{ page }}
+        </button>
+      }
+    }
+
+    <button
+      type="button"
+      (click)="changePage(meta.currentPage + 1)"
+      [disabled]="!meta.hasNextPage"
+      class="rounded-lg px-3 py-1.5 text-xs font-bold text-text-secondary transition-all hover:bg-[#EFF3F5] hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      Siguiente
+    </button>
+  </div>
+</div>

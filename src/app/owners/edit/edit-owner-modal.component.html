@@ -1,0 +1,155 @@
+<div class="fixed inset-0 z-[120] bg-black/40 backdrop-blur-[2px]" (click)="close()"></div>
+
+<div class="fixed inset-0 z-[130] flex items-center justify-center p-4">
+  <div class="w-full max-w-[720px] overflow-hidden rounded-[16px] border border-border bg-card shadow-2xl">
+    <div class="flex items-center justify-between border-b border-border bg-white px-6 py-5">
+      <div class="flex flex-col gap-1">
+        <h2 class="text-xl font-bold text-text-primary">Editar propietario</h2>
+        <p class="text-sm text-text-secondary">Actualiza la información del cliente.</p>
+      </div>
+
+      <button
+        type="button"
+        (click)="close()"
+        class="inline-flex h-10 w-10 items-center justify-center rounded-full text-text-secondary transition-all hover:bg-background hover:text-text-primary"
+        aria-label="Cerrar modal"
+      >
+        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M6 6l12 12M18 6 6 18"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="max-h-[70vh] overflow-y-auto p-6">
+      <div class="flex flex-col gap-6">
+        <section class="flex flex-col gap-5">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-brand">Datos personales</h3>
+
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Nombres</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
+                <input
+                  matInput
+                  type="text"
+                  [value]="firstName"
+                  (input)="setFirstName($any($event.target).value)"
+                  placeholder="Ej. Adriana"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                />
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Apellidos</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
+                <input
+                  matInput
+                  type="text"
+                  [value]="lastName"
+                  (input)="setLastName($any($event.target).value)"
+                  placeholder="Ej. Montes"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                />
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Género</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
+                <mat-select [value]="editGender" (valueChange)="setGender($event)">
+                  @for (option of genderOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Fecha de nacimiento</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
+                <input
+                  matInput
+                  type="date"
+                  [value]="birthDate"
+                  (input)="setBirthDate($any($event.target).value)"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                />
+              </mat-form-field>
+            </div>
+          </div>
+        </section>
+
+        <section class="flex flex-col gap-5">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-brand">Contacto</h3>
+
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Teléfono</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
+                <input
+                  matInput
+                  type="tel"
+                  [value]="phone"
+                  (input)="setPhone($any($event.target).value)"
+                  placeholder="+593 000 000 000"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                />
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2 md:col-span-2">
+              <label class="text-sm font-semibold text-text-primary">Dirección</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
+                <input
+                  matInput
+                  type="text"
+                  [value]="address"
+                  (input)="setAddress($any($event.target).value)"
+                  placeholder="Ej. Calle Mayor 12, Madrid"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                />
+              </mat-form-field>
+            </div>
+          </div>
+        </section>
+
+        <section class="flex flex-col gap-5">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-brand">Notas</h3>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-text-primary">Observaciones</label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owners-field w-full">
+              <textarea
+                matInput
+                rows="3"
+                [value]="notes"
+                (input)="setNotes($any($event.target).value)"
+                placeholder="Notas internas del cliente"
+                class="text-sm text-text-primary placeholder:text-text-secondary/50"
+              ></textarea>
+            </mat-form-field>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-3 border-t border-border bg-white px-6 py-5">
+      <button
+        type="button"
+        (click)="close()"
+        class="cursor-pointer rounded-xl px-6 py-3 text-sm font-bold text-text-secondary transition-all hover:bg-background"
+      >
+        Cancelar
+      </button>
+
+      <button
+        type="button"
+        (click)="save()"
+        class="cursor-pointer rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90"
+      >
+        Guardar cambios
+      </button>
+    </div>
+  </div>
+</div>
