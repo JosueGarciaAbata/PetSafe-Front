@@ -1,0 +1,342 @@
+import { CommonModule } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+} from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { debounceTime, distinctUntilChanged, firstValueFrom } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { PaginationComponent } from '@app/shared/pagination/pagination.component';
+import { EMPTY_PAGINATION_META, PaginationMeta } from '@app/shared/pagination/pagination.model';
+import { QueueApiService } from '../api/queue-api.service';
+import {
+  EMPTY_QUEUE_SUMMARY,
+  QUEUE_STATUS_FILTERS,
+  QueueEntryRecord,
+  QueueEntryStatus,
+  QueueEntryType,
+  QueueListQuery,
+  QueueStatusFilter,
+  QueueSummary,
+  buildQueueEntryTypeLabel,
+  buildQueuePatientSubtitle,
+  buildQueueStatusLabel,
+  buildQueueTimingLabel,
+  formatQueueTime,
+} from '../models/queue.model';
+
+@Component({
+  selector: 'app-queue-page',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, PaginationComponent],
+  templateUrl: './queue-page.component.html',
+  styleUrl: './queue-page.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class QueuePageComponent implements OnInit {
+  private readonly queueApi = inject(QueueApiService);
+  private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly pageSize = 15;
+  private requestVersion = 0;
+  private pendingEntryIdToReveal: number | null = null;
+
+  protected readonly searchControl = new FormControl('', { nonNullable: true });
+  protected readonly statusFilters = QUEUE_STATUS_FILTERS;
+  protected readonly todayLabel = new Intl.DateTimeFormat('es-ES', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date());
+
+  protected entries: readonly QueueEntryRecord[] = [];
+  protected summary: QueueSummary = EMPTY_QUEUE_SUMMARY;
+  protected paginationMeta: PaginationMeta = EMPTY_PAGINATION_META;
+  protected isLoading = false;
+  protected loadError: string | null = null;
+  protected isDetailPanelOpen = false;
+  protected isCancelModalOpen = false;
+  protected selectedEntryId: number | null = null;
+  protected entryPendingCancel: QueueEntryRecord | null = null;
+  protected activeStatusFilter: QueueStatusFilter = 'EN_ESPERA';
+
+  ngOnInit(): void {
+    const state = history.state as { entryId?: number } | null;
+    if (typeof state?.entryId === 'number') {
+      this.pendingEntryIdToReveal = state.entryId;
+      this.selectedEntryId = state.entryId;
+      this.isDetailPanelOpen = true;
+    }
+
+    this.searchControl.valueChanges
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        void this.loadQueue(1);
+      });
+
+    void this.loadQueue(1);
+  }
+
+  protected get selectedEntry(): QueueEntryRecord | null {
+    if (this.selectedEntryId === null) {
+      return this.entries[0] ?? null;
+    }
+
+    return this.entries.find((entry) => entry.id === this.selectedEntryId) ?? this.entries[0] ?? null;
+  }
+
+  protected get totalVisibleEntries(): number {
+    return this.entries.length;
+  }
+
+  protected get hasActiveFilters(): boolean {
+    return this.searchControl.value.trim().length > 0 || this.activeStatusFilter !== 'EN_ESPERA';
+  }
+
+  protected get selectedStatusFilterLabel(): string {
+    return (
+      this.statusFilters.find((filter) => filter.value === this.activeStatusFilter)?.label ??
+      'En espera'
+    );
+  }
+
+  protected selectStatusFilter(status: QueueStatusFilter): void {
+    if (this.activeStatusFilter === status) {
+      return;
+    }
+
+    this.activeStatusFilter = status;
+    void this.loadQueue(1);
+  }
+
+  protected onPageChange(page: number): void {
+    void this.loadQueue(page);
+  }
+
+  protected openIntakePage(): void {
+    void this.router.navigate(['/queue/new'], { state: { returnTo: '/queue' } });
+  }
+
+  protected retryLoadQueue(): void {
+    void this.loadQueue(this.paginationMeta.currentPage);
+  }
+
+  protected clearFilters(): void {
+    if (!this.hasActiveFilters) {
+      return;
+    }
+
+    this.searchControl.setValue('', { emitEvent: false });
+    this.activeStatusFilter = 'EN_ESPERA';
+    void this.loadQueue(1);
+  }
+
+  protected selectEntry(entry: QueueEntryRecord): void {
+    this.selectedEntryId = entry.id;
+    this.isDetailPanelOpen = true;
+  }
+
+  protected openDetailPanel(): void {
+    this.isDetailPanelOpen = true;
+  }
+
+  protected closeDetailPanel(): void {
+    this.isDetailPanelOpen = false;
+    this.closeCancelModal();
+  }
+
+  protected buildPatientSubtitle(entry: QueueEntryRecord): string {
+    return buildQueuePatientSubtitle(entry);
+  }
+
+  protected buildArrivalLabel(entry: QueueEntryRecord): string {
+    return formatQueueTime(entry.arrivalTime);
+  }
+
+  protected buildScheduledLabel(entry: QueueEntryRecord): string {
+    return formatQueueTime(entry.scheduledTime);
+  }
+
+  protected buildStatusLabel(status: QueueEntryStatus): string {
+    return buildQueueStatusLabel(status);
+  }
+
+  protected buildEntryTypeLabel(entry: QueueEntryRecord): string {
+    return buildQueueEntryTypeLabel(entry.entryType);
+  }
+
+  protected buildTimingLabel(entry: QueueEntryRecord): string {
+    return buildQueueTimingLabel(entry);
+  }
+
+  protected buildEntryTypeClass(entryType: QueueEntryType): string {
+    switch (entryType) {
+      case 'CON_CITA':
+        return 'appointment';
+      case 'SIN_CITA':
+        return 'walkin';
+      case 'EMERGENCIA':
+        return 'emergency';
+    }
+  }
+
+  protected buildStatusClass(status: QueueEntryStatus): string {
+    switch (status) {
+      case 'EN_ESPERA':
+        return 'waiting';
+      case 'EN_ATENCION':
+        return 'attention';
+      case 'FINALIZADA':
+        return 'finished';
+      case 'CANCELADA':
+        return 'cancelled';
+    }
+  }
+
+  protected getInitials(name: string): string {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    const firstInitial = parts[0]?.charAt(0) ?? '';
+    const secondInitial = parts[1]?.charAt(0) ?? parts[0]?.charAt(1) ?? '';
+    return `${firstInitial}${secondInitial}`.trim().toUpperCase() || 'Q';
+  }
+
+  protected isSelected(entry: QueueEntryRecord): boolean {
+    return this.selectedEntryId === entry.id;
+  }
+
+  protected isEmergency(entry: QueueEntryRecord): boolean {
+    return entry.entryType === 'EMERGENCIA';
+  }
+
+  protected async startAttention(entry: QueueEntryRecord): Promise<void> {
+    if (entry.queueStatus !== 'EN_ESPERA') {
+      return;
+    }
+
+    try {
+      await firstValueFrom(this.queueApi.startAttention(entry.id));
+      await this.loadQueue(this.paginationMeta.currentPage);
+      this.selectedEntryId = entry.id;
+    } catch {
+      this.loadError = 'No se pudo iniciar la atención de este paciente.';
+      this.cdr.detectChanges();
+    }
+  }
+
+  protected async finishAttention(entry: QueueEntryRecord): Promise<void> {
+    if (entry.queueStatus !== 'EN_ATENCION') {
+      return;
+    }
+
+    try {
+      await firstValueFrom(this.queueApi.finishAttention(entry.id));
+      await this.loadQueue(this.paginationMeta.currentPage);
+      this.selectedEntryId = entry.id;
+    } catch {
+      this.loadError = 'No se pudo finalizar la atención de este paciente.';
+      this.cdr.detectChanges();
+    }
+  }
+
+  protected openCancelModal(entry: QueueEntryRecord): void {
+    if (entry.queueStatus !== 'EN_ESPERA') {
+      return;
+    }
+
+    this.entryPendingCancel = entry;
+    this.isCancelModalOpen = true;
+  }
+
+  protected closeCancelModal(): void {
+    this.isCancelModalOpen = false;
+    this.entryPendingCancel = null;
+  }
+
+  protected async confirmCancelEntry(): Promise<void> {
+    const entry = this.entryPendingCancel;
+
+    if (!entry || entry.queueStatus !== 'EN_ESPERA') {
+      this.closeCancelModal();
+      return;
+    }
+
+    try {
+      await firstValueFrom(this.queueApi.cancelEntry(entry.id));
+      await this.loadQueue(this.paginationMeta.currentPage);
+      this.selectedEntryId = entry.id;
+      this.closeCancelModal();
+    } catch {
+      this.loadError = 'No se pudo cancelar el ingreso de este paciente.';
+      this.cdr.detectChanges();
+    }
+  }
+
+  private async loadQueue(page: number): Promise<void> {
+    const requestToken = ++this.requestVersion;
+    const query: QueueListQuery = {
+      page,
+      limit: this.pageSize,
+      searchTerm: this.searchControl.value.trim() || undefined,
+      status: this.activeStatusFilter,
+    };
+
+    this.isLoading = true;
+    this.loadError = null;
+    this.entries = [];
+    this.cdr.detectChanges();
+
+    try {
+      const response = await firstValueFrom(this.queueApi.list(query));
+
+      if (requestToken !== this.requestVersion) {
+        return;
+      }
+
+      this.entries = response.data;
+      this.summary = response.summary;
+      this.paginationMeta = response.meta;
+
+      if (this.entries.length === 0) {
+        this.selectedEntryId = null;
+        this.isDetailPanelOpen = false;
+        this.pendingEntryIdToReveal = null;
+      } else {
+        const revealEntryId = this.pendingEntryIdToReveal ?? this.selectedEntryId;
+        const selectedVisibleEntry = this.entries.find((entry) => entry.id === revealEntryId);
+
+        if (this.pendingEntryIdToReveal !== null && selectedVisibleEntry) {
+          this.selectedEntryId = selectedVisibleEntry.id;
+          this.isDetailPanelOpen = true;
+          this.pendingEntryIdToReveal = null;
+        } else if (!selectedVisibleEntry) {
+          this.selectedEntryId = this.entries[0]?.id ?? null;
+        }
+      }
+    } catch {
+      if (requestToken !== this.requestVersion) {
+        return;
+      }
+
+      this.loadError = 'No se pudo cargar la cola de atención.';
+      this.entries = [];
+      this.summary = EMPTY_QUEUE_SUMMARY;
+      this.paginationMeta = EMPTY_PAGINATION_META;
+      this.selectedEntryId = null;
+      this.isDetailPanelOpen = false;
+    } finally {
+      if (requestToken !== this.requestVersion) {
+        return;
+      }
+
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+}

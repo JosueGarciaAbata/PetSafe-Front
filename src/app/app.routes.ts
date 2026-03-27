@@ -67,6 +67,22 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'queue/new',
+        canActivate: [authGuard],
+        data: { roles: adminRoles },
+        loadComponent: () =>
+          import('@app/queue/create/create-queue-entry-modal.component').then(
+            (m) => m.QueueIntakePageComponent,
+          ),
+      },
+      {
+        path: 'queue',
+        canActivate: [authGuard],
+        data: { roles: adminRoles },
+        loadComponent: () =>
+          import('@app/queue/list/queue-page.component').then((m) => m.QueuePageComponent),
+      },
+      {
         path: 'history',
         canActivate: [authGuard],
         data: { roles: adminRoles },

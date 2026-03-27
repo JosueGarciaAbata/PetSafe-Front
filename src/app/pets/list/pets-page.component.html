@@ -187,6 +187,7 @@
 
     @if (isCreateModalOpen) {
       <app-create-pet-modal
+        [initialTutor]="pendingTutor"
         (closed)="closeCreateModal()"
         (saved)="onCreateSaved()"
       />

@@ -67,6 +67,37 @@
         <path d="M8 3.5v4M16 3.5v4M3.5 9.5h17"></path>
       </svg>
     }
+    @case ('menu') {
+      <svg
+        [attr.width]="size"
+        [attr.height]="size"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M4 6.5h16"></path>
+        <path d="M4 12h16"></path>
+        <path d="M4 17.5h16"></path>
+      </svg>
+    }
+    @case ('clock') {
+      <svg
+        [attr.width]="size"
+        [attr.height]="size"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="12" cy="12" r="8"></circle>
+        <path d="M12 8v4.5l3 1.8"></path>
+      </svg>
+    }
     @case ('clipboard') {
       <svg
         [attr.width]="size"

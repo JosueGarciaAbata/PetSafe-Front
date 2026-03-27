@@ -6,6 +6,8 @@ export type ShellIconName =
   | 'users'
   | 'dog'
   | 'calendar'
+  | 'menu'
+  | 'clock'
   | 'clipboard'
   | 'syringe'
   | 'heart'
