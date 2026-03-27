@@ -36,19 +36,17 @@
 
     <div class="flex-1 overflow-y-auto px-5 py-4">
       <div class="grid grid-cols-1 gap-4">
-        @if (errorMessage) {
-          <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {{ errorMessage }}
-          </div>
-        }
-
         <section class="grid gap-3">
           <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Datos personales</h3>
 
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div class="flex flex-col gap-2">
               <label class="text-sm font-semibold text-text-primary">Nombres</label>
-              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="client-field w-full">
+              <mat-form-field
+                appearance="outline"
+                subscriptSizing="dynamic"
+                class="client-field w-full"
+              >
                 <input
                   matInput
                   formControlName="firstName"
@@ -56,15 +54,21 @@
                   placeholder="Ej. Adriana"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                @if (
+                  form.controls.firstName.touched && form.controls.firstName.hasError('required')
+                ) {
+                  <mat-error>Los nombres son obligatorios.</mat-error>
+                }
               </mat-form-field>
-              @if (form.controls.firstName.touched && form.controls.firstName.hasError('required')) {
-                <p class="text-xs font-medium text-red-600">Los nombres son obligatorios.</p>
-              }
             </div>
 
             <div class="flex flex-col gap-2">
               <label class="text-sm font-semibold text-text-primary">Apellidos</label>
-              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="client-field w-full">
+              <mat-form-field
+                appearance="outline"
+                subscriptSizing="dynamic"
+                class="client-field w-full"
+              >
                 <input
                   matInput
                   formControlName="lastName"
@@ -72,15 +76,21 @@
                   placeholder="Ej. Montes"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                @if (
+                  form.controls.lastName.touched && form.controls.lastName.hasError('required')
+                ) {
+                  <mat-error>Los apellidos son obligatorios.</mat-error>
+                }
               </mat-form-field>
-              @if (form.controls.lastName.touched && form.controls.lastName.hasError('required')) {
-                <p class="text-xs font-medium text-red-600">Los apellidos son obligatorios.</p>
-              }
             </div>
 
             <div class="flex flex-col gap-2">
               <label class="text-sm font-semibold text-text-primary">Documento de identidad</label>
-              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="client-field w-full">
+              <mat-form-field
+                appearance="outline"
+                subscriptSizing="dynamic"
+                class="client-field w-full"
+              >
                 <input
                   matInput
                   formControlName="documentId"
@@ -88,15 +98,27 @@
                   placeholder="Ej. 12345678A"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                @if (
+                  form.controls.documentId.touched && form.controls.documentId.hasError('maxlength')
+                ) {
+                  <mat-error>
+                    El documento no puede superar los {{ documentIdMaxLength }} caracteres.
+                  </mat-error>
+                }
+                <mat-hint>Opcional. Máximo {{ documentIdMaxLength }} caracteres.</mat-hint>
+                <mat-hint align="end">
+                  {{ form.controls.documentId.value.length }}/{{ documentIdMaxLength }}
+                </mat-hint>
               </mat-form-field>
-              @if (form.controls.email.touched && form.controls.email.hasError('email')) {
-                <p class="text-xs font-medium text-red-600">Ingresa un correo electrónico válido.</p>
-              }
             </div>
 
             <div class="flex flex-col gap-2">
               <label class="text-sm font-semibold text-text-primary">Género</label>
-              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="client-field w-full">
+              <mat-form-field
+                appearance="outline"
+                subscriptSizing="dynamic"
+                class="client-field w-full"
+              >
                 <mat-select formControlName="gender">
                   <mat-option value="F">Femenino</mat-option>
                   <mat-option value="M">Masculino</mat-option>
@@ -107,13 +129,31 @@
 
             <div class="flex flex-col gap-2 md:col-span-2">
               <label class="text-sm font-semibold text-text-primary">Fecha de nacimiento</label>
-              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="client-field w-full">
+              <mat-form-field
+                appearance="outline"
+                subscriptSizing="dynamic"
+                class="client-field w-full"
+              >
                 <input
                   matInput
                   formControlName="birthDate"
                   type="date"
+                  [attr.min]="minBirthDate"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                @if (
+                  form.controls.birthDate.touched && form.controls.birthDate.hasError('minDate')
+                ) {
+                  <mat-error
+                    >La fecha de nacimiento debe ser {{ minBirthDate }} o posterior.</mat-error
+                  >
+                }
+                @if (
+                  form.controls.birthDate.touched && form.controls.birthDate.hasError('invalidDate')
+                ) {
+                  <mat-error>Ingresa una fecha de nacimiento válida.</mat-error>
+                }
+                <mat-hint>Opcional. Año mínimo 1970.</mat-hint>
               </mat-form-field>
             </div>
           </div>
@@ -125,20 +165,34 @@
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div class="flex flex-col gap-2">
               <label class="text-sm font-semibold text-text-primary">Teléfono</label>
-              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="client-field w-full">
+              <mat-form-field
+                appearance="outline"
+                subscriptSizing="dynamic"
+                class="client-field w-full"
+              >
                 <input
                   matInput
                   formControlName="phone"
                   type="tel"
-                  placeholder="+593 000 000 000"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="0991234567"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                @if (form.controls.phone.touched && form.controls.phone.hasError('pattern')) {
+                  <mat-error>El teléfono solo debe contener números.</mat-error>
+                }
+                <mat-hint>Opcional. Solo números.</mat-hint>
               </mat-form-field>
             </div>
 
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Correo electrónico (opcional)</label>
-              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="client-field w-full">
+              <label class="text-sm font-semibold text-text-primary">Correo electrónico</label>
+              <mat-form-field
+                appearance="outline"
+                subscriptSizing="dynamic"
+                class="client-field w-full"
+              >
                 <input
                   matInput
                   formControlName="email"
@@ -146,12 +200,20 @@
                   placeholder="ejemplo@correo.com"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                @if (form.controls.email.touched && form.controls.email.hasError('email')) {
+                  <mat-error>Ingresa un correo electrónico válido.</mat-error>
+                }
+                <mat-hint>Opcional. Debe ser un correo válido.</mat-hint>
               </mat-form-field>
             </div>
 
             <div class="flex flex-col gap-2 md:col-span-2">
               <label class="text-sm font-semibold text-text-primary">Dirección</label>
-              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="client-field w-full">
+              <mat-form-field
+                appearance="outline"
+                subscriptSizing="dynamic"
+                class="client-field w-full"
+              >
                 <input
                   matInput
                   formControlName="address"
@@ -159,6 +221,15 @@
                   placeholder="Ej. Calle Mayor 12, Madrid"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                @if (form.controls.address.touched && form.controls.address.hasError('maxlength')) {
+                  <mat-error>
+                    La dirección no puede superar los {{ addressMaxLength }} caracteres.
+                  </mat-error>
+                }
+                <mat-hint>Opcional. Máximo {{ addressMaxLength }} caracteres.</mat-hint>
+                <mat-hint align="end"
+                  >{{ form.controls.address.value.length }}/{{ addressMaxLength }}</mat-hint
+                >
               </mat-form-field>
             </div>
           </div>
@@ -169,7 +240,11 @@
 
           <div class="flex flex-col gap-2">
             <label class="text-sm font-semibold text-text-primary">Observaciones</label>
-            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="client-field w-full">
+            <mat-form-field
+              appearance="outline"
+              subscriptSizing="dynamic"
+              class="client-field w-full"
+            >
               <textarea
                 matInput
                 formControlName="notes"
@@ -177,14 +252,31 @@
                 placeholder="Preferencias, alergias, observaciones o informacion adicional."
                 class="text-sm text-text-primary placeholder:text-text-secondary/50"
               ></textarea>
+              @if (form.controls.notes.touched && form.controls.notes.hasError('maxlength')) {
+                <mat-error>
+                  Las observaciones no pueden superar los {{ notesMaxLength }} caracteres.
+                </mat-error>
+              }
+              <mat-hint>Opcional. Máximo {{ notesMaxLength }} caracteres.</mat-hint>
+              <mat-hint align="end"
+                >{{ form.controls.notes.value.length }}/{{ notesMaxLength }}</mat-hint
+              >
             </mat-form-field>
           </div>
         </section>
-
       </div>
     </div>
 
-    <div class="sticky bottom-0 z-10 shrink-0 border-t border-border bg-white/95 px-5 py-4 backdrop-blur">
+    <div
+      class="sticky bottom-0 z-10 shrink-0 border-t border-border bg-white/95 px-5 py-4 backdrop-blur"
+    >
+      @if (errorMessage) {
+        <div
+          class="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line"
+        >
+          {{ errorMessage }}
+        </div>
+      }
       <div class="flex items-center justify-end gap-3">
         <button
           type="button"

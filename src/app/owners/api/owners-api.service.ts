@@ -75,7 +75,7 @@ export class OwnersApiService {
 
   getClientPets(clientId: string | number): Observable<ClientPetApiResponse[]> {
     return this.http.get<ClientPetApiResponse[]>(
-      buildApiUrl(`patients/by-client/${encodeURIComponent(String(clientId))}`),
+      buildApiUrl(`patients/admin/by-client/${encodeURIComponent(String(clientId))}`),
     );
   }
 }

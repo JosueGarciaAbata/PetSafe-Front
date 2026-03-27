@@ -77,7 +77,9 @@
                 }
               </mat-autocomplete>
               @if (isTutorInvalid()) {
-                <p class="text-xs font-medium text-red-600">Selecciona un tutor de la lista.</p>
+                <p class="text-xs font-medium text-red-600">
+                  Selecciona un tutor valido de la lista.
+                </p>
               }
             </div>
 
@@ -97,8 +99,13 @@
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
               </mat-form-field>
-              @if (isPetNameInvalid()) {
+              @if (isPetNameRequiredInvalid()) {
                 <p class="text-xs font-medium text-red-600">Ingresa el nombre de la mascota.</p>
+              }
+              @if (isPetNameTooLong()) {
+                <p class="text-xs font-medium text-red-600">
+                  El nombre no puede superar los {{ nameMaxLength }} caracteres.
+                </p>
               }
             </div>
 
@@ -158,6 +165,9 @@
                   }
                 </mat-select>
               </mat-form-field>
+              @if (isBreedInvalid()) {
+                <p class="text-xs font-medium text-red-600">Selecciona una raza valida.</p>
+              }
             </div>
           </div>
         </section>
@@ -195,9 +205,7 @@
             </div>
 
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary"
-                >Fecha de nacimiento (opcional)</label
-              >
+              <label class="text-sm font-semibold text-text-primary">Fecha de nacimiento </label>
               <mat-form-field
                 appearance="outline"
                 subscriptSizing="dynamic"
@@ -210,7 +218,13 @@
                   (ngModelChange)="birthDate = $event"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                <mat-hint>Opcional. Formato YYYY-MM-DD.</mat-hint>
               </mat-form-field>
+              @if (isBirthDateInvalid()) {
+                <p class="text-xs font-medium text-red-600">
+                  Ingresa una fecha valida con formato YYYY-MM-DD.
+                </p>
+              }
             </div>
 
             <div class="flex flex-col gap-2">
@@ -225,13 +239,19 @@
                   type="number"
                   [ngModel]="weightKg"
                   (ngModelChange)="weightKg = $event"
+                  min="0.01"
+                  [attr.max]="weightMax"
+                  [attr.step]="weightStep"
                   placeholder="Ej. 12.5"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
                 <span matTextSuffix class="text-xs font-bold text-text-secondary">kg</span>
+                <mat-hint>Opcional. Mayor a 0 y maximo 2 decimales.</mat-hint>
               </mat-form-field>
               @if (isWeightInvalid()) {
-                <p class="text-xs font-medium text-red-600">Ingresa un peso valido.</p>
+                <p class="text-xs font-medium text-red-600">
+                  Ingresa un peso mayor a 0 y con maximo 2 decimales.
+                </p>
               }
             </div>
 
@@ -300,8 +320,13 @@
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
               </mat-form-field>
-              @if (isMicrochipInvalid()) {
+              @if (isMicrochipRequiredInvalid()) {
                 <p class="text-xs font-medium text-red-600">Ingresa el codigo del microchip.</p>
+              }
+              @if (isMicrochipTooLong()) {
+                <p class="text-xs font-medium text-red-600">
+                  El microchip no puede superar los {{ microchipMaxLength }} caracteres.
+                </p>
               }
             </div>
 
@@ -342,9 +367,7 @@
 
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary"
-                >Alergias generales (opcional)</label
-              >
+              <label class="text-sm font-semibold text-text-primary">Alergias generales</label>
               <mat-form-field
                 appearance="outline"
                 subscriptSizing="dynamic"
@@ -358,13 +381,20 @@
                   placeholder="Ej. Ninguna"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 ></textarea>
+                <mat-hint>Opcional. Maximo {{ textAreaMaxLength }} caracteres.</mat-hint>
+                <mat-hint align="end"
+                  >{{ generalAllergies.length }}/{{ textAreaMaxLength }}</mat-hint
+                >
               </mat-form-field>
+              @if (isGeneralAllergiesTooLong()) {
+                <p class="text-xs font-medium text-red-600">
+                  Las alergias generales no pueden superar los {{ textAreaMaxLength }} caracteres.
+                </p>
+              }
             </div>
 
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary"
-                >Historia general (opcional)</label
-              >
+              <label class="text-sm font-semibold text-text-primary">Historia general</label>
               <mat-form-field
                 appearance="outline"
                 subscriptSizing="dynamic"
@@ -378,7 +408,14 @@
                   placeholder="Ej. Paciente creada desde el sistema"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 ></textarea>
+                <mat-hint>Opcional. Maximo {{ textAreaMaxLength }} caracteres.</mat-hint>
+                <mat-hint align="end">{{ generalHistory.length }}/{{ textAreaMaxLength }}</mat-hint>
               </mat-form-field>
+              @if (isGeneralHistoryTooLong()) {
+                <p class="text-xs font-medium text-red-600">
+                  La historia general no puede superar los {{ textAreaMaxLength }} caracteres.
+                </p>
+              }
             </div>
           </div>
         </section>

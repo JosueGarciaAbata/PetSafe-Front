@@ -289,6 +289,8 @@
   @if (isEditOwnerModalOpen && owner) {
     <app-edit-owner-modal
       [owner]="owner"
+      [isSaving]="isEditOwnerSaving"
+      [errorMessage]="editOwnerErrorMessage"
       (closed)="closeEditOwnerModal()"
       (saved)="saveEditOwnerDraft($event)"
     />

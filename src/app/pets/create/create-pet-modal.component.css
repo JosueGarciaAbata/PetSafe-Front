@@ -15,7 +15,7 @@
 }
 
 :host ::ng-deep .pet-create-field .mat-mdc-form-field-subscript-wrapper {
-  display: none;
+  padding-inline: 4px;
 }
 
 :host ::ng-deep .pet-create-field .mat-mdc-form-field-infix {

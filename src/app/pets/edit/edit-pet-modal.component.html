@@ -40,9 +40,16 @@
                   matInput
                   type="text"
                   [ngModel]="name"
-                  (ngModelChange)="name = $event"
+                  (ngModelChange)="onNameChanged($event)"
+                  [errorStateMatcher]="nameErrorStateMatcher"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                @if (isNameRequiredInvalid()) {
+                  <mat-error>Ingresa el nombre de la mascota.</mat-error>
+                }
+                @if (isNameTooLong()) {
+                  <mat-error>El nombre no puede superar los {{ nameMaxLength }} caracteres.</mat-error>
+                }
               </mat-form-field>
             </div>
 
@@ -52,23 +59,51 @@
                 <input
                   matInput
                   type="text"
-                  [value]="speciesName || 'Sin especie registrada'"
-                  readonly
+                  [ngModel]="speciesValue"
+                  (ngModelChange)="onSpeciesChanged($event)"
+                  [errorStateMatcher]="speciesErrorStateMatcher"
+                  [matAutocomplete]="speciesAuto"
+                  autocomplete="off"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                @if (isSpeciesInvalid()) {
+                  <mat-error>Selecciona una especie valida.</mat-error>
+                }
               </mat-form-field>
+              <mat-autocomplete
+                #speciesAuto="matAutocomplete"
+                autoActiveFirstOption
+                (optionSelected)="selectSpecies($event.option.value)"
+              >
+                @for (option of speciesOptions(); track option.id) {
+                  <mat-option [value]="option.name">{{ option.name }}</mat-option>
+                }
+
+                @if (isSpeciesLoading) {
+                  <mat-option disabled>Buscando especies...</mat-option>
+                } @else if (speciesValue.trim() && speciesOptions().length === 0) {
+                  <mat-option disabled>No se encontraron resultados</mat-option>
+                }
+              </mat-autocomplete>
             </div>
 
             <div class="flex flex-col gap-2 md:col-span-2">
               <label class="text-sm font-semibold text-text-primary">Raza</label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
-                <input
-                  matInput
-                  type="text"
-                  [ngModel]="breedName"
-                  (ngModelChange)="breedName = $event"
-                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
-                />
+                <mat-select
+                  [ngModel]="breedId"
+                  (ngModelChange)="onBreedChanged($event)"
+                  [errorStateMatcher]="breedErrorStateMatcher"
+                  [disabled]="isBreedDisabled()"
+                  [placeholder]="breedPlaceholder()"
+                >
+                  @for (option of breedOptions(); track option.id) {
+                    <mat-option [value]="option.id">{{ option.name }}</mat-option>
+                  }
+                </mat-select>
+                @if (isBreedInvalid()) {
+                  <mat-error>Selecciona una raza valida.</mat-error>
+                }
               </mat-form-field>
             </div>
           </div>
@@ -113,9 +148,14 @@
                   matInput
                   type="date"
                   [ngModel]="birthDate"
-                  (ngModelChange)="birthDate = $event"
+                  (ngModelChange)="onBirthDateChanged($event)"
+                  [errorStateMatcher]="birthDateErrorStateMatcher"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                @if (isBirthDateInvalid()) {
+                  <mat-error>Ingresa una fecha valida con formato YYYY-MM-DD.</mat-error>
+                }
+                <mat-hint>Opcional. Formato YYYY-MM-DD.</mat-hint>
               </mat-form-field>
             </div>
 
@@ -126,10 +166,20 @@
                   matInput
                   type="number"
                   [ngModel]="weightKg"
-                  (ngModelChange)="weightKg = $event"
+                  (ngModelChange)="onWeightChanged($event)"
+                  [errorStateMatcher]="weightErrorStateMatcher"
+                  min="0.01"
+                  [attr.max]="weightMax"
+                  [attr.step]="weightStep"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
                 <span matTextSuffix class="text-xs font-bold text-text-secondary">kg</span>
+                @if (isWeightRequiredInvalid()) {
+                  <mat-error>Ingresa el peso de la mascota.</mat-error>
+                }
+                @if (isWeightInvalid()) {
+                  <mat-error>Ingresa un peso mayor a 0 y con maximo 2 decimales.</mat-error>
+                }
               </mat-form-field>
             </div>
 
@@ -139,11 +189,43 @@
                 <input
                   matInput
                   type="text"
-                  [value]="colorName || 'Sin color registrado'"
-                  readonly
+                  [ngModel]="colorValue"
+                  (ngModelChange)="onColorChanged($event)"
+                  [errorStateMatcher]="colorErrorStateMatcher"
+                  [matAutocomplete]="colorAuto"
+                  autocomplete="off"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                @if (colorCreateError) {
+                  <mat-error>{{ colorCreateError }}</mat-error>
+                } @else if (isColorInvalid()) {
+                  <mat-error>Selecciona un color valido.</mat-error>
+                }
               </mat-form-field>
+              <mat-autocomplete #colorAuto="matAutocomplete" autoActiveFirstOption>
+                @for (option of colorOptions(); track option.id) {
+                  <mat-option
+                    [value]="option.name"
+                    (onSelectionChange)="onColorOptionSelection($event.isUserInput, option)"
+                  >
+                    {{ option.name }}
+                  </mat-option>
+                }
+
+                @if (isColorsLoading) {
+                  <mat-option disabled>Buscando colores...</mat-option>
+                } @else if (isCreatingColor) {
+                  <mat-option disabled>Creando color...</mat-option>
+                } @else if (showCreateColorOption()) {
+                  <mat-option disabled>No se encontraron resultados</mat-option>
+                  <mat-option
+                    [value]="colorValue.trim()"
+                    (onSelectionChange)="onCreateColorOptionSelection($event.isUserInput)"
+                  >
+                    Crear: "{{ colorValue.trim() }}"
+                  </mat-option>
+                }
+              </mat-autocomplete>
             </div>
 
             <div class="flex flex-col gap-2 md:col-span-2">
@@ -175,14 +257,69 @@
             </div>
           </div>
         </section>
+
+        <section class="grid gap-5">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-brand">Informacion adicional</h3>
+
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Alergias generales</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
+                <textarea
+                  matInput
+                  rows="2"
+                  [ngModel]="generalAllergies"
+                  (ngModelChange)="onGeneralAllergiesChanged($event)"
+                  [errorStateMatcher]="generalAllergiesErrorStateMatcher"
+                  placeholder="Ej. Ninguna"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                ></textarea>
+                @if (isGeneralAllergiesTooLong()) {
+                  <mat-error>
+                    Las alergias generales no pueden superar los {{ textAreaMaxLength }} caracteres.
+                  </mat-error>
+                }
+                <mat-hint>Opcional. Maximo {{ textAreaMaxLength }} caracteres.</mat-hint>
+                <mat-hint align="end">{{ generalAllergies.length }}/{{ textAreaMaxLength }}</mat-hint>
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Historia general</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
+                <textarea
+                  matInput
+                  rows="2"
+                  [ngModel]="generalHistory"
+                  (ngModelChange)="onGeneralHistoryChanged($event)"
+                  [errorStateMatcher]="generalHistoryErrorStateMatcher"
+                  placeholder="Ej. Paciente rescatada"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                ></textarea>
+                @if (isGeneralHistoryTooLong()) {
+                  <mat-error>
+                    La historia general no puede superar los {{ textAreaMaxLength }} caracteres.
+                  </mat-error>
+                }
+                <mat-hint>Opcional. Maximo {{ textAreaMaxLength }} caracteres.</mat-hint>
+                <mat-hint align="end">{{ generalHistory.length }}/{{ textAreaMaxLength }}</mat-hint>
+              </mat-form-field>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
 
     <div class="flex items-center justify-end gap-3 border-t border-border bg-white px-6 py-5">
+      @if (submitError) {
+        <p class="mr-auto whitespace-pre-line text-xs font-medium text-red-600">{{ submitError }}</p>
+      }
+
       <button
         type="button"
         (click)="close()"
-        class="cursor-pointer rounded-xl px-6 py-3 text-sm font-bold text-text-secondary transition-all hover:bg-background"
+        [disabled]="isSaving"
+        class="cursor-pointer rounded-xl px-6 py-3 text-sm font-bold text-text-secondary transition-all hover:bg-background disabled:cursor-not-allowed disabled:opacity-70"
       >
         Cancelar
       </button>
@@ -190,9 +327,10 @@
       <button
         type="button"
         (click)="save()"
-        class="cursor-pointer rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90"
+        [disabled]="isSaving"
+        class="cursor-pointer rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
       >
-        Guardar cambios
+        {{ isSaving ? 'Guardando...' : 'Guardar cambios' }}
       </button>
     </div>
   </div>

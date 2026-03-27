@@ -1,13 +1,14 @@
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   EventEmitter,
-  ChangeDetectorRef,
   Input,
   Output,
   inject,
 } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
 import { EditOwnerModalComponent } from '../edit/edit-owner-modal.component';
 import { OwnersApiService } from '../api/owners-api.service';
 import { ClientPetApiResponse } from '../models/client-pet.model';
@@ -55,8 +56,10 @@ export class OwnerDetailComponent {
   @Output() readonly back = new EventEmitter<void>();
 
   protected isEditOwnerModalOpen = false;
+  protected isEditOwnerSaving = false;
   protected isLoading = false;
   protected isPetsLoading = true;
+  protected editOwnerErrorMessage: string | null = null;
   protected loadError: string | null = null;
   protected loadPetError: string | null = null;
   protected owner: ClientResponseApiResponse | null = null;
@@ -67,19 +70,29 @@ export class OwnerDetailComponent {
   }
 
   protected openEditOwnerModal(): void {
+    this.editOwnerErrorMessage = null;
     this.isEditOwnerModalOpen = true;
   }
 
   protected closeEditOwnerModal(): void {
+    if (this.isEditOwnerSaving) {
+      return;
+    }
+
     this.isEditOwnerModalOpen = false;
+    this.editOwnerErrorMessage = null;
   }
 
   protected async saveEditOwnerDraft(
     payload: UpdateClientRequest,
   ): Promise<void> {
-    if (!this.owner) {
+    if (!this.owner || this.isEditOwnerSaving) {
       return;
     }
+
+    this.editOwnerErrorMessage = null;
+    this.isEditOwnerSaving = true;
+    this.cdr.detectChanges();
 
     try {
       const updatedOwner = await firstValueFrom(
@@ -87,10 +100,14 @@ export class OwnerDetailComponent {
       );
 
       this.owner = updatedOwner;
-      this.closeEditOwnerModal();
-      this.cdr.detectChanges();
-    } catch {
-      this.loadError = 'No se pudo actualizar el propietario.';
+      this.isEditOwnerModalOpen = false;
+    } catch (error: unknown) {
+      this.editOwnerErrorMessage = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo actualizar el propietario.',
+        clientErrorMessage: 'Revisa los datos ingresados.',
+      });
+    } finally {
+      this.isEditOwnerSaving = false;
       this.cdr.detectChanges();
     }
   }
