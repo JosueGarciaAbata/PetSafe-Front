@@ -150,8 +150,26 @@
               </span>
             </div>
 
-            @if (clinicalObservations().length > 0) {
+            @if (hasClinicalContent()) {
               <div class="grid gap-3">
+                @if (generalAllergies()) {
+                  <div class="rounded-xl border border-[#2F605E]/10 bg-white/80 p-4">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="text-sm font-bold text-text-primary">Alergias generales</span>
+                    </div>
+                    <p class="mt-1 text-sm text-text-secondary">{{ generalAllergies() }}</p>
+                  </div>
+                }
+
+                @if (generalHistory()) {
+                  <div class="rounded-xl border border-[#2F605E]/10 bg-white/80 p-4">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="text-sm font-bold text-text-primary">Historia general</span>
+                    </div>
+                    <p class="mt-1 text-sm text-text-secondary">{{ generalHistory() }}</p>
+                  </div>
+                }
+
                 @for (observation of clinicalObservations(); track observation.id) {
                   <div class="rounded-xl border border-[#2F605E]/10 bg-white/80 p-4">
                     <div class="flex flex-wrap items-center gap-2">
@@ -181,7 +199,7 @@
                   <path d="M12 8v4"></path>
                   <path d="M12 16h.01"></path>
                 </svg>
-                <span class="text-sm italic">Sin observaciones registradas</span>
+                <span class="text-sm italic">Sin observaciones clinicas registradas</span>
               </div>
             }
           </div>

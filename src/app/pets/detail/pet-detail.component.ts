@@ -69,6 +69,15 @@ export class PetDetailComponent {
 
   protected saveEditPetDraft(): void {
     this.closeEditPetModal();
+    if (!this.petId) {
+      return;
+    }
+
+    const requestToken = ++this.requestVersion;
+    this.isLoading = true;
+    this.loadError = null;
+    this.cdr.detectChanges();
+    void this.loadPet(this.petId, requestToken);
   }
 
   protected buildPetInitial(): string {
@@ -136,6 +145,24 @@ export class PetDetailComponent {
 
   protected clinicalObservations(): PetClinicalObservationApiResponse[] {
     return this.pet?.clinicalObservations ?? [];
+  }
+
+  protected generalAllergies(): string | null {
+    const value = this.pet?.generalAllergies?.trim();
+    return value ? value : null;
+  }
+
+  protected generalHistory(): string | null {
+    const value = this.pet?.generalHistory?.trim();
+    return value ? value : null;
+  }
+
+  protected hasClinicalContent(): boolean {
+    return (
+      this.clinicalObservations().length > 0 ||
+      this.generalAllergies() !== null ||
+      this.generalHistory() !== null
+    );
   }
 
   protected buildObservationMeta(

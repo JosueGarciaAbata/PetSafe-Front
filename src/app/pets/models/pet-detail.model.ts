@@ -9,6 +9,8 @@ export interface PetBasicDetailApiResponse {
   ageYears: number | null;
   color: PetDetailCatalogApiResponse | null;
   sterilized: boolean | null;
+  generalAllergies: string | null;
+  generalHistory: string | null;
   clinicalObservations: PetClinicalObservationApiResponse[];
   recentActivity: unknown | null;
 }

@@ -5,6 +5,7 @@ import { buildApiUrl } from '@app/core/config/api.config';
 import { CreatePetRequest } from '../models/create-pet.model';
 import { PetBasicDetailApiResponse } from '../models/pet-detail.model';
 import { PetListApiResponse, PetListQuery } from '../models/pet-list.model';
+import { UpdatePetBasicRequest } from '../models/update-pet-basic.model';
 
 @Injectable({
   providedIn: 'root',
@@ -34,6 +35,16 @@ export class PetsApiService {
   getBasicById(id: number | string): Observable<PetBasicDetailApiResponse> {
     return this.http.get<PetBasicDetailApiResponse>(
       buildApiUrl(`patients/admin/${id}/basic`),
+    );
+  }
+
+  updateBasic(
+    id: number | string,
+    payload: UpdatePetBasicRequest,
+  ): Observable<PetBasicDetailApiResponse> {
+    return this.http.patch<PetBasicDetailApiResponse>(
+      buildApiUrl(`patients/admin/${id}/basic`),
+      payload,
     );
   }
 }

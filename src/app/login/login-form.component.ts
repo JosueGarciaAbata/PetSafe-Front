@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -8,7 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { finalize } from 'rxjs';
 import { AuthApiService } from '@app/core/auth/auth-api.service';
 import { AuthService } from '@app/core/auth/auth.service';
-import { AuthApiErrorResponse } from '@app/core/auth/auth.model';
+import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
 import { LogoComponent } from '@app/logo/logo';
 
 @Component({
@@ -82,59 +81,10 @@ export class LoginFormComponent {
   }
 
   private resolveLoginErrorMessage(error: unknown): string {
-    if (error instanceof HttpErrorResponse) {
-      const backendMessage = this.extractBackendErrorMessage(error.error);
-      if (backendMessage) {
-        return backendMessage;
-      }
-
-      if (error.status === 0) {
-        return 'No fue posible conectar con el servidor. Intenta nuevamente.';
-      }
-
-      if (error.status === 401 || error.status === 403) {
-        return 'Credenciales invalidas.';
-      }
-
-      if (error.status >= 400 && error.status < 500) {
-        return 'Revisa los datos ingresados.';
-      }
-    }
-
-    return 'No fue posible iniciar sesion. Intenta nuevamente.';
-  }
-
-  private extractBackendErrorMessage(body: unknown): string | null {
-    if (!body) {
-      return null;
-    }
-
-    if (typeof body === 'string') {
-      const normalized = body.trim();
-      return normalized.length > 0 ? normalized : null;
-    }
-
-    if (typeof body !== 'object') {
-      return null;
-    }
-
-    const candidate = body as AuthApiErrorResponse;
-    const message = candidate.message;
-
-    if (Array.isArray(message)) {
-      const normalizedMessages = message
-        .filter((value): value is string => typeof value === 'string')
-        .map((value) => value.trim())
-        .filter((value) => value.length > 0);
-
-      return normalizedMessages.length > 0 ? normalizedMessages.join('\n') : null;
-    }
-
-    if (typeof message === 'string') {
-      const normalized = message.trim();
-      return normalized.length > 0 ? normalized : null;
-    }
-
-    return null;
+    return resolveApiErrorMessage(error, {
+      defaultMessage: 'No fue posible iniciar sesion. Intenta nuevamente.',
+      unauthorizedMessage: 'Credenciales invalidas.',
+      clientErrorMessage: 'Revisa los datos ingresados.',
+    });
   }
 }
