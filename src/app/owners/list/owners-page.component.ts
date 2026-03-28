@@ -49,8 +49,9 @@ export class OwnersPageComponent implements OnInit {
   private requestVersion = 0;
 
   ngOnInit(): void {
-    const state = history.state as { ownerId?: string } | null;
+    const state = history.state as { ownerId?: string; openCreateModal?: boolean } | null;
     this.selectedOwnerId = state?.ownerId != null ? String(state.ownerId) : null;
+    this.isCreateOwnerModalOpen = Boolean(state?.openCreateModal);
 
     this.searchControl.valueChanges
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))

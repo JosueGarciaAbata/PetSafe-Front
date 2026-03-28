@@ -1,0 +1,312 @@
+<section class="queue-page">
+  <header class="queue-hero">
+    <div class="queue-hero__copy">
+      <p class="queue-hero__eyebrow">Recepción operativa</p>
+      <h1>Cola de Espera</h1>
+      <p class="queue-lead">
+        Gestión operativa del día.
+      </p>
+    </div>
+
+    <div class="queue-hero__actions">
+      <button type="button" class="queue-button queue-button--primary" (click)="openIntakePage()">
+        <span class="queue-button__icon" aria-hidden="true">+</span>
+        Registrar ingreso
+      </button>
+    </div>
+  </header>
+
+  <div *ngIf="loadError" class="queue-alert" role="alert">
+    <span>{{ loadError }}</span>
+    <button type="button" class="queue-link-button" (click)="retryLoadQueue()">Reintentar</button>
+  </div>
+
+  <section class="queue-toolbar" aria-label="Búsqueda y filtros de la cola">
+    <label class="queue-search" for="queue-search">
+      <span class="sr-only">Buscar paciente, tutor o motivo</span>
+      <span class="queue-search__field">
+        <svg class="queue-search__icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M10.5 4a6.5 6.5 0 1 1 4.06 11.55l4.44 4.45-1.42 1.41-4.45-4.44A6.5 6.5 0 0 1 10.5 4Zm0 2a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Z"
+            fill="currentColor"
+          />
+        </svg>
+        <input
+          id="queue-search"
+          [formControl]="searchControl"
+          type="search"
+          placeholder="Buscar paciente, tutor o motivo"
+          aria-label="Buscar paciente, tutor o motivo"
+        />
+      </span>
+    </label>
+
+    <div class="queue-toolbar__filters">
+      <div class="queue-status-tabs" role="group" aria-label="Filtrar por estado">
+        <button
+          *ngFor="let filter of statusFilters"
+          type="button"
+          class="queue-chip"
+          [class.is-active]="activeStatusFilter === filter.value"
+          (click)="selectStatusFilter(filter.value)"
+        >
+          {{ filter.label }}
+        </button>
+      </div>
+
+      <button
+        *ngIf="hasActiveFilters"
+        type="button"
+        class="queue-link-button queue-toolbar__reset"
+        (click)="clearFilters()"
+      >
+        Limpiar filtros
+      </button>
+    </div>
+  </section>
+
+  <section class="queue-table-card">
+    <div class="queue-table-card__header">
+      <div>
+        <p class="queue-table-card__eyebrow">Lista del día</p>
+        <h2>Pacientes en cola</h2>
+      </div>
+      <span class="queue-count-badge">{{ totalVisibleEntries }} visibles</span>
+    </div>
+
+    <div *ngIf="isLoading" class="queue-state" aria-live="polite">
+      <div class="queue-state__spinner" aria-hidden="true"></div>
+      <h3>Cargando cola</h3>
+      <p>Estamos actualizando la lista operativa del día.</p>
+    </div>
+
+    <div *ngIf="!isLoading && entries.length === 0" class="queue-state">
+      <h3>No hay pacientes en cola</h3>
+      <p>Cuando llegue un paciente, aparecerá aquí para ser gestionado por recepción.</p>
+      <button type="button" class="queue-button queue-button--primary" (click)="openIntakePage()">
+        Registrar ingreso
+      </button>
+    </div>
+
+    <div *ngIf="!isLoading && entries.length > 0" class="queue-table-wrap">
+      <table class="queue-table">
+        <thead>
+          <tr>
+            <th>Paciente</th>
+            <th>Llegada</th>
+            <th>Programada</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let entry of entries"
+            class="queue-table__row"
+            [class.is-selected]="isSelected(entry)"
+            [class.is-emergency]="isEmergency(entry)"
+            tabindex="0"
+            (click)="selectEntry(entry)"
+            (keydown.enter)="selectEntry(entry)"
+            (keydown.space)="$event.preventDefault(); selectEntry(entry)"
+          >
+            <td>
+              <div class="queue-patient">
+                <div class="queue-avatar" aria-hidden="true">
+                  {{ getInitials(entry.patient.name) }}
+                </div>
+                <div class="queue-patient__copy">
+                  <div class="queue-patient__name">
+                    <strong>{{ entry.patient.name }}</strong>
+                    <span
+                      class="queue-badge"
+                      [ngClass]="'queue-badge--' + buildEntryTypeClass(entry.entryType)"
+                    >
+                      {{ buildEntryTypeLabel(entry) }}
+                    </span>
+                  </div>
+                  <p>{{ buildPatientSubtitle(entry) }}</p>
+                  <span class="queue-patient__tutor">{{ entry.patient.tutorName }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="queue-time">{{ buildArrivalLabel(entry) }}</span>
+            </td>
+            <td>
+              <span class="queue-time queue-time--muted">{{ buildScheduledLabel(entry) }}</span>
+            </td>
+            <td>
+              <span
+                class="queue-status-pill"
+                [ngClass]="'queue-status-pill--' + buildStatusClass(entry.queueStatus)"
+              >
+                {{ buildStatusLabel(entry.queueStatus) }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <app-pagination
+      *ngIf="paginationMeta.totalPages > 1"
+      [meta]="paginationMeta"
+      itemLabel="pacientes"
+      (pageChange)="onPageChange($event)"
+    ></app-pagination>
+  </section>
+
+  <div *ngIf="isDetailPanelOpen" class="queue-drawer-backdrop" (click)="closeDetailPanel()"></div>
+
+  <aside
+    *ngIf="isDetailPanelOpen"
+    class="queue-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Detalle operativo del paciente"
+  >
+    <ng-container *ngIf="selectedEntry as entry">
+      <header class="queue-drawer__header">
+        <div>
+          <p class="queue-drawer__eyebrow">Detalle operativo</p>
+          <h2>{{ entry.patient.name }}</h2>
+          <p>{{ buildPatientSubtitle(entry) }}</p>
+        </div>
+
+        <button
+          type="button"
+          class="queue-icon-button"
+          aria-label="Cerrar detalle"
+          (click)="closeDetailPanel()"
+        >
+          ×
+        </button>
+      </header>
+
+      <div class="queue-drawer__body">
+        <div class="queue-drawer__badges">
+          <span
+            class="queue-status-pill"
+            [ngClass]="'queue-status-pill--' + buildStatusClass(entry.queueStatus)"
+          >
+            {{ buildStatusLabel(entry.queueStatus) }}
+          </span>
+          <span
+            class="queue-badge"
+            [ngClass]="'queue-badge--' + buildEntryTypeClass(entry.entryType)"
+          >
+            {{ buildEntryTypeLabel(entry) }}
+          </span>
+        </div>
+
+        <dl class="queue-detail-grid">
+          <div>
+            <dt>Llegada</dt>
+            <dd>{{ buildArrivalLabel(entry) }}</dd>
+          </div>
+          <div>
+            <dt>Programada</dt>
+            <dd>{{ buildScheduledLabel(entry) }}</dd>
+          </div>
+          <div>
+            <dt>Tutor</dt>
+            <dd>{{ entry.patient.tutorName }}</dd>
+          </div>
+          <div>
+            <dt>Teléfono</dt>
+            <dd>{{ entry.patient.tutorPhone }}</dd>
+          </div>
+        </dl>
+
+        <section class="queue-note">
+          <p class="queue-note__label">Motivo de atención</p>
+          <p>{{ entry.notes || 'Sin motivo registrado.' }}</p>
+        </section>
+      </div>
+
+      <footer class="queue-drawer__actions">
+        <button
+          *ngIf="entry.queueStatus === 'EN_ESPERA'"
+          type="button"
+          class="queue-button queue-button--primary"
+          (click)="startAttention(entry)"
+        >
+          Iniciar atención
+        </button>
+
+        <button
+          *ngIf="entry.queueStatus === 'EN_ESPERA'"
+          type="button"
+          class="queue-button queue-button--danger"
+          (click)="openCancelModal(entry)"
+        >
+          Cancelar ingreso
+        </button>
+
+        <button
+          *ngIf="entry.queueStatus === 'EN_ATENCION'"
+          type="button"
+          class="queue-button queue-button--success"
+          (click)="finishAttention(entry)"
+        >
+          Finalizar atención
+        </button>
+
+        <button type="button" class="queue-button queue-button--ghost" (click)="closeDetailPanel()">
+          Cerrar
+        </button>
+      </footer>
+    </ng-container>
+  </aside>
+
+  <div *ngIf="isCancelModalOpen" class="queue-cancel-backdrop" (click)="closeCancelModal()"></div>
+
+  <section
+    *ngIf="isCancelModalOpen"
+    class="queue-cancel-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="queue-cancel-title"
+  >
+    <ng-container *ngIf="entryPendingCancel as cancelEntry">
+      <header class="queue-cancel-modal__header">
+        <div class="queue-cancel-modal__icon" aria-hidden="true">!</div>
+        <div>
+          <p class="queue-cancel-modal__eyebrow">Cancelar ingreso</p>
+          <h2 id="queue-cancel-title">Confirmar cancelacion</h2>
+          <p>
+            {{ cancelEntry.patient.name }} quedara fuera de la cola operativa y podra registrarse
+            otra vez si vuelve a la clinica.
+          </p>
+        </div>
+      </header>
+
+      <div class="queue-cancel-modal__body">
+        <div class="queue-cancel-modal__summary">
+          <span class="queue-cancel-modal__label">Paciente</span>
+          <strong>{{ cancelEntry.patient.name }}</strong>
+          <span>{{ buildPatientSubtitle(cancelEntry) }}</span>
+        </div>
+      </div>
+
+      <footer class="queue-cancel-modal__actions">
+        <button
+          type="button"
+          class="queue-button queue-button--ghost"
+          (click)="closeCancelModal()"
+        >
+          Volver
+        </button>
+
+        <button
+          type="button"
+          class="queue-button queue-button--danger"
+          (click)="confirmCancelEntry()"
+        >
+          Si, cancelar
+        </button>
+      </footer>
+    </ng-container>
+  </section>
+
+</section>

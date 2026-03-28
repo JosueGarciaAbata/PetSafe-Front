@@ -3,6 +3,7 @@ import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
+  Input,
   OnDestroy,
   OnInit,
   Output,
@@ -146,11 +147,16 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
   protected showValidationErrors = false;
   protected submitError: string | null = null;
   protected colorCreateError: string | null = null;
+  @Input() initialTutor: ClientTutorBasicApiResponse | null = null;
 
   @Output() readonly closed = new EventEmitter<void>();
   @Output() readonly saved = new EventEmitter<void>();
 
   ngOnInit(): void {
+    if (this.initialTutor) {
+      this.selectTutor(this.initialTutor);
+    }
+
     void this.loadTutors('');
     void this.loadSpecies('');
     void this.loadColors('');

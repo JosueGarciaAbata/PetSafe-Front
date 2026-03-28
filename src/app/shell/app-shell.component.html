@@ -1,8 +1,8 @@
 <div class="flex h-screen w-full overflow-hidden bg-background font-sans antialiased text-text-primary">
-  <app-sidebar></app-sidebar>
+  <app-sidebar [isOpen]="sidebarOpen"></app-sidebar>
 
   <div class="relative flex h-full min-w-0 flex-1 flex-col">
-    <app-topbar></app-topbar>
+    <app-topbar [sidebarOpen]="sidebarOpen" (toggleSidebar)="toggleSidebar()"></app-topbar>
 
     <main class="relative flex-1 overflow-y-auto p-8">
       <div class="pointer-events-none absolute right-0 top-0 -z-10 h-[400px] w-[400px] rounded-full bg-brand/5 blur-[100px]"></div>
