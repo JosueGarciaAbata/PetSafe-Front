@@ -9,6 +9,7 @@ import {
 import { firstValueFrom } from 'rxjs';
 import { AppointmentsApiService } from '../api/appointments-api.service';
 import { AppointmentMonthCalendarComponent } from '../components/appointment-month-calendar.component';
+import { CreateAppointmentModalComponent } from '../components/create-appointment-modal.component';
 import { AppointmentWeekCalendarComponent } from '../components/appointment-week-calendar.component';
 import {
   AppointmentCalendarQuery,
@@ -41,7 +42,12 @@ import {
 @Component({
   selector: 'app-appointments-page',
   standalone: true,
-  imports: [CommonModule, AppointmentMonthCalendarComponent, AppointmentWeekCalendarComponent],
+  imports: [
+    CommonModule,
+    AppointmentMonthCalendarComponent,
+    AppointmentWeekCalendarComponent,
+    CreateAppointmentModalComponent,
+  ],
   templateUrl: './appointments-page.component.html',
   styleUrl: './appointments-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,17 +65,25 @@ export class AppointmentsPageComponent implements OnInit {
   protected monthCells: readonly AppointmentMonthCell[] = [];
   protected weekDays: readonly AppointmentWeekDay[] = [];
   protected summary: AppointmentCalendarSummary = EMPTY_APPOINTMENT_SUMMARY;
+  protected isCreateAppointmentModalOpen = false;
   protected isLoading = false;
   protected loadError: string | null = null;
-  protected createHintMessage: string | null = null;
 
   ngOnInit(): void {
     void this.loadAppointments();
   }
 
-  protected openCreateAppointmentPlaceholder(): void {
-    this.createHintMessage =
-      'La creacion de nuevos turnos se habilitara en el siguiente paso.';
+  protected openCreateAppointmentModal(): void {
+    this.isCreateAppointmentModalOpen = true;
+  }
+
+  protected closeCreateAppointmentModal(): void {
+    this.isCreateAppointmentModalOpen = false;
+  }
+
+  protected onCreateAppointmentSaved(): void {
+    this.closeCreateAppointmentModal();
+    void this.loadAppointments();
   }
 
   protected retryLoadAppointments(): void {
@@ -91,7 +105,6 @@ export class AppointmentsPageComponent implements OnInit {
 
     this.isLoading = true;
     this.loadError = null;
-    this.createHintMessage = null;
     this.cdr.detectChanges();
 
     try {

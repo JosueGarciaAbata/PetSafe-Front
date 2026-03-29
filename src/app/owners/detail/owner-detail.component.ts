@@ -124,6 +124,18 @@ export class OwnerDetailComponent {
     return mapClientGenderLabel(this.owner?.person.gender);
   }
 
+  protected buildPhoneLabel(): string {
+    return this.owner?.person.phone?.trim() || 'Sin telefono asignado';
+  }
+
+  protected buildAddressLabel(): string {
+    return this.owner?.person.address?.trim() || 'Sin direccion asignada';
+  }
+
+  protected buildNotesLabel(): string {
+    return this.owner?.notes?.trim() || 'Sin observaciones registradas para este cliente.';
+  }
+
   protected buildPetSpeciesBreedLabel(pet: ClientPetApiResponse): string {
     const species = pet.species?.name?.trim() || 'Sin especie registrada';
     const breed = pet.breed?.name?.trim() || 'Sin raza registrada';

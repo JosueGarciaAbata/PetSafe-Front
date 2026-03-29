@@ -65,6 +65,10 @@ export class PetsPageComponent implements OnInit {
     void this.loadPets(page);
   }
 
+  protected retryLoadPets(): void {
+    void this.loadPets(this.meta.currentPage);
+  }
+
   protected openCreateModal(): void {
     this.pendingTutor = null;
     this.isCreateModalOpen = true;

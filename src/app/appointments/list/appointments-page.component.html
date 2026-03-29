@@ -32,7 +32,7 @@
 
       <button
         type="button"
-        (click)="openCreateAppointmentPlaceholder()"
+        (click)="openCreateAppointmentModal()"
         class="inline-flex cursor-pointer items-center gap-2 self-start rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 md:self-auto"
       >
         <svg
@@ -50,12 +50,6 @@
       </button>
     </div>
   </div>
-
-  @if (createHintMessage) {
-    <div class="rounded-[18px] border border-border bg-active-soft px-4 py-3 text-sm text-brand">
-      {{ createHintMessage }}
-    </div>
-  }
 
   @if (loadError) {
     <div class="flex items-center justify-between gap-3 rounded-[18px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -124,5 +118,12 @@
         [cells]="monthCells"
       />
     }
+  }
+
+  @if (isCreateAppointmentModalOpen) {
+    <app-create-appointment-modal
+      (closed)="closeCreateAppointmentModal()"
+      (saved)="onCreateAppointmentSaved()"
+    />
   }
 </div>

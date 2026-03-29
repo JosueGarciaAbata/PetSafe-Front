@@ -74,6 +74,14 @@ export class OwnersPageComponent implements OnInit {
     return buildClientInitials(owner);
   }
 
+  protected buildPhone(owner: ClientSummaryItemApiResponse): string {
+    return owner.person?.phone?.trim() || 'Sin telefono registrado';
+  }
+
+  protected buildAddress(owner: ClientSummaryItemApiResponse): string {
+    return owner.person?.address?.trim() || 'Sin direccion registrada';
+  }
+
   protected getExtraPetsCount(owner: ClientSummaryItemApiResponse): number {
     return getExtraClientPetsCount(owner);
   }
@@ -129,14 +137,19 @@ export class OwnersPageComponent implements OnInit {
         return;
       }
 
-      const owners = response.data;
+      const owners = this.normalizeOwners(response?.data);
       this.owners = owners;
-      this.paginationMeta = response.meta;
+      this.paginationMeta = response?.meta ?? {
+        ...EMPTY_PAGINATION_META,
+        currentPage: page,
+        itemCount: owners.length,
+        totalItems: owners.length,
+      };
 
       if (this.selectedOwnerId && !owners.some((owner) => String(owner.id) === this.selectedOwnerId)) {
         await this.searchOwnerAcrossPages(
           this.selectedOwnerId,
-          response.meta.totalPages,
+          this.paginationMeta.totalPages,
           requestToken,
           searchTerm,
         );
@@ -178,16 +191,23 @@ export class OwnersPageComponent implements OnInit {
         }),
       );
 
+      console.log("Response for page", page, response);
+
       if (requestToken !== this.requestVersion) {
         return;
       }
 
-      const owners = response.data;
+      const owners = this.normalizeOwners(response?.data);
       const foundOwner = owners.find((owner) => String(owner.id) === ownerId);
 
       if (foundOwner) {
         this.owners = owners;
-        this.paginationMeta = response.meta;
+        this.paginationMeta = response?.meta ?? {
+          ...EMPTY_PAGINATION_META,
+          currentPage: page,
+          itemCount: owners.length,
+          totalItems: owners.length,
+        };
         this.selectedOwnerId = ownerId;
         this.cdr.markForCheck();
         return;
@@ -196,5 +216,32 @@ export class OwnersPageComponent implements OnInit {
 
     this.selectedOwnerId = null;
     this.cdr.markForCheck();
+  }
+
+  private normalizeOwners(items: ClientSummaryItemApiResponse[] | undefined): ClientSummaryItemApiResponse[] {
+    if (!Array.isArray(items)) {
+      return [];
+    }
+
+    return items.map((owner) => {
+      const pets = Array.isArray(owner?.pets) ? owner.pets : [];
+
+      return {
+        ...owner,
+        email: owner?.email ?? null,
+        person: {
+          id: owner?.person?.id ?? 0,
+          firstName: owner?.person?.firstName ?? '',
+          lastName: owner?.person?.lastName ?? '',
+          documentId: owner?.person?.documentId ?? null,
+          phone: owner?.person?.phone ?? null,
+          address: owner?.person?.address ?? null,
+          gender: owner?.person?.gender ?? null,
+          birthDate: owner?.person?.birthDate ?? null,
+        },
+        pets,
+        petsCount: typeof owner?.petsCount === 'number' ? owner.petsCount : pets.length,
+      };
+    });
   }
 }

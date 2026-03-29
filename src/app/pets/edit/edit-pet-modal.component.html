@@ -104,6 +104,7 @@
                 @if (isBreedInvalid()) {
                   <mat-error>Selecciona una raza valida.</mat-error>
                 }
+                <mat-hint>Opcional. Selecciona una raza si aplica.</mat-hint>
               </mat-form-field>
             </div>
           </div>
@@ -174,12 +175,10 @@
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
                 <span matTextSuffix class="text-xs font-bold text-text-secondary">kg</span>
-                @if (isWeightRequiredInvalid()) {
-                  <mat-error>Ingresa el peso de la mascota.</mat-error>
-                }
                 @if (isWeightInvalid()) {
                   <mat-error>Ingresa un peso mayor a 0 y con maximo 2 decimales.</mat-error>
                 }
+                <mat-hint>Opcional. Mayor a 0 y maximo 2 decimales.</mat-hint>
               </mat-form-field>
             </div>
 
@@ -201,6 +200,7 @@
                 } @else if (isColorInvalid()) {
                   <mat-error>Selecciona un color valido.</mat-error>
                 }
+                <mat-hint>Opcional. Selecciona un color de la lista.</mat-hint>
               </mat-form-field>
               <mat-autocomplete #colorAuto="matAutocomplete" autoActiveFirstOption>
                 @for (option of colorOptions(); track option.id) {

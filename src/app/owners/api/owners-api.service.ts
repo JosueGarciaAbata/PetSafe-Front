@@ -6,7 +6,7 @@ import { CreateClientRequest } from '../models/client-create.model';
 import { ClientPetApiResponse } from '../models/client-pet.model';
 import { ClientResponseApiResponse } from '../models/client-detail.model';
 import {
-  ClientTutorBasicListApiResponse,
+  ClientTutorBasicApiResponse,
   ClientTutorBasicQuery,
 } from '../models/client-tutor-basic.model';
 import { UpdateClientRequest } from '../models/client-update.model';
@@ -18,21 +18,18 @@ import {
 @Injectable({ providedIn: 'root' })
 export class OwnersApiService {
   private readonly http = inject(HttpClient);
-  private readonly listUrl = buildApiUrl('clients/summary/list');
+  private readonly listUrl = buildApiUrl('clients/admin/summary/list');
   private readonly createUrl = buildApiUrl('clients');
-  private readonly tutorsBasicUrl = buildApiUrl('clients/tutors/basic');
+  private readonly tutorsBasicUrl = buildApiUrl('clients/admin/tutors/basic');
 
   listSummary(query: ClientSummaryQuery): Observable<ClientSummaryListApiResponse> {
     let params = new HttpParams()
       .set('page', query.page)
-      .set('limit', query.limit);
+      .set('limit', query.limit)
 
     const searchTerm = query.searchTerm?.trim();
     if (searchTerm) {
-      params = params
-        .set('firstName', searchTerm)
-        .set('email', searchTerm)
-        .set('petName', searchTerm);
+      params = params.set('search', searchTerm);
     }
 
     return this.http.get<ClientSummaryListApiResponse>(this.listUrl, { params });
@@ -44,9 +41,8 @@ export class OwnersApiService {
 
   listBasicTutors(
     query: ClientTutorBasicQuery,
-  ): Observable<ClientTutorBasicListApiResponse> {
+  ): Observable<ClientTutorBasicApiResponse[]> {
     let params = new HttpParams()
-      .set('page', query.page)
       .set('limit', query.limit);
 
     const searchTerm = query.search?.trim();
@@ -54,7 +50,7 @@ export class OwnersApiService {
       params = params.set('search', searchTerm);
     }
 
-    return this.http.get<ClientTutorBasicListApiResponse>(this.tutorsBasicUrl, {
+    return this.http.get<ClientTutorBasicApiResponse[]>(this.tutorsBasicUrl, {
       params,
     });
   }

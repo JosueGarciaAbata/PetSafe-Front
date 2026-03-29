@@ -55,47 +55,55 @@
       </div>
     </div>
 
-    @if (isLoading && pets.length === 0) {
-      <section class="overflow-hidden rounded-[16px] border border-border bg-card shadow-sm">
-        <div class="flex items-center justify-between border-b border-border bg-[#F8FAFC] px-8 py-5">
-          <div class="h-4 w-32 animate-pulse rounded bg-background"></div>
-          <div class="h-4 w-28 animate-pulse rounded bg-background"></div>
-        </div>
-        <div class="space-y-4 p-8">
-          <div class="h-16 animate-pulse rounded-xl bg-background"></div>
-          <div class="h-16 animate-pulse rounded-xl bg-background"></div>
-          <div class="h-16 animate-pulse rounded-xl bg-background"></div>
-          <div class="h-16 animate-pulse rounded-xl bg-background"></div>
-        </div>
-      </section>
-    } @else if (loadError) {
-      <section
-        class="rounded-[16px] border border-border bg-card p-8 text-sm text-text-secondary shadow-sm"
-      >
-        {{ loadError }}
-      </section>
-    } @else if (pets.length > 0) {
-      <section class="overflow-hidden rounded-[16px] border border-border bg-card shadow-sm">
-        <div class="overflow-x-auto">
-          <table class="w-full min-w-[920px] text-left">
-            <thead>
-              <tr class="border-b border-border bg-[#F8FAFC]">
-                <th class="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
-                  Mascota
-                </th>
-                <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
-                  Tutor
-                </th>
-                <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
-                  Informacion basica
-                </th>
-                <th
-                  class="px-8 py-5 text-right text-xs font-bold uppercase tracking-wider text-text-secondary"
-                ></th>
-              </tr>
-            </thead>
+    <section class="overflow-hidden rounded-[16px] border border-border bg-card shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[920px] text-left">
+          <thead>
+            <tr class="border-b border-border bg-[#F8FAFC]">
+              <th class="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+                Mascota
+              </th>
+              <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+                Tutor
+              </th>
+              <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+                Informacion basica
+              </th>
+              <th
+                class="px-8 py-5 text-right text-xs font-bold uppercase tracking-wider text-text-secondary"
+              ></th>
+            </tr>
+          </thead>
 
-            <tbody class="divide-y divide-border">
+          <tbody class="divide-y divide-border">
+            @if (isLoading && pets.length === 0) {
+              <tr>
+                <td colspan="4" class="px-8 py-16 text-center text-sm text-text-secondary">
+                  Cargando mascotas...
+                </td>
+              </tr>
+            } @else if (loadError) {
+              <tr>
+                <td colspan="4" class="px-8 py-16">
+                  <div class="flex flex-col items-center gap-3 text-center">
+                    <p class="text-sm font-semibold text-text-primary">{{ loadError }}</p>
+                    <button
+                      type="button"
+                      (click)="retryLoadPets()"
+                      class="inline-flex items-center rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:opacity-90"
+                    >
+                      Reintentar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @else if (pets.length === 0) {
+              <tr>
+                <td colspan="4" class="px-8 py-16 text-center text-sm text-text-secondary">
+                  No se encontraron mascotas.
+                </td>
+              </tr>
+            } @else {
               @for (pet of pets; track pet.id) {
                 <tr
                   class="group cursor-pointer bg-white transition-colors hover:bg-[#F8FAFC]"
@@ -163,27 +171,15 @@
                   </td>
                 </tr>
               }
-            </tbody>
-          </table>
-        </div>
+            }
+          </tbody>
+        </table>
+      </div>
 
+      @if (!isLoading && !loadError) {
         <app-pagination [meta]="meta" itemLabel="mascotas" (pageChange)="onPageChange($event)" />
-      </section>
-    } @else {
-      <section class="rounded-[16px] border border-border bg-card p-8 shadow-sm">
-        <div class="flex flex-col items-center gap-3 text-center">
-          <div
-            class="flex h-12 w-12 items-center justify-center rounded-full bg-active-soft text-brand"
-          >
-            P
-          </div>
-          <div class="flex flex-col gap-1">
-            <span class="text-sm font-bold text-text-primary">Sin mascotas registradas</span>
-            <p class="text-xs text-text-secondary">Intenta agregar alguna.</p>
-          </div>
-        </div>
-      </section>
-    }
+      }
+    </section>
 
     @if (isCreateModalOpen) {
       <app-create-pet-modal

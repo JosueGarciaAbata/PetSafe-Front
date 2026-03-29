@@ -84,126 +84,138 @@
     </div>
 
     <div class="rounded-[24px] border border-border bg-card p-8 shadow-sm">
-      <div class="flex flex-col gap-8 lg:flex-row">
-        <div class="flex h-48 w-48 shrink-0 items-center justify-center self-center rounded-[2rem] border-4 border-white bg-active-soft shadow-md lg:self-start">
-          <span class="text-4xl font-bold uppercase text-brand">{{ buildPetInitial() }}</span>
+      <div class="flex flex-col gap-8">
+        <div class="flex flex-col gap-8 lg:flex-row">
+        <div class="flex h-32 w-32 shrink-0 items-center justify-center self-center rounded-[28px] border-4 border-white bg-active-soft shadow-md lg:self-start">
+          <span class="text-3xl font-bold uppercase text-brand">{{ buildPetInitial() }}</span>
         </div>
 
-        <div class="flex flex-1 flex-col gap-6">
+        <div class="flex min-w-0 flex-1 flex-col gap-5">
           <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <div class="flex flex-col gap-1 rounded-2xl border border-border bg-white p-4 shadow-sm">
+            <div class="flex min-w-0 flex-col gap-1 rounded-2xl border border-border bg-white p-4 shadow-sm">
               <span class="text-[10px] font-bold uppercase tracking-wider text-text-secondary">
                 Especie / Raza
               </span>
-              <span class="text-sm font-bold text-text-primary">{{ buildSpeciesLabel() }}</span>
-              <span class="truncate text-xs text-text-secondary">
+              <span class="break-words text-sm font-bold text-text-primary">{{ buildSpeciesLabel() }}</span>
+              <span class="break-words text-xs text-text-secondary">
                 {{ buildBreedLabel() }}
               </span>
             </div>
 
-            <div class="flex flex-col gap-1 rounded-2xl border border-border bg-white p-4 shadow-sm">
+            <div class="flex min-w-0 flex-col gap-1 rounded-2xl border border-border bg-white p-4 shadow-sm">
               <span class="text-[10px] font-bold uppercase tracking-wider text-text-secondary">
                 Sexo / Peso
               </span>
-              <span class="text-sm font-bold text-text-primary">{{ buildSexLabel() }}</span>
-              <span class="text-xs text-text-secondary">{{ buildWeightLabel() }}</span>
+              <span class="break-words text-sm font-bold text-text-primary">{{ buildSexLabel() }}</span>
+              <span class="break-words text-xs text-text-secondary">{{ buildWeightLabel() }}</span>
             </div>
 
-            <div class="flex flex-col gap-1 rounded-2xl border border-border bg-white p-4 shadow-sm">
+            <div class="flex min-w-0 flex-col gap-1 rounded-2xl border border-border bg-white p-4 shadow-sm">
               <span class="text-[10px] font-bold uppercase tracking-wider text-text-secondary">
                 Edad / Nacimiento
               </span>
-              <span class="text-sm font-bold text-text-primary">{{ buildAgeLabel() }}</span>
-              <span class="text-xs text-text-secondary">{{ buildBirthDateLabel() }}</span>
+              <span class="break-words text-sm font-bold text-text-primary">{{ buildAgeLabel() }}</span>
+              <span class="break-words text-xs text-text-secondary">{{ buildBirthDateLabel() }}</span>
             </div>
 
-            <div class="flex flex-col gap-1 rounded-2xl border border-border bg-white p-4 shadow-sm">
+            <div class="flex min-w-0 flex-col gap-1 rounded-2xl border border-border bg-white p-4 shadow-sm">
               <span class="text-[10px] font-bold uppercase tracking-wider text-text-secondary">
                 Color / Esterilizado
               </span>
-              <span class="text-sm font-bold text-text-primary">{{ buildColorLabel() }}</span>
-              <span class="text-xs text-text-secondary">
+              <span class="break-words text-sm font-bold text-text-primary">{{ buildColorLabel() }}</span>
+              <span class="break-words text-xs text-text-secondary">
                 Esterilizado: {{ buildSterilizedLabel() }}
               </span>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div class="flex flex-col gap-3 rounded-2xl border border-[#2F605E]/10 bg-[#EAF3F2]/40 p-5">
-            <div class="flex items-center gap-2">
-              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#2F605E] text-white">
-                <svg
-                  viewBox="0 0 24 24"
-                  class="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M9 3h6l2 2v14l-2 2H9l-2-2V5l2-2Z"></path>
-                  <path d="M9 9h6"></path>
-                  <path d="M9 13h6"></path>
-                </svg>
-              </div>
-              <span class="text-xs font-bold uppercase tracking-wider text-[#2F605E]">
-                Observaciones clinicas
-              </span>
+        <section class="flex flex-col gap-4 border-t border-border pt-6">
+          <div class="flex items-center gap-2">
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#2F605E] text-white">
+              <svg
+                viewBox="0 0 24 24"
+                class="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M9 3h6l2 2v14l-2 2H9l-2-2V5l2-2Z"></path>
+                <path d="M9 9h6"></path>
+                <path d="M9 13h6"></path>
+              </svg>
             </div>
+            <h3 class="text-[17px] font-bold text-text-primary">Observaciones clinicas</h3>
+          </div>
 
-            @if (hasClinicalContent()) {
-              <div class="grid gap-3">
-                @if (generalAllergies()) {
-                  <div class="rounded-xl border border-[#2F605E]/10 bg-white/80 p-4">
-                    <div class="flex flex-wrap items-center gap-2">
-                      <span class="text-sm font-bold text-text-primary">Alergias generales</span>
+          @if (hasClinicalContent()) {
+            <div class="flex flex-col gap-5">
+              @if (hasGeneralClinicalSummary()) {
+                <div class="grid gap-4 md:grid-cols-2">
+                  @if (generalAllergies()) {
+                    <div class="flex min-w-0 flex-col gap-1">
+                      <span
+                        class="text-[11px] font-semibold uppercase tracking-wider text-text-secondary"
+                      >
+                        Alergias generales
+                      </span>
+                      <p class="break-all whitespace-pre-wrap text-sm leading-6 text-text-secondary">{{ generalAllergies() }}</p>
                     </div>
-                    <p class="mt-1 text-sm text-text-secondary">{{ generalAllergies() }}</p>
-                  </div>
-                }
+                  }
 
-                @if (generalHistory()) {
-                  <div class="rounded-xl border border-[#2F605E]/10 bg-white/80 p-4">
-                    <div class="flex flex-wrap items-center gap-2">
-                      <span class="text-sm font-bold text-text-primary">Historia general</span>
+                  @if (generalHistory()) {
+                    <div class="flex min-w-0 flex-col gap-1">
+                      <span
+                        class="text-[11px] font-semibold uppercase tracking-wider text-text-secondary"
+                      >
+                        Historia general
+                      </span>
+                      <p class="break-all whitespace-pre-wrap text-sm leading-6 text-text-secondary">{{ generalHistory() }}</p>
                     </div>
-                    <p class="mt-1 text-sm text-text-secondary">{{ generalHistory() }}</p>
-                  </div>
-                }
+                  }
+                </div>
+              }
 
-                @for (observation of clinicalObservations(); track observation.id) {
-                  <div class="rounded-xl border border-[#2F605E]/10 bg-white/80 p-4">
-                    <div class="flex flex-wrap items-center gap-2">
-                      <span class="text-sm font-bold text-text-primary">{{ observation.name }}</span>
-                      @if (buildObservationMeta(observation)) {
-                        <span class="text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
-                          {{ buildObservationMeta(observation) }}
-                        </span>
+              @if (clinicalObservations().length > 0) {
+                <div class="divide-y divide-border rounded-2xl border border-border/80 bg-background/40">
+                  @for (observation of clinicalObservations(); track observation.id) {
+                    <div class="min-w-0 px-4 py-4">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <span class="break-words text-sm font-bold text-text-primary">{{ observation.name }}</span>
+                        @if (buildObservationMeta(observation)) {
+                          <span class="text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+                            {{ buildObservationMeta(observation) }}
+                          </span>
+                        }
+                      </div>
+                      @if (observation.description) {
+                        <p class="mt-1 break-all whitespace-pre-wrap text-sm leading-6 text-text-secondary">{{ observation.description }}</p>
                       }
                     </div>
-                    @if (observation.description) {
-                      <p class="mt-1 text-sm text-text-secondary">{{ observation.description }}</p>
-                    }
-                  </div>
-                }
-              </div>
-            } @else {
-              <div class="flex items-center gap-2 text-text-secondary">
-                <svg
-                  viewBox="0 0 24 24"
-                  class="h-4 w-4 shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                >
-                  <circle cx="12" cy="12" r="9"></circle>
-                  <path d="M12 8v4"></path>
-                  <path d="M12 16h.01"></path>
-                </svg>
-                <span class="text-sm italic">Sin observaciones clinicas registradas</span>
-              </div>
-            }
-          </div>
-        </div>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="flex items-center gap-2 text-text-secondary">
+              <svg
+                viewBox="0 0 24 24"
+                class="h-4 w-4 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+              >
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 8v4"></path>
+                <path d="M12 16h.01"></path>
+              </svg>
+              <span class="text-sm italic">Sin observaciones clinicas registradas</span>
+            </div>
+          }
+        </section>
       </div>
     </div>
 

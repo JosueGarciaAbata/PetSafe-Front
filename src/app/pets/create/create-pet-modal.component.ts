@@ -112,7 +112,7 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
     !!this.colorCreateError || this.isColorInvalid(),
   );
   protected readonly microchipErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
-    this.isMicrochipRequiredInvalid() || this.isMicrochipTooLong(),
+    this.isMicrochipTooLong(),
   );
   protected readonly generalAllergiesErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
     this.isGeneralAllergiesTooLong(),
@@ -377,6 +377,7 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
   protected isBreedInvalid(): boolean {
     return (
       this.showValidationErrors
+      && this.breedValue.trim().length > 0
       && this.resolveSpeciesByName(this.speciesValue) !== null
       && this.resolveBreedByName(this.resolveSpeciesByName(this.speciesValue), this.breedValue) === null
     );
@@ -387,16 +388,12 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
   }
 
   protected isColorInvalid(): boolean {
-    return this.showValidationErrors && !this.selectedColor;
+    return this.showValidationErrors && this.colorValue.trim().length > 0 && !this.selectedColor;
   }
 
   protected isWeightInvalid(): boolean {
     const rawWeight = this.normalizedWeightValue();
     return this.showValidationErrors && rawWeight.length > 0 && this.parseWeight() === null;
-  }
-
-  protected isMicrochipRequiredInvalid(): boolean {
-    return this.showValidationErrors && this.microchipCode.trim().length === 0;
   }
 
   protected isMicrochipTooLong(): boolean {
@@ -478,10 +475,10 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.tutors = response.data;
+      this.tutors = response;
       if (this.selectedTutor) {
         this.selectedTutor =
-          response.data.find((item) => item.id === this.selectedTutor?.id) ?? this.selectedTutor;
+          response.find((item) => item.id === this.selectedTutor?.id) ?? this.selectedTutor;
       }
     } catch {
       if (requestToken !== this.tutorRequestVersion) {
@@ -662,12 +659,11 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
       !name ||
       name.length > PET_NAME_MAX_LENGTH ||
       !selectedSpecies ||
-      !selectedBreed ||
-      !this.selectedColor ||
-      !microchipCode ||
       !isValidPetBirthDate(birthDate) ||
       (rawWeight.length > 0 && currentWeight === null) ||
       microchipCode.length > PET_MICROCHIP_MAX_LENGTH ||
+      (this.breedValue.trim().length > 0 && !selectedBreed) ||
+      (this.colorValue.trim().length > 0 && !this.selectedColor) ||
       generalAllergies.length > PET_TEXTAREA_MAX_LENGTH ||
       generalHistory.length > PET_TEXTAREA_MAX_LENGTH
     ) {
@@ -678,11 +674,20 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
       clientId: this.selectedTutor.id,
       name,
       speciesId: selectedSpecies.id,
-      breedId: selectedBreed.id,
-      colorId: this.selectedColor.id,
-      microchipCode,
       sex: this.sex === 'Hembra' ? 'HEMBRA' : 'MACHO',
     };
+
+    if (selectedBreed) {
+      payload.breedId = selectedBreed.id;
+    }
+
+    if (this.selectedColor) {
+      payload.colorId = this.selectedColor.id;
+    }
+
+    if (microchipCode) {
+      payload.microchipCode = microchipCode;
+    }
 
     if (birthDate) {
       payload.birthDate = birthDate;

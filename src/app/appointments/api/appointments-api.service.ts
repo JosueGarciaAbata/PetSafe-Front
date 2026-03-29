@@ -1,11 +1,18 @@
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, delay, of } from 'rxjs';
 import { AuthService } from '@app/core/auth/auth.service';
+import { buildApiUrl } from '@app/core/config/api.config';
 import {
   AppointmentCalendarMonthResponse,
   AppointmentCalendarQuery,
   AppointmentCalendarWeekResponse,
 } from '../models/appointment-calendar.model';
+import { CreateAppointmentRequest } from '../models/appointment-create.model';
+import {
+  AppointmentPatientSearchItemApiResponse,
+  AppointmentPatientSearchQuery,
+} from '../models/appointment-patient-search.model';
 import {
   AppointmentRecord,
   AppointmentStatus,
@@ -34,7 +41,10 @@ const FALLBACK_VET_ID = 1;
   providedIn: 'root',
 })
 export class AppointmentsApiService {
+  private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
+  private readonly createUrl = buildApiUrl('appointments');
+  private readonly patientSearchUrl = buildApiUrl('patients/admin/search-summary');
   private readonly appointments = this.seedAppointments();
 
   listCalendarMonth(
@@ -59,6 +69,47 @@ export class AppointmentsApiService {
       activeDate: query.activeDate,
       appointments: filteredAppointments.map((appointment) => ({ ...appointment })),
     }).pipe(delay(180));
+  }
+
+  searchPatientsSummary(
+    query: AppointmentPatientSearchQuery,
+  ): Observable<AppointmentPatientSearchItemApiResponse[]> {
+    let params = new HttpParams();
+
+    const search = query.search?.trim();
+    if (search) {
+      params = params.set('search', search);
+    }
+
+    if (query.limit) {
+      params = params.set('limit', query.limit);
+    }
+
+    return this.http.get<AppointmentPatientSearchItemApiResponse[]>(this.patientSearchUrl, { params });
+  }
+
+  create(payload: CreateAppointmentRequest): Observable<unknown> {
+    return this.http.post<unknown>(this.createUrl, payload);
+  }
+
+  registerLocalCreatedAppointment(
+    payload: CreateAppointmentRequest,
+    patient: Pick<AppointmentPatientSearchItemApiResponse, 'patientId' | 'patientName' | 'tutorName'>,
+  ): void {
+    this.appointments.unshift({
+      id: this.getNextAppointmentId(),
+      patientId: patient.patientId,
+      vetId: this.resolveCurrentVetId(),
+      patientName: patient.patientName.trim(),
+      ownerName: patient.tutorName.trim(),
+      scheduledDate: payload.scheduledDate,
+      startsAt: payload.scheduledTime,
+      endsAt: null,
+      reason: payload.reason.trim(),
+      notes: payload.notes?.trim() || null,
+      status: 'PROGRAMADA',
+      isActive: true,
+    });
   }
 
   private filterAppointmentsByRange(
@@ -242,5 +293,9 @@ export class AppointmentsApiService {
     const vetId = Number(currentUser.id);
 
     return Number.isInteger(vetId) && vetId > 0 ? vetId : FALLBACK_VET_ID;
+  }
+
+  private getNextAppointmentId(): number {
+    return this.appointments.reduce((maxId, appointment) => Math.max(maxId, appointment.id), 0) + 1;
   }
 }
