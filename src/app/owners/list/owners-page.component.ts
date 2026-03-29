@@ -1,7 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { debounceTime, distinctUntilChanged, firstValueFrom } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CreateOwnerModalComponent } from '../create/create-owner-modal.component';
@@ -24,8 +22,6 @@ import {
     OwnerDetailComponent,
     PaginationComponent,
     ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
   ],
   templateUrl: './owners-page.component.html',
   styleUrl: './owners-page.component.css',
