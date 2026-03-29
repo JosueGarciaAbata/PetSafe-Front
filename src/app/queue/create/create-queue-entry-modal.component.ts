@@ -318,7 +318,7 @@ export class QueueIntakePageComponent implements OnInit {
         return;
       }
 
-      this.tutorMatches = tutorsResponse.data;
+      this.tutorMatches = tutorsResponse;
       this.petMatches = petsResponse.data;
     } catch {
       if (requestToken !== this.lookupRequestVersion) {

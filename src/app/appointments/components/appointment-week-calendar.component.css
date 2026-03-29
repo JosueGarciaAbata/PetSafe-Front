@@ -1,0 +1,45 @@
+:host {
+  display: block;
+}
+
+.appointment-week-status {
+  border-width: 1px;
+}
+
+.appointment-week-status--scheduled {
+  border-color: #c7d7fe;
+  background-color: #eef4ff;
+  color: #1d4ed8;
+}
+
+.appointment-week-status--confirmed {
+  border-color: #b8e4c4;
+  background-color: #ecfdf3;
+  color: #027a48;
+}
+
+.appointment-week-status--in-process {
+  border-color: #b8d8d7;
+  background-color: #eaf3f2;
+  color: var(--ps-brand);
+}
+
+.appointment-week-status--finished {
+  border-color: #d5d9e1;
+  background-color: #f2f4f7;
+  color: var(--ps-text-secondary);
+}
+
+.appointment-week-status--cancelled {
+  border-color: #f7c3c0;
+  background-color: #fef3f2;
+  color: #b42318;
+}
+
+.appointment-week-avatar {
+  color: #ffffff;
+}
+
+.appointment-week-avatar--default {
+  background-color: var(--ps-brand);
+}

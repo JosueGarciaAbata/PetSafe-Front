@@ -46,6 +46,7 @@
               >
                 <input
                   matInput
+                  [errorStateMatcher]="tutorErrorStateMatcher"
                   type="text"
                   [ngModel]="tutorValue"
                   (ngModelChange)="onTutorChanged($event)"
@@ -54,6 +55,9 @@
                   autocomplete="off"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                @if (isTutorInvalid()) {
+                  <mat-error>Selecciona un tutor valido de la lista.</mat-error>
+                }
               </mat-form-field>
               <mat-autocomplete #tutorAuto="matAutocomplete" autoActiveFirstOption>
                 @for (option of tutorOptions(); track option.id) {
@@ -76,11 +80,6 @@
                   <mat-option disabled>No se encontraron resultados</mat-option>
                 }
               </mat-autocomplete>
-              @if (isTutorInvalid()) {
-                <p class="text-xs font-medium text-red-600">
-                  Selecciona un tutor valido de la lista.
-                </p>
-              }
             </div>
 
             <div class="flex flex-col gap-2">
@@ -92,21 +91,22 @@
               >
                 <input
                   matInput
+                  [errorStateMatcher]="petNameErrorStateMatcher"
                   type="text"
                   [ngModel]="petName"
                   (ngModelChange)="petName = $event"
                   placeholder="Ej. Max"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                @if (isPetNameRequiredInvalid()) {
+                  <mat-error>Ingresa el nombre de la mascota.</mat-error>
+                }
+                @if (isPetNameTooLong()) {
+                  <mat-error>
+                    El nombre no puede superar los {{ nameMaxLength }} caracteres.
+                  </mat-error>
+                }
               </mat-form-field>
-              @if (isPetNameRequiredInvalid()) {
-                <p class="text-xs font-medium text-red-600">Ingresa el nombre de la mascota.</p>
-              }
-              @if (isPetNameTooLong()) {
-                <p class="text-xs font-medium text-red-600">
-                  El nombre no puede superar los {{ nameMaxLength }} caracteres.
-                </p>
-              }
             </div>
 
             <div class="flex flex-col gap-2">
@@ -118,6 +118,7 @@
               >
                 <input
                   matInput
+                  [errorStateMatcher]="speciesErrorStateMatcher"
                   type="text"
                   [ngModel]="speciesValue"
                   (ngModelChange)="onSpeciesChanged($event)"
@@ -126,6 +127,9 @@
                   autocomplete="off"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                @if (isSpeciesInvalid()) {
+                  <mat-error>Selecciona una especie valida.</mat-error>
+                }
               </mat-form-field>
               <mat-autocomplete
                 #speciesAuto="matAutocomplete"
@@ -142,9 +146,6 @@
                   <mat-option disabled>No se encontraron resultados</mat-option>
                 }
               </mat-autocomplete>
-              @if (isSpeciesInvalid()) {
-                <p class="text-xs font-medium text-red-600">Selecciona una especie valida.</p>
-              }
             </div>
 
             <div class="flex flex-col gap-2 md:col-span-2">
@@ -155,6 +156,7 @@
                 class="pet-create-field w-full"
               >
                 <mat-select
+                  [errorStateMatcher]="breedErrorStateMatcher"
                   [ngModel]="breedValue"
                   (ngModelChange)="onBreedChanged($event)"
                   [disabled]="isBreedDisabled()"
@@ -164,10 +166,11 @@
                     <mat-option [value]="option.name">{{ option.name }}</mat-option>
                   }
                 </mat-select>
+                @if (isBreedInvalid()) {
+                  <mat-error>Selecciona una raza valida.</mat-error>
+                }
+                <mat-hint>Opcional. Selecciona una raza si aplica.</mat-hint>
               </mat-form-field>
-              @if (isBreedInvalid()) {
-                <p class="text-xs font-medium text-red-600">Selecciona una raza valida.</p>
-              }
             </div>
           </div>
         </section>
@@ -213,18 +216,17 @@
               >
                 <input
                   matInput
+                  [errorStateMatcher]="birthDateErrorStateMatcher"
                   type="date"
                   [ngModel]="birthDate"
                   (ngModelChange)="birthDate = $event"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                @if (isBirthDateInvalid()) {
+                  <mat-error>Ingresa una fecha valida con formato YYYY-MM-DD.</mat-error>
+                }
                 <mat-hint>Opcional. Formato YYYY-MM-DD.</mat-hint>
               </mat-form-field>
-              @if (isBirthDateInvalid()) {
-                <p class="text-xs font-medium text-red-600">
-                  Ingresa una fecha valida con formato YYYY-MM-DD.
-                </p>
-              }
             </div>
 
             <div class="flex flex-col gap-2">
@@ -236,6 +238,7 @@
               >
                 <input
                   matInput
+                  [errorStateMatcher]="weightErrorStateMatcher"
                   type="number"
                   [ngModel]="weightKg"
                   (ngModelChange)="weightKg = $event"
@@ -246,13 +249,11 @@
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
                 <span matTextSuffix class="text-xs font-bold text-text-secondary">kg</span>
+                @if (isWeightInvalid()) {
+                  <mat-error>Ingresa un peso mayor a 0 y con maximo 2 decimales.</mat-error>
+                }
                 <mat-hint>Opcional. Mayor a 0 y maximo 2 decimales.</mat-hint>
               </mat-form-field>
-              @if (isWeightInvalid()) {
-                <p class="text-xs font-medium text-red-600">
-                  Ingresa un peso mayor a 0 y con maximo 2 decimales.
-                </p>
-              }
             </div>
 
             <div class="flex flex-col gap-2">
@@ -264,6 +265,7 @@
               >
                 <input
                   matInput
+                  [errorStateMatcher]="colorErrorStateMatcher"
                   type="text"
                   [ngModel]="colorValue"
                   (ngModelChange)="onColorChanged($event)"
@@ -272,6 +274,12 @@
                   autocomplete="off"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                @if (colorCreateError) {
+                  <mat-error>{{ colorCreateError }}</mat-error>
+                } @else if (isColorInvalid()) {
+                  <mat-error>Selecciona un color valido.</mat-error>
+                }
+                <mat-hint>Opcional. Selecciona un color de la lista.</mat-hint>
               </mat-form-field>
               <mat-autocomplete #colorAuto="matAutocomplete" autoActiveFirstOption>
                 @for (option of colorOptions(); track option.id) {
@@ -297,11 +305,6 @@
                   </mat-option>
                 }
               </mat-autocomplete>
-              @if (colorCreateError) {
-                <p class="text-xs font-medium text-red-600">{{ colorCreateError }}</p>
-              } @else if (isColorInvalid()) {
-                <p class="text-xs font-medium text-red-600">Selecciona un color valido.</p>
-              }
             </div>
 
             <div class="flex flex-col gap-2 md:col-span-2">
@@ -313,21 +316,21 @@
               >
                 <input
                   matInput
+                  [errorStateMatcher]="microchipErrorStateMatcher"
                   type="text"
                   [ngModel]="microchipCode"
                   (ngModelChange)="microchipCode = $event"
                   placeholder="Ej. MC-0001"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                @if (isMicrochipTooLong()) {
+                  <mat-error>
+                    El microchip no puede superar los {{ microchipMaxLength }} caracteres.
+                  </mat-error>
+                }
+                <mat-hint>Opcional. Maximo {{ microchipMaxLength }} caracteres.</mat-hint>
+                <mat-hint align="end">{{ microchipCode.length }}/{{ microchipMaxLength }}</mat-hint>
               </mat-form-field>
-              @if (isMicrochipRequiredInvalid()) {
-                <p class="text-xs font-medium text-red-600">Ingresa el codigo del microchip.</p>
-              }
-              @if (isMicrochipTooLong()) {
-                <p class="text-xs font-medium text-red-600">
-                  El microchip no puede superar los {{ microchipMaxLength }} caracteres.
-                </p>
-              }
             </div>
 
             <div class="flex flex-col gap-2 md:col-span-2">
@@ -375,22 +378,23 @@
               >
                 <textarea
                   matInput
+                  [errorStateMatcher]="generalAllergiesErrorStateMatcher"
                   rows="2"
                   [ngModel]="generalAllergies"
                   (ngModelChange)="generalAllergies = $event"
                   placeholder="Ej. Ninguna"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 ></textarea>
+                @if (isGeneralAllergiesTooLong()) {
+                  <mat-error>
+                    Las alergias generales no pueden superar los {{ textAreaMaxLength }} caracteres.
+                  </mat-error>
+                }
                 <mat-hint>Opcional. Maximo {{ textAreaMaxLength }} caracteres.</mat-hint>
                 <mat-hint align="end"
                   >{{ generalAllergies.length }}/{{ textAreaMaxLength }}</mat-hint
                 >
               </mat-form-field>
-              @if (isGeneralAllergiesTooLong()) {
-                <p class="text-xs font-medium text-red-600">
-                  Las alergias generales no pueden superar los {{ textAreaMaxLength }} caracteres.
-                </p>
-              }
             </div>
 
             <div class="flex flex-col gap-2">
@@ -402,20 +406,21 @@
               >
                 <textarea
                   matInput
+                  [errorStateMatcher]="generalHistoryErrorStateMatcher"
                   rows="2"
                   [ngModel]="generalHistory"
                   (ngModelChange)="generalHistory = $event"
                   placeholder="Ej. Paciente creada desde el sistema"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 ></textarea>
+                @if (isGeneralHistoryTooLong()) {
+                  <mat-error>
+                    La historia general no puede superar los {{ textAreaMaxLength }} caracteres.
+                  </mat-error>
+                }
                 <mat-hint>Opcional. Maximo {{ textAreaMaxLength }} caracteres.</mat-hint>
                 <mat-hint align="end">{{ generalHistory.length }}/{{ textAreaMaxLength }}</mat-hint>
               </mat-form-field>
-              @if (isGeneralHistoryTooLong()) {
-                <p class="text-xs font-medium text-red-600">
-                  La historia general no puede superar los {{ textAreaMaxLength }} caracteres.
-                </p>
-              }
             </div>
           </div>
         </section>
@@ -427,9 +432,11 @@
     >
       <div class="flex items-center justify-end gap-3">
         @if (submitError) {
-          <p class="mr-auto whitespace-pre-line text-xs font-medium text-red-600">
+          <div
+            class="mr-auto rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line"
+          >
             {{ submitError }}
-          </p>
+          </div>
         }
         <button
           type="button"

@@ -95,7 +95,7 @@ export class EditPetModalComponent implements OnDestroy {
     this.isBirthDateInvalid(),
   );
   protected readonly weightErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
-    this.isWeightRequiredInvalid() || this.isWeightInvalid(),
+    this.isWeightInvalid(),
   );
   protected readonly colorErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
     !!this.colorCreateError || this.isColorInvalid(),
@@ -373,6 +373,7 @@ export class EditPetModalComponent implements OnDestroy {
   protected isBreedInvalid(): boolean {
     return (
       this.showValidationErrors &&
+      this.breedId !== null &&
       this.resolveSpeciesByName(this.speciesValue) !== null &&
       this.resolveBreedById(this.resolveSpeciesByName(this.speciesValue), this.breedId) === null
     );
@@ -380,10 +381,6 @@ export class EditPetModalComponent implements OnDestroy {
 
   protected isBirthDateInvalid(): boolean {
     return this.showValidationErrors && !isValidPetBirthDate(this.birthDate);
-  }
-
-  protected isWeightRequiredInvalid(): boolean {
-    return this.showValidationErrors && this.normalizedWeightValue().length === 0;
   }
 
   protected isWeightInvalid(): boolean {
@@ -396,7 +393,7 @@ export class EditPetModalComponent implements OnDestroy {
   }
 
   protected isColorInvalid(): boolean {
-    return this.showValidationErrors && !this.selectedColor;
+    return this.showValidationErrors && this.colorValue.trim().length > 0 && !this.selectedColor;
   }
 
   protected isGeneralAllergiesTooLong(): boolean {
@@ -597,10 +594,10 @@ export class EditPetModalComponent implements OnDestroy {
       !name ||
       name.length > PET_NAME_MAX_LENGTH ||
       !selectedSpecies ||
-      !selectedBreed ||
-      !this.selectedColor ||
-      currentWeight === null ||
       !isValidPetBirthDate(birthDate) ||
+      (this.breedId !== null && !selectedBreed) ||
+      (this.colorValue.trim().length > 0 && !this.selectedColor) ||
+      (this.normalizedWeightValue().length > 0 && currentWeight === null) ||
       generalAllergies.length > PET_TEXTAREA_MAX_LENGTH ||
       generalHistory.length > PET_TEXTAREA_MAX_LENGTH
     ) {
@@ -610,17 +607,26 @@ export class EditPetModalComponent implements OnDestroy {
     const payload: UpdatePetBasicRequest = {
       name,
       speciesId: selectedSpecies.id,
-      breedId: selectedBreed.id,
       sex: this.editGender === 'Hembra' ? 'HEMBRA' : 'MACHO',
-      currentWeight,
-      colorId: this.selectedColor.id,
       sterilized: this.editSterilized === 'Si',
       generalAllergies,
       generalHistory,
     };
 
+    if (selectedBreed) {
+      payload.breedId = selectedBreed.id;
+    }
+
     if (birthDate) {
       payload.birthDate = birthDate;
+    }
+
+    if (currentWeight !== null) {
+      payload.currentWeight = currentWeight;
+    }
+
+    if (this.selectedColor) {
+      payload.colorId = this.selectedColor.id;
     }
 
     return payload;
