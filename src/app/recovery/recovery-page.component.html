@@ -1,122 +1,168 @@
-<div class="flex h-screen w-full overflow-hidden bg-background font-sans">
-  <div class="relative flex w-full items-center justify-center overflow-hidden p-6 sm:p-12 lg:w-[46%]">
-    <div class="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand/5 blur-[120px]"></div>
+<div
+  class="auth-shell flex min-h-screen items-center justify-center overflow-hidden px-4 py-6 sm:px-6 lg:px-10"
+>
+  @if (!heroImageFailed) {
+    <img
+      [src]="heroImage"
+      alt=""
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-0 h-full w-full object-cover"
+    />
+  } @else {
+    <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,#dfe9f0_0%,#eff4f7_42%,#d8e4eb_100%)]"></div>
+  }
+  <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(15,23,42,0.22)_0%,rgba(255,255,255,0.06)_42%,rgba(15,23,42,0.18)_100%)] backdrop-blur-[3px]"></div>
 
-    <div class="absolute left-8 top-8 lg:hidden">
-      <app-logo [className]="'scale-90'"></app-logo>
-    </div>
+  <div
+    class="relative z-10 grid w-full max-w-[1180px] overflow-hidden rounded-[34px] border border-white/70 bg-white/38 shadow-[0_28px_80px_rgba(15,23,42,0.12)] backdrop-blur-[24px] lg:grid-cols-[0.9fr_1.1fr]"
+  >
+    <section class="relative flex items-center overflow-hidden bg-white/18 px-5 py-8 sm:px-8 lg:px-12 lg:py-12">
+      <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.14))]"></div>
+      <div class="absolute inset-y-8 right-0 hidden w-px bg-[linear-gradient(180deg,transparent,rgba(148,163,184,0.26),transparent)] lg:block"></div>
 
-    <div class="relative z-10 flex w-full max-w-[500px] flex-col items-center rounded-[16px] border border-border bg-card p-8 shadow-sm sm:p-10">
-      <app-logo [className]="'mb-6'"></app-logo>
-
-      <div class="mb-10 text-center">
-        <h2 class="mb-4 text-[30px] font-bold leading-tight tracking-tight text-text-primary sm:text-[32px]">
-          Recuperar contrasena
-        </h2>
-        <p class="mx-auto max-w-[360px] text-base leading-relaxed text-text-secondary">
-          Ingresa tu correo electronico y te enviaremos instrucciones para restablecer tu contrasena.
-        </p>
-      </div>
-
-      @if (!isSubmitted) {
-        <form [formGroup]="form" (ngSubmit)="handleSubmit()" class="flex w-full flex-col gap-6">
-          <div class="flex flex-col gap-2">
-            <label class="ml-1 text-sm font-medium text-text-primary">Correo electronico</label>
-
-            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
-              <span matPrefix class="ml-3 mr-3 inline-flex text-text-secondary">
-                <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="1.8">
-                  <path d="M4 6.75h16v10.5H4z"></path>
-                  <path d="m4.5 7.25 7.5 6 7.5-6"></path>
-                </svg>
-              </span>
-              <input
-                matInput
-                type="email"
-                placeholder="ejemplo@correo.com"
-                formControlName="email"
-                autocomplete="email"
-                [disabled]="isLoading"
-                class="text-text-primary placeholder:text-text-secondary/40"
-              />
-
-              @if (form.controls.email.touched && form.controls.email.hasError('required')) {
-                <mat-error>El correo es obligatorio.</mat-error>
-              }
-
-              @if (form.controls.email.touched && form.controls.email.hasError('email')) {
-                <mat-error>Ingresa un correo valido.</mat-error>
-              }
-            </mat-form-field>
-          </div>
-
-          <button
-            mat-raised-button
-            color="primary"
-            type="submit"
-            [disabled]="isLoading"
-            class="mt-1 flex h-[48px] w-full items-center justify-center gap-2 rounded-[10px] !bg-primary font-semibold !text-white shadow-sm transition-colors hover:!opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            @if (isLoading) {
-              <span class="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
-              <span>Enviando...</span>
-            } @else {
-              <span>Enviar instrucciones</span>
-            }
-          </button>
-        </form>
-      } @else {
-        <div class="w-full flex flex-col gap-4">
-          <div class="flex items-start gap-3 rounded-[10px] border border-success-bg bg-success-bg p-4">
-            <svg
-              viewBox="0 0 24 24"
-              class="mt-0.5 h-5 w-5 shrink-0 text-success-text"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M9 12.75 11.25 15 15 9.75" stroke-linecap="round" stroke-linejoin="round"></path>
-              <circle cx="12" cy="12" r="9"></circle>
-            </svg>
-            <p class="text-sm font-medium leading-snug text-success-text">
-              Revisa tu correo electronico para continuar con el proceso. Hemos enviado las instrucciones a
-              <span class="font-bold">{{ submittedEmail }}</span>.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            (click)="resetForm()"
-            class="self-center mt-2 text-sm text-text-secondary transition-colors hover:text-text-primary"
-          >
-            ¿No recibiste el correo? Intentar de nuevo
-          </button>
+      <div class="relative mx-auto w-full max-w-[390px]">
+        <div class="mb-8">
+          <p class="text-sm font-semibold uppercase tracking-[0.32em] text-slate-400">Recuperacion</p>
+          <h2 class="mt-3 text-[2.05rem] font-semibold leading-[1.02] tracking-[-0.05em] text-slate-900">
+            Recuperar contraseña
+          </h2>
+          <p class="mt-4 text-[15px] leading-7 text-slate-500">
+            Ingresa tu correo electronico y te enviaremos instrucciones para restablecer tu acceso.
+          </p>
         </div>
+
+        @if (!isSubmitted) {
+          <form [formGroup]="form" (ngSubmit)="handleSubmit()" class="flex w-full flex-col gap-5">
+            <div class="flex flex-col gap-2">
+              <label class="ml-1 text-sm font-semibold text-slate-700">Correo electronico</label>
+
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="auth-field w-full">
+                <span matPrefix class="ml-3 mr-3 inline-flex text-text-secondary">
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="h-[18px] w-[18px]"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                  >
+                    <path d="M4 6.75h16v10.5H4z"></path>
+                    <path d="m4.5 7.25 7.5 6 7.5-6"></path>
+                  </svg>
+                </span>
+                <input
+                  matInput
+                  type="email"
+                  placeholder="ejemplo@correo.com"
+                  formControlName="email"
+                  autocomplete="email"
+                  [disabled]="isLoading"
+                  class="text-text-primary placeholder:text-text-secondary/40"
+                />
+
+                @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+                  <mat-error>El correo es obligatorio.</mat-error>
+                }
+
+                @if (form.controls.email.touched && form.controls.email.hasError('email')) {
+                  <mat-error>Ingresa un correo valido.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <button
+              mat-raised-button
+              color="primary"
+              type="submit"
+              [disabled]="isLoading"
+              class="auth-submit-button mt-2 flex h-[54px] w-full items-center justify-center gap-2 rounded-[18px] !border-0 !bg-transparent font-semibold !text-white transition disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              @if (isLoading) {
+                <span class="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+                <span>Enviando...</span>
+              } @else {
+                <span>Enviar instrucciones</span>
+              }
+            </button>
+          </form>
+        } @else {
+          <div class="rounded-[22px] border border-emerald-200 bg-emerald-50/88 p-5 shadow-[0_12px_30px_rgba(22,163,74,0.08)]">
+            <div class="flex items-start gap-3">
+              <div class="mt-0.5 rounded-2xl bg-emerald-500/12 p-2 text-emerald-700">
+                <svg
+                  viewBox="0 0 24 24"
+                  class="h-5 w-5 shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M9 12.75 11.25 15 15 9.75" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <circle cx="12" cy="12" r="9"></circle>
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-emerald-800">Solicitud enviada correctamente</p>
+                <p class="mt-2 text-sm leading-6 text-emerald-700">
+                  Hemos enviado las instrucciones a <span class="font-bold">{{ submittedEmail }}</span>.
+                </p>
+              </div>
+            </div>
+          </div>
+        }
+
+        <div class="mt-8 flex items-center justify-between gap-4">
+          <a routerLink="/login" class="inline-flex items-center gap-2 text-sm font-semibold text-primary transition hover:underline">
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M15 19 8 12l7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            Volver al inicio de sesion
+          </a>
+
+          @if (isSubmitted) {
+            <button
+              type="button"
+              (click)="resetForm()"
+              class="text-sm font-semibold text-slate-500 transition hover:text-slate-900"
+            >
+              Intentar de nuevo
+            </button>
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="relative min-h-[320px] overflow-hidden lg:min-h-[720px]">
+      @if (!heroImageFailed) {
+        <img
+          [src]="heroImage"
+          alt="Young female veterinarian with a puppy"
+          class="absolute inset-0 h-full w-full object-cover"
+          (error)="onHeroImageError()"
+        />
+      } @else {
+        <div
+          class="absolute inset-0 bg-[linear-gradient(145deg,#dfe9f0_0%,#eff4f7_42%,#d8e4eb_100%)]"
+        ></div>
       }
 
-      <a routerLink="/login" class="mt-10 flex items-center gap-2 text-sm font-medium text-primary transition-all hover:underline">
-        <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8">
-          <path d="M15 19 8 12l7-7" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
-        Volver al inicio de sesion
-      </a>
-    </div>
-  </div>
+      <div class="absolute inset-0 bg-[linear-gradient(270deg,rgba(32,48,74,0.42)_0%,rgba(51,65,85,0.22)_44%,rgba(255,255,255,0)_100%)]"></div>
+      <div class="absolute inset-y-0 left-0 w-24 bg-gradient-to-l from-transparent to-white/55"></div>
 
-  <div class="relative hidden h-full lg:flex lg:w-[54%]">
-    @if (!heroImageFailed) {
-      <img
-        [src]="heroImage"
-        alt="Young female veterinarian with a puppy"
-        class="absolute inset-0 h-full w-full object-cover"
-        (error)="onHeroImageError()"
-      />
-    } @else {
-      <div class="absolute inset-0 bg-[linear-gradient(135deg,var(--ps-active-soft)_0%,var(--ps-background)_42%,var(--ps-border)_100%)]"></div>
-    }
+      <div class="relative flex h-full flex-col justify-between p-6 sm:p-8 lg:p-10">
+        <div class="ml-auto inline-flex w-fit items-center gap-2 rounded-full border border-white/28 bg-white/12 px-4 py-2 text-sm font-medium text-white backdrop-blur-md">
+          <span class="h-2.5 w-2.5 rounded-full bg-sky-300"></span>
+          Restablecimiento de acceso
+        </div>
 
-    <div class="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-brand/20"></div>
-    <div class="pointer-events-none absolute inset-0 bg-brand/10"></div>
-    <div class="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-background to-transparent"></div>
+        <div class="max-w-[360px] rounded-[28px] border border-white/18 bg-black/12 p-6 text-white backdrop-blur-md">
+          <app-logo [className]="'[&_span]:!text-white'"></app-logo>
+          <h2 class="mt-6 text-[2rem] font-semibold leading-[1.08] tracking-[-0.04em]">
+            Un flujo mas simple para volver a entrar.
+          </h2>
+          <p class="mt-4 text-sm leading-7 text-white/82">
+            Mantuvimos la pantalla sobria, con una sola accion principal y mejor balance visual.
+          </p>
+        </div>
+      </div>
+    </section>
   </div>
 </div>
