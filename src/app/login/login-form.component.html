@@ -1,23 +1,19 @@
-<div
-  class="relative z-10 flex w-full max-w-[560px] flex-col items-center rounded-[16px] border border-border bg-card p-10 shadow-sm sm:p-12"
->
-  <app-logo [className]="'mb-6'"></app-logo>
-
-  <div class="mb-10 text-center">
-    <h2
-      class="mb-4 text-[30px] font-bold leading-tight tracking-tight text-text-primary sm:text-[32px]"
-    >
-      Bienvenido a PetSafe
+<div class="w-full">
+  <div class="mb-8">
+    <p class="text-sm font-semibold uppercase tracking-[0.32em] text-slate-400">Inicio de sesion</p>
+    <h2 class="mt-3 text-[2.1rem] font-semibold leading-[1.02] tracking-[-0.05em] text-slate-900">
+      Inicia sesion para continuar
     </h2>
-    <p class="text-base leading-relaxed text-text-secondary">Inicia sesion para continuar</p>
+    <p class="mt-4 max-w-[28rem] text-[15px] leading-7 text-slate-500">
+      Usa tus credenciales para entrar al panel y continuar con la gestion clinica.
+    </p>
   </div>
 
-  <!-- [] input recibir datos, () output emitir eventos -->
-  <form [formGroup]="form" (ngSubmit)="submit()" class="flex w-full flex-col gap-6">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="flex w-full flex-col gap-5">
     <div class="flex flex-col gap-2">
-      <label class="ml-1 text-sm font-medium text-text-primary">Correo electronico</label>
+      <label class="ml-1 text-sm font-semibold text-slate-700">Correo electronico</label>
 
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="auth-field w-full">
         <span matPrefix class="ml-3 mr-3 inline-flex text-text-secondary">
           <svg
             viewBox="0 0 24 24"
@@ -50,9 +46,9 @@
     </div>
 
     <div class="flex flex-col gap-2">
-      <label class="ml-1 text-sm font-medium text-text-primary">Contrasena</label>
+      <label class="ml-1 text-sm font-semibold text-slate-700">Contraseña</label>
 
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="auth-field w-full">
         <span matPrefix class="ml-3 mr-3 inline-flex text-text-secondary">
           <svg
             viewBox="0 0 24 24"
@@ -68,7 +64,7 @@
         <input
           matInput
           [type]="showPassword ? 'text' : 'password'"
-          placeholder="Ingresa tu contrasena"
+          placeholder="Ingresa tu contraseña"
           formControlName="password"
           autocomplete="current-password"
           class="text-text-primary placeholder:text-text-secondary/40"
@@ -79,7 +75,7 @@
           type="button"
           (click)="togglePasswordVisibility()"
           class="mr-2 inline-flex h-10 w-10 items-center justify-center rounded-full text-text-secondary transition-colors hover:text-brand"
-          aria-label="Mostrar u ocultar contrasena"
+          aria-label="Mostrar u ocultar contraseña"
         >
           @if (showPassword) {
             <svg
@@ -114,15 +110,15 @@
     </div>
 
     <div class="mt-1 flex items-center justify-end">
-      <a routerLink="/recovery" class="text-sm font-medium text-primary hover:underline">
-        Olvidaste tu contrasena?
+      <a routerLink="/recovery" class="text-sm font-semibold text-primary transition hover:underline">
+        Olvidaste tu contraseña?
       </a>
     </div>
 
     @if (loginErrorMessage) {
-      <mat-error class="block whitespace-pre-line text-center text-sm font-medium">
+      <div class="rounded-[16px] border border-rose-200 bg-rose-50/88 px-4 py-3 text-sm font-medium text-rose-700">
         {{ loginErrorMessage }}
-      </mat-error>
+      </div>
     }
 
     <button
@@ -130,13 +126,11 @@
       color="primary"
       type="submit"
       [disabled]="isSubmitting"
-      class="mt-4 flex h-[48px] w-full items-center justify-center gap-2 rounded-[10px] !bg-primary font-semibold !text-white shadow-sm transition-colors hover:!opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+      class="auth-submit-button mt-2 flex h-[54px] w-full items-center justify-center gap-2 rounded-[18px] !border-0 !bg-transparent font-semibold !text-white transition disabled:cursor-not-allowed disabled:opacity-70"
     >
       @if (isSubmitting) {
         <span class="inline-flex items-center gap-2">
-          <span
-            class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
-          ></span>
+          <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
           Iniciando sesion...
         </span>
       } @else {
