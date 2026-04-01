@@ -1,0 +1,95 @@
+import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { AppointmentMonthCell } from '../models/appointment-calendar.model';
+import {
+  AppointmentRecord,
+  AppointmentStatus,
+  buildAppointmentReasonLabel,
+  buildAppointmentStatusLabel,
+} from '../models/appointment.model';
+
+@Component({
+  selector: 'app-appointment-month-calendar',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './appointment-month-calendar.component.html',
+  styleUrl: './appointment-month-calendar.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class AppointmentMonthCalendarComponent {
+  @Input({ required: true }) monthLabel = '';
+  @Input({ required: true }) weekdayLabels: readonly string[] = [];
+  @Input({ required: true }) cells: readonly AppointmentMonthCell[] = [];
+
+  protected trackByDate(_index: number, cell: AppointmentMonthCell): string {
+    return cell.date;
+  }
+
+  protected trackByAppointment(
+    _index: number,
+    appointment: AppointmentRecord,
+  ): number {
+    return appointment.id;
+  }
+
+  protected buildPatientInitials(name: string | null, patientId: number): string {
+    const normalizedName = name?.trim() ?? '';
+
+    if (!normalizedName) {
+      return `P${String(patientId).slice(-1)}`;
+    }
+
+    const parts = normalizedName.split(/\s+/).filter(Boolean);
+    const firstInitial = parts[0]?.charAt(0) ?? '';
+    const secondInitial = parts[1]?.charAt(0) ?? parts[0]?.charAt(1) ?? '';
+    return `${firstInitial}${secondInitial}`.toUpperCase() || `P${String(patientId).slice(-1)}`;
+  }
+
+  protected buildPatientLabel(appointment: AppointmentRecord): string {
+    const patientName = appointment.patientName?.trim();
+    return patientName || `Paciente #${appointment.patientId}`;
+  }
+
+  protected hasOwnerName(ownerName: string | null): boolean {
+    return Boolean(ownerName?.trim());
+  }
+
+  protected buildReasonLabel(reason: string | null): string {
+    return buildAppointmentReasonLabel(reason);
+  }
+
+  protected buildStatusLabel(status: AppointmentStatus): string {
+    return buildAppointmentStatusLabel(status);
+  }
+
+  protected buildTimeRange(appointment: AppointmentRecord): string {
+    if (!appointment.endsAt) {
+      return appointment.startsAt;
+    }
+
+    return `${appointment.startsAt} - ${appointment.endsAt}`;
+  }
+
+  protected hasNotes(notes: string | null): boolean {
+    return Boolean(notes?.trim());
+  }
+
+  protected buildStatusClasses(status: AppointmentStatus): string {
+    switch (status) {
+      case 'PROGRAMADA':
+        return 'appointment-card-status appointment-card-status--scheduled';
+      case 'CONFIRMADA':
+        return 'appointment-card-status appointment-card-status--confirmed';
+      case 'EN_PROCESO':
+        return 'appointment-card-status appointment-card-status--in-process';
+      case 'FINALIZADA':
+        return 'appointment-card-status appointment-card-status--finished';
+      case 'CANCELADA':
+        return 'appointment-card-status appointment-card-status--cancelled';
+    }
+  }
+
+  protected buildAvatarClasses(): string {
+    return 'appointment-card-avatar appointment-card-avatar--default';
+  }
+}

@@ -157,11 +157,14 @@ export class PetDetailComponent {
     return value ? value : null;
   }
 
+  protected hasGeneralClinicalSummary(): boolean {
+    return this.generalAllergies() !== null || this.generalHistory() !== null;
+  }
+
   protected hasClinicalContent(): boolean {
     return (
       this.clinicalObservations().length > 0 ||
-      this.generalAllergies() !== null ||
-      this.generalHistory() !== null
+      this.hasGeneralClinicalSummary()
     );
   }
 

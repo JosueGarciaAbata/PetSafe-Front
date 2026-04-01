@@ -34,7 +34,7 @@ export class LoginFormComponent {
   protected readonly validationMessages = {
     emailRequired: 'El correo es obligatorio',
     emailInvalid: 'Ingrese un correo electronico valido',
-    passwordRequired: 'La contrasena es obligatoria',
+    passwordRequired: 'La contraseña es obligatoria',
   } as const;
 
   protected readonly form = this.fb.nonNullable.group({

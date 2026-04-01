@@ -19,10 +19,9 @@ export interface ClientSummaryItemApiResponse {
 
 export interface ClientSummaryPersonApiResponse {
   id: number;
-  personType: string;
   firstName: string;
   lastName: string;
-  identification?: string | null;
+  documentId?: string | null;
   phone?: string | null;
   address?: string | null;
   gender?: string | null;
@@ -43,21 +42,23 @@ export interface ClientSummaryQuery {
 export type ClientGenderLabel = 'Femenino' | 'Masculino' | 'Otro';
 
 export interface ClientNameSource {
-  person: {
-    firstName: string;
-    lastName: string;
+  person?: {
+    firstName?: string | null;
+    lastName?: string | null;
     gender?: string | null;
-  };
+  } | null;
 }
 
 export function buildClientFullName(item: ClientNameSource): string {
-  return `${item.person.firstName} ${item.person.lastName}`.trim();
+  const firstName = item.person?.firstName?.trim() ?? '';
+  const lastName = item.person?.lastName?.trim() ?? '';
+  return `${firstName} ${lastName}`.trim() || 'Cliente sin nombre';
 }
 
 export function buildClientInitials(item: ClientNameSource): string {
-  const firstNameInitial = item.person.firstName.trim().charAt(0);
-  const lastNameInitial = item.person.lastName.trim().charAt(0);
-  return `${firstNameInitial}${lastNameInitial}`.toUpperCase();
+  const firstNameInitial = item.person?.firstName?.trim().charAt(0) ?? '';
+  const lastNameInitial = item.person?.lastName?.trim().charAt(0) ?? '';
+  return `${firstNameInitial}${lastNameInitial}`.toUpperCase() || 'CL';
 }
 
 export function mapClientGenderLabel(value?: string | null): ClientGenderLabel {
@@ -79,12 +80,13 @@ export function getVisibleClientPets(
   item: ClientSummaryItemApiResponse,
   maxVisiblePets = 2,
 ): ClientSummaryPetApiResponse[] {
-  return item.pets.slice(0, maxVisiblePets);
+  return (item.pets ?? []).slice(0, maxVisiblePets);
 }
 
 export function getExtraClientPetsCount(
   item: ClientSummaryItemApiResponse,
   maxVisiblePets = 2,
 ): number {
-  return Math.max(item.petsCount - Math.min(item.pets.length, maxVisiblePets), 0);
+  const pets = item.pets ?? [];
+  return Math.max((item.petsCount ?? pets.length) - Math.min(pets.length, maxVisiblePets), 0);
 }

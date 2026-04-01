@@ -1,0 +1,86 @@
+<section class="overflow-hidden rounded-[24px] border border-border bg-card shadow-sm">
+  <div class="overflow-x-auto">
+    <div class="grid min-w-[1100px] grid-cols-7">
+      @for (day of days; track trackByDate($index, day)) {
+        <section class="border-r border-border/80 p-3 last:border-r-0">
+          <div class="mb-3 border-b border-border/70 pb-3">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex flex-col">
+                <span class="text-[11px] font-bold uppercase tracking-[0.14em] text-text-secondary">
+                  {{ day.weekdayLabel }}
+                </span>
+                <span class="text-sm font-bold text-text-primary">
+                  {{ day.dayLabel }}
+                </span>
+              </div>
+
+              @if (day.isToday) {
+                <span class="rounded-full bg-active-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-brand">
+                  Hoy
+                </span>
+              }
+            </div>
+          </div>
+
+          <div class="flex min-h-[460px] flex-col gap-2">
+            @if (day.appointments.length === 0) {
+              <div class="rounded-[18px] border border-dashed border-border bg-background/60 px-3 py-6 text-center text-xs text-text-secondary">
+                Sin citas
+              </div>
+            } @else {
+              @for (appointment of day.appointments; track trackByAppointment($index, appointment)) {
+                <article
+                  class="rounded-[18px] border border-border bg-white p-3 shadow-sm"
+                  [class.opacity-70]="appointment.status === 'CANCELADA' || !appointment.isActive"
+                >
+                  <div class="flex items-start gap-2.5">
+                    <div
+                      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                      [class]="buildAvatarClasses()"
+                    >
+                      {{ buildPatientInitials(appointment.patientName, appointment.patientId) }}
+                    </div>
+
+                    <div class="min-w-0 flex-1">
+                      <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-text-secondary">
+                        {{ buildTimeRange(appointment) }}
+                      </p>
+                      <h3 class="truncate text-[13px] font-bold text-text-primary">
+                        {{ buildPatientLabel(appointment) }}
+                      </h3>
+
+                      <div class="mt-1 flex flex-wrap items-center gap-1.5">
+                        <span
+                          class="shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] whitespace-nowrap"
+                          [class]="buildStatusClasses(appointment.status)"
+                        >
+                          {{ buildStatusLabel(appointment.status) }}
+                        </span>
+
+                        @if (hasOwnerName(appointment.ownerName)) {
+                          <span class="min-w-0 truncate text-[10px] text-text-secondary">
+                            {{ appointment.ownerName }}
+                          </span>
+                        }
+                      </div>
+
+                      <p class="mt-1 text-[11px] text-text-secondary">
+                        {{ buildReasonLabel(appointment.reason) }}
+                      </p>
+
+                      @if (hasNotes(appointment.notes)) {
+                        <p class="mt-1 text-[10px] text-text-secondary">
+                          {{ appointment.notes }}
+                        </p>
+                      }
+                    </div>
+                  </div>
+                </article>
+              }
+            }
+          </div>
+        </section>
+      }
+    </div>
+  </div>
+</section>

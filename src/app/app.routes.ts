@@ -62,8 +62,8 @@ export const routes: Routes = [
         canActivate: [authGuard],
         data: { roles: adminRoles },
         loadComponent: () =>
-          import('@app/internal-section-page/internal-section-page.component').then(
-            (m) => m.InternalSectionPageComponent,
+          import('@app/appointments/list/appointments-page.component').then(
+            (m) => m.AppointmentsPageComponent,
           ),
       },
       {

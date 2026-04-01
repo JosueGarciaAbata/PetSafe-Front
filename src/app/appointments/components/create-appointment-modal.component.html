@@ -1,0 +1,215 @@
+<div class="fixed inset-0 z-[120] bg-black/40 backdrop-blur-[2px]" (click)="close()"></div>
+
+<div class="fixed inset-0 z-[130] flex items-center justify-center p-4">
+  <div
+    class="flex max-h-[90vh] w-full max-w-[680px] flex-col overflow-hidden rounded-[16px] border border-border bg-card shadow-2xl"
+  >
+    <div class="shrink-0 border-b border-border bg-white px-5 py-4">
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex flex-col gap-1">
+          <h2 class="text-lg font-bold text-text-primary">Nuevo turno</h2>
+          <p class="text-sm text-text-secondary">Registra una nueva cita programada.</p>
+        </div>
+
+        <button
+          type="button"
+          (click)="close()"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full text-text-secondary transition-all hover:bg-background hover:text-text-primary"
+          aria-label="Cerrar modal"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <path d="M6 6l12 12M18 6 6 18"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto px-5 py-4">
+      <div class="grid grid-cols-1 gap-5">
+        <section class="grid gap-4">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Paciente</h3>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-text-primary">Mascota</label>
+            <mat-form-field
+              appearance="outline"
+              subscriptSizing="dynamic"
+              class="appointment-create-field w-full"
+            >
+              <input
+                matInput
+                type="text"
+                [ngModel]="patientSearch"
+                (ngModelChange)="onPatientChanged($event)"
+                [matAutocomplete]="patientAuto"
+                [errorStateMatcher]="patientErrorStateMatcher"
+                placeholder="Buscar paciente"
+                autocomplete="off"
+                class="text-sm text-text-primary placeholder:text-text-secondary/50"
+              />
+                @if (isPatientInvalid()) {
+                  <mat-error>Selecciona una mascota valida de la lista.</mat-error>
+                }
+            </mat-form-field>
+
+            <mat-autocomplete #patientAuto="matAutocomplete" autoActiveFirstOption>
+              @for (option of patientOptions(); track option.patientId) {
+                <mat-option
+                  [value]="buildPatientLabel(option)"
+                  (onSelectionChange)="onPatientOptionSelection($event.isUserInput, option)"
+                >
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium text-text-primary">
+                      {{ buildPatientLabel(option) }}
+                    </span>
+                    <span class="text-xs text-text-secondary">
+                      {{ buildPatientMeta(option) }}
+                    </span>
+                  </div>
+                </mat-option>
+              }
+
+              @if (isPatientsLoading) {
+                <mat-option disabled>Buscando pacientes...</mat-option>
+              } @else if (patientSearch.trim() && patientOptions().length === 0) {
+                <mat-option disabled>No se encontraron resultados</mat-option>
+              }
+            </mat-autocomplete>
+          </div>
+        </section>
+
+        <section class="grid gap-4">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Programacion</h3>
+
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Fecha programada</label>
+              <mat-form-field
+                appearance="outline"
+                subscriptSizing="dynamic"
+                class="appointment-create-field w-full"
+              >
+                <input
+                  matInput
+                  type="date"
+                  [ngModel]="scheduledDate"
+                  (ngModelChange)="scheduledDate = $event"
+                  [errorStateMatcher]="scheduledDateErrorStateMatcher"
+                  class="text-sm text-text-primary"
+                />
+                @if (isScheduledDateInvalid()) {
+                  <mat-error>Selecciona una fecha programada.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Hora programada</label>
+              <mat-form-field
+                appearance="outline"
+                subscriptSizing="dynamic"
+                class="appointment-create-field w-full"
+              >
+                <input
+                  matInput
+                  type="time"
+                  [ngModel]="scheduledTime"
+                  (ngModelChange)="scheduledTime = $event"
+                  [errorStateMatcher]="scheduledTimeErrorStateMatcher"
+                  class="text-sm text-text-primary"
+                />
+                @if (isScheduledTimeInvalid()) {
+                  <mat-error>Selecciona una hora programada.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid gap-4">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Detalle</h3>
+
+          <div class="grid grid-cols-1 gap-4">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Razon de la cita</label>
+              <mat-form-field
+                appearance="outline"
+                subscriptSizing="dynamic"
+                class="appointment-create-field w-full"
+              >
+                <input
+                  matInput
+                  type="text"
+                  [ngModel]="reason"
+                  (ngModelChange)="reason = $event"
+                  [errorStateMatcher]="reasonErrorStateMatcher"
+                  placeholder="Ej. Revision por cojera"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                />
+                @if (isReasonInvalid()) {
+                  <mat-error>Ingresa la razon de la cita.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Notas (opcional)</label>
+              <mat-form-field
+                appearance="outline"
+                subscriptSizing="dynamic"
+                class="appointment-create-field w-full"
+              >
+                <textarea
+                  matInput
+                  rows="4"
+                  [ngModel]="notes"
+                  (ngModelChange)="notes = $event"
+                  placeholder="Informacion adicional para la cita."
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                ></textarea>
+                <mat-hint>Opcional.</mat-hint>
+              </mat-form-field>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="shrink-0 border-t border-border bg-white px-5 py-4">
+      @if (submitError) {
+        <div
+          class="mb-3 whitespace-pre-line rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
+          {{ submitError }}
+        </div>
+      }
+
+      <div class="flex items-center justify-end gap-3">
+        <button
+          type="button"
+          (click)="close()"
+          [disabled]="isSaving"
+          class="inline-flex items-center rounded-xl px-4 py-2 text-sm font-bold text-text-secondary transition-all hover:bg-background disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          (click)="save()"
+          [disabled]="isSaving"
+          class="inline-flex items-center rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {{ isSaving ? 'Guardando...' : 'Guardar turno' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

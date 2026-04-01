@@ -12,7 +12,7 @@ import { UpdatePetBasicRequest } from '../models/update-pet-basic.model';
 })
 export class PetsApiService {
   private readonly http = inject(HttpClient);
-  private readonly listUrl = buildApiUrl('patients/all-basic');
+  private readonly listUrl = buildApiUrl('patients/admin/all-basic');
   private readonly createUrl = buildApiUrl('patients');
 
   list(query: PetListQuery): Observable<PetListApiResponse> {
