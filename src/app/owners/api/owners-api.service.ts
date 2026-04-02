@@ -9,6 +9,7 @@ import {
   ClientTutorBasicApiResponse,
   ClientTutorBasicQuery,
 } from '../models/client-tutor-basic.model';
+import { CreateClientAccessRequest } from '../models/client-access.model';
 import { UpdateClientRequest } from '../models/client-update.model';
 import {
   ClientSummaryListApiResponse,
@@ -35,8 +36,18 @@ export class OwnersApiService {
     return this.http.get<ClientSummaryListApiResponse>(this.listUrl, { params });
   }
 
-  createClient(payload: CreateClientRequest): Observable<unknown> {
-    return this.http.post<unknown>(this.createUrl, payload);
+  createClient(payload: CreateClientRequest): Observable<ClientResponseApiResponse> {
+    return this.http.post<ClientResponseApiResponse>(this.createUrl, payload);
+  }
+
+  createClientAccess(
+    id: string | number,
+    payload: CreateClientAccessRequest,
+  ): Observable<ClientResponseApiResponse> {
+    return this.http.post<ClientResponseApiResponse>(
+      buildApiUrl(`clients/${encodeURIComponent(String(id))}/access`),
+      payload,
+    );
   }
 
   listBasicTutors(

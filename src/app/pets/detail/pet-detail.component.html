@@ -15,7 +15,7 @@
     >
       <path d="m15 18-6-6 6-6"></path>
     </svg>
-    <span>Volver a mascotas</span>
+    <span>{{ backLabel }}</span>
   </button>
 
   @if (isLoading && !pet) {
@@ -63,12 +63,12 @@
       <div class="flex flex-wrap items-center gap-3">
         <button
           type="button"
-          (click)="openEditPetModal()"
-          class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background"
+          (click)="openEditPetPage()"
+          class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#B7D7D1] bg-[#E8F3F0] px-4 py-2.5 text-sm font-bold text-[#2F605E] shadow-sm transition-all hover:border-[#9CC6BE] hover:bg-[#DDEDE8]"
         >
           <svg
             viewBox="0 0 24 24"
-            class="h-4 w-4 text-text-secondary"
+            class="h-4 w-4 text-[#2F605E]"
             fill="none"
             stroke="currentColor"
             stroke-width="1.8"
@@ -86,8 +86,18 @@
     <div class="rounded-[24px] border border-border bg-card p-8 shadow-sm">
       <div class="flex flex-col gap-8">
         <div class="flex flex-col gap-8 lg:flex-row">
-        <div class="flex h-32 w-32 shrink-0 items-center justify-center self-center rounded-[28px] border-4 border-white bg-active-soft shadow-md lg:self-start">
-          <span class="text-3xl font-bold uppercase text-brand">{{ buildPetInitial() }}</span>
+        <div class="pet-hero-image flex h-32 w-32 shrink-0 items-center justify-center self-center overflow-hidden rounded-[28px] border-4 border-white bg-active-soft shadow-md lg:self-start">
+          @if (petImageUrl(); as imageUrl) {
+            <img
+              [src]="imageUrl"
+              [alt]="petImageAlt()"
+              class="h-full w-full object-cover"
+              loading="eager"
+              decoding="async"
+            />
+          } @else {
+            <span class="text-3xl font-bold uppercase text-brand">{{ buildPetInitial() }}</span>
+          }
         </div>
 
         <div class="flex min-w-0 flex-1 flex-col gap-5">
@@ -257,13 +267,5 @@
         </div>
       </div>
     </section>
-
-    @if (isEditPetModalOpen) {
-      <app-edit-pet-modal
-        [pet]="pet"
-        (closed)="closeEditPetModal()"
-        (saved)="saveEditPetDraft()"
-      />
-    }
   }
 </div>

@@ -1,7 +1,4 @@
-@if (selectedOwnerId) {
-  <app-owner-detail [ownerId]="selectedOwnerId" (back)="closeOwnerDetail()" />
-} @else {
-  <div class="mx-auto flex max-w-[1400px] flex-col gap-8 pb-12">
+<div class="mx-auto flex max-w-[1400px] flex-col gap-8 pb-12">
     <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
       <header class="flex flex-col gap-1">
         <h1 class="text-[28px] font-bold text-text-primary">Propietarios</h1>
@@ -12,7 +9,7 @@
 
       <button
         type="button"
-        (click)="openCreateOwnerModal()"
+        (click)="openCreateOwnerPage()"
         class="inline-flex cursor-pointer items-center gap-2 self-start rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 md:self-auto"
       >
         <svg
@@ -165,11 +162,21 @@
                           <div
                             class="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-2.5 py-1.5 shadow-sm"
                           >
-                            <div
-                              class="flex h-6 w-6 items-center justify-center rounded-full bg-[#F4E7BF] text-[10px] font-bold text-[#7A5A00]"
-                            >
-                              {{ pet.name.charAt(0).toUpperCase() }}
-                            </div>
+                          <div
+                            class="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-[#F4E7BF] text-[10px] font-bold text-[#7A5A00]"
+                          >
+                              @if (pet.image?.url; as imageUrl) {
+                                <img
+                                  [src]="imageUrl"
+                                  [alt]="'Foto de ' + pet.name"
+                                  class="h-full w-full object-cover"
+                                  loading="lazy"
+                                  decoding="async"
+                                />
+                              } @else {
+                                {{ pet.name.charAt(0).toUpperCase() }}
+                              }
+                          </div>
                             <span class="text-xs font-bold text-text-primary">{{ pet.name }}</span>
                           </div>
                         }
@@ -229,8 +236,4 @@
       }
     </section>
 
-    @if (isCreateOwnerModalOpen) {
-      <app-create-owner-modal (closed)="closeCreateOwnerModal()" (saved)="saveCreateOwnerDraft()" />
-    }
-  </div>
-}
+</div>

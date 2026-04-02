@@ -18,8 +18,14 @@ import { firstValueFrom } from 'rxjs';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
 import { ColorApiResponse } from '../models/color.model';
 import { PetBasicDetailApiResponse } from '../models/pet-detail.model';
+import { PetImageUploadValue } from '../models/pet-image.model';
 import {
+  isValidPetName,
   isValidPetBirthDate,
+  normalizePetText,
+  PET_COLOR_MAX_LENGTH,
+  PET_MAX_BIRTH_DATE,
+  PET_MIN_BIRTH_DATE,
   parsePositivePetWeight,
   PET_NAME_MAX_LENGTH,
   PET_TEXTAREA_MAX_LENGTH,
@@ -32,6 +38,7 @@ import {
 } from '../models/species.model';
 import { UpdatePetBasicRequest } from '../models/update-pet-basic.model';
 import { ColorsApiService } from '../services/colors-api.service';
+import { PetImageUploadService } from '../services/pet-image-upload.service';
 import { PetsApiService } from '../services/pets-api.service';
 import { SpeciesApiService } from '../services/species-api.service';
 
@@ -65,6 +72,7 @@ class ManualFieldErrorStateMatcher implements ErrorStateMatcher {
 })
 export class EditPetModalComponent implements OnDestroy {
   private readonly colorsApi = inject(ColorsApiService);
+  private readonly petImageUploadService = inject(PetImageUploadService);
   private readonly petsApi = inject(PetsApiService);
   private readonly speciesApi = inject(SpeciesApiService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -79,11 +87,14 @@ export class EditPetModalComponent implements OnDestroy {
   private _pet!: PetBasicDetailApiResponse;
 
   protected readonly nameMaxLength = PET_NAME_MAX_LENGTH;
+  protected readonly colorMaxLength = PET_COLOR_MAX_LENGTH;
+  protected readonly maxBirthDate = PET_MAX_BIRTH_DATE;
+  protected readonly minBirthDate = PET_MIN_BIRTH_DATE;
   protected readonly textAreaMaxLength = PET_TEXTAREA_MAX_LENGTH;
   protected readonly weightMax = PET_WEIGHT_MAX;
   protected readonly weightStep = PET_WEIGHT_STEP;
   protected readonly nameErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
-    this.isNameRequiredInvalid() || this.isNameTooLong(),
+    this.isNameRequiredInvalid() || this.isNameInvalid(),
   );
   protected readonly speciesErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
     this.isSpeciesInvalid(),
@@ -125,8 +136,13 @@ export class EditPetModalComponent implements OnDestroy {
   protected isCreatingColor = false;
   protected isSaving = false;
   protected showValidationErrors = false;
+  protected hasTouchedName = false;
+  protected hasTouchedSpecies = false;
   protected submitError: string | null = null;
   protected colorCreateError: string | null = null;
+  protected imageSelectionError: string | null = null;
+  protected imageUpload: PetImageUploadValue | null = null;
+  @Input() pageMode = false;
 
   @Input({ required: true })
   set pet(value: PetBasicDetailApiResponse) {
@@ -155,8 +171,12 @@ export class EditPetModalComponent implements OnDestroy {
       (value.sex ?? '').trim().toUpperCase() === 'HEMBRA' ? 'Hembra' : 'Macho';
     this.editSterilized = value.sterilized === true ? 'Si' : 'No';
     this.showValidationErrors = false;
+    this.hasTouchedName = false;
+    this.hasTouchedSpecies = false;
     this.submitError = null;
     this.colorCreateError = null;
+    this.imageSelectionError = null;
+    this.clearSelectedImage();
     void this.loadSpecies(this.speciesValue);
     void this.loadColors(this.colorValue);
   }
@@ -171,6 +191,7 @@ export class EditPetModalComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.clearSpeciesSearchTimer();
     this.clearColorSearchTimer();
+    this.clearSelectedImage();
   }
 
   protected close(): void {
@@ -209,6 +230,57 @@ export class EditPetModalComponent implements OnDestroy {
     }
   }
 
+  protected async onImageSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    this.submitError = null;
+    this.imageSelectionError = null;
+
+    try {
+      const preparedImage = await this.petImageUploadService.prepareImage(file);
+      this.replaceSelectedImage(preparedImage);
+    } catch (error) {
+      this.imageSelectionError =
+        error instanceof Error ? error.message : 'No se pudo preparar la imagen.';
+      input.value = '';
+    } finally {
+      this.cdr.detectChanges();
+    }
+  }
+
+  protected clearImageSelection(fileInput?: HTMLInputElement): void {
+    this.imageSelectionError = null;
+    this.clearSelectedImage();
+
+    if (fileInput) {
+      fileInput.value = '';
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  protected currentImageUrl(): string | null {
+    return this.imageUpload?.previewUrl ?? this.pet.image?.url ?? null;
+  }
+
+  protected currentImageName(): string | null {
+    return this.imageUpload?.file.name ?? this.pet.image?.originalName ?? null;
+  }
+
+  protected currentImageSizeLabel(): string | null {
+    const sizeBytes = this.imageUpload?.file.size ?? this.pet.image?.sizeBytes ?? null;
+    return sizeBytes ? this.formatFileSize(sizeBytes) : null;
+  }
+
+  protected hasSelectedReplacementImage(): boolean {
+    return this.imageUpload !== null;
+  }
+
   protected setGender(value: EditPetGender): void {
     this.editGender = value;
     this.submitError = null;
@@ -242,6 +314,7 @@ export class EditPetModalComponent implements OnDestroy {
   }
 
   protected onSpeciesChanged(value: string): void {
+    this.hasTouchedSpecies = true;
     this.speciesValue = value;
     this.submitError = null;
     const matchedSpecies =
@@ -282,8 +355,17 @@ export class EditPetModalComponent implements OnDestroy {
   }
 
   protected onNameChanged(value: string): void {
+    this.hasTouchedName = true;
     this.name = value;
     this.submitError = null;
+  }
+
+  protected markNameTouched(): void {
+    this.hasTouchedName = true;
+  }
+
+  protected markSpeciesTouched(): void {
+    this.hasTouchedSpecies = true;
   }
 
   protected onBreedChanged(value: number | null): void {
@@ -359,20 +441,32 @@ export class EditPetModalComponent implements OnDestroy {
   }
 
   protected isNameRequiredInvalid(): boolean {
-    return this.showValidationErrors && this.name.trim().length === 0;
+    return (this.showValidationErrors || this.hasTouchedName) && normalizePetText(this.name).length === 0;
   }
 
   protected isNameTooLong(): boolean {
-    return this.showValidationErrors && this.name.trim().length > PET_NAME_MAX_LENGTH;
+    return normalizePetText(this.name).length > PET_NAME_MAX_LENGTH;
+  }
+
+  protected isNameInvalid(): boolean {
+    const normalizedName = normalizePetText(this.name);
+    return (
+      (this.showValidationErrors || this.hasTouchedName) &&
+      normalizedName.length > 0 &&
+      normalizedName.length <= PET_NAME_MAX_LENGTH &&
+      !isValidPetName(this.name)
+    );
   }
 
   protected isSpeciesInvalid(): boolean {
-    return this.showValidationErrors && !this.resolveSpeciesByName(this.speciesValue);
+    return (
+      (this.showValidationErrors || this.hasTouchedSpecies) &&
+      !this.resolveSpeciesByName(this.speciesValue)
+    );
   }
 
   protected isBreedInvalid(): boolean {
     return (
-      this.showValidationErrors &&
       this.breedId !== null &&
       this.resolveSpeciesByName(this.speciesValue) !== null &&
       this.resolveBreedById(this.resolveSpeciesByName(this.speciesValue), this.breedId) === null
@@ -380,28 +474,30 @@ export class EditPetModalComponent implements OnDestroy {
   }
 
   protected isBirthDateInvalid(): boolean {
-    return this.showValidationErrors && !isValidPetBirthDate(this.birthDate);
+    return this.birthDate.trim().length > 0 && !isValidPetBirthDate(this.birthDate);
   }
 
   protected isWeightInvalid(): boolean {
     const rawWeight = this.normalizedWeightValue();
     return (
-      this.showValidationErrors &&
       rawWeight.length > 0 &&
       this.parseWeight() === null
     );
   }
 
   protected isColorInvalid(): boolean {
-    return this.showValidationErrors && this.colorValue.trim().length > 0 && !this.selectedColor;
+    return (
+      this.colorValue.trim().length > 0 &&
+      (this.colorValue.trim().length > PET_COLOR_MAX_LENGTH || !this.selectedColor)
+    );
   }
 
   protected isGeneralAllergiesTooLong(): boolean {
-    return this.showValidationErrors && this.generalAllergies.trim().length > PET_TEXTAREA_MAX_LENGTH;
+    return this.generalAllergies.trim().length > PET_TEXTAREA_MAX_LENGTH;
   }
 
   protected isGeneralHistoryTooLong(): boolean {
-    return this.showValidationErrors && this.generalHistory.trim().length > PET_TEXTAREA_MAX_LENGTH;
+    return this.generalHistory.trim().length > PET_TEXTAREA_MAX_LENGTH;
   }
 
   private scheduleSpeciesSearch(): void {
@@ -582,21 +678,21 @@ export class EditPetModalComponent implements OnDestroy {
   }
 
   private buildPayload(): UpdatePetBasicRequest | null {
-    const name = this.name.trim();
+    const name = normalizePetText(this.name);
     const selectedSpecies = this.resolveSpeciesByName(this.speciesValue);
     const selectedBreed = this.resolveBreedById(selectedSpecies, this.breedId);
     const currentWeight = this.parseWeight();
     const birthDate = this.birthDate.trim();
-    const generalAllergies = this.generalAllergies.trim();
-    const generalHistory = this.generalHistory.trim();
+    const generalAllergies = normalizePetText(this.generalAllergies);
+    const generalHistory = normalizePetText(this.generalHistory);
+    const colorValue = normalizePetText(this.colorValue);
 
     if (
-      !name ||
-      name.length > PET_NAME_MAX_LENGTH ||
+      !isValidPetName(name) ||
       !selectedSpecies ||
       !isValidPetBirthDate(birthDate) ||
       (this.breedId !== null && !selectedBreed) ||
-      (this.colorValue.trim().length > 0 && !this.selectedColor) ||
+      (colorValue.length > 0 && (colorValue.length > PET_COLOR_MAX_LENGTH || !this.selectedColor)) ||
       (this.normalizedWeightValue().length > 0 && currentWeight === null) ||
       generalAllergies.length > PET_TEXTAREA_MAX_LENGTH ||
       generalHistory.length > PET_TEXTAREA_MAX_LENGTH
@@ -629,6 +725,10 @@ export class EditPetModalComponent implements OnDestroy {
       payload.colorId = this.selectedColor.id;
     }
 
+    if (this.imageUpload) {
+      payload.image = this.imageUpload.file;
+    }
+
     return payload;
   }
 
@@ -646,5 +746,28 @@ export class EditPetModalComponent implements OnDestroy {
     return resolveApiErrorMessage(error, {
       defaultMessage: 'No se pudo actualizar la mascota.',
     });
+  }
+
+  private replaceSelectedImage(imageUpload: PetImageUploadValue): void {
+    this.clearSelectedImage();
+    this.imageUpload = imageUpload;
+  }
+
+  private clearSelectedImage(): void {
+    this.petImageUploadService.revokePreviewUrl(this.imageUpload?.previewUrl);
+    this.imageUpload = null;
+  }
+
+  private formatFileSize(bytes: number): string {
+    if (bytes < 1024) {
+      return `${bytes} B`;
+    }
+
+    const kib = bytes / 1024;
+    if (kib < 1024) {
+      return `${kib.toFixed(1)} KB`;
+    }
+
+    return `${(kib / 1024).toFixed(2)} MB`;
   }
 }

@@ -1,4 +1,5 @@
 import { PaginationMeta } from '@app/shared/pagination/pagination.model';
+import { PetImageApiResponse } from './pet-image.model';
 
 export interface PetListApiResponse {
   data: PetListItemApiResponse[];
@@ -16,6 +17,7 @@ export interface PetListItemApiResponse {
   ageYears: number | null;
   sex: string;
   currentWeight: number | null;
+  image: PetImageApiResponse | null;
 }
 
 export interface PetListSpeciesApiResponse {

@@ -9,4 +9,5 @@ export interface UpdatePetBasicRequest {
   sterilized: boolean;
   generalAllergies?: string;
   generalHistory?: string;
+  image?: File;
 }

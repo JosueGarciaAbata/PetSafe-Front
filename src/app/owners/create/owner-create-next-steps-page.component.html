@@ -1,0 +1,106 @@
+<div class="mx-auto flex max-w-[1280px] flex-col gap-6 pb-12">
+  <button
+    type="button"
+    routerLink="/owners"
+    class="inline-flex items-center gap-2 self-start text-sm font-medium text-text-secondary transition-colors hover:text-brand"
+  >
+    <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="m15 18-6-6 6-6"></path>
+    </svg>
+    <span>Volver a tutores</span>
+  </button>
+
+  @if (isLoading) {
+    <div class="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+      <div class="h-72 animate-pulse rounded-[24px] bg-background"></div>
+      <div class="h-72 animate-pulse rounded-[24px] bg-background"></div>
+    </div>
+  } @else if (loadError) {
+    <div class="rounded-[24px] border border-border bg-card p-8 text-sm text-text-secondary shadow-sm">
+      {{ loadError }}
+    </div>
+  } @else if (owner) {
+    <div class="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+      <aside class="rounded-[24px] border border-[#CFE3DD] bg-[#F4FAF7] p-6 shadow-sm">
+        <div class="flex flex-col gap-5">
+          <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#D8ECE5] text-[#2F605E] shadow-sm">
+            <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M20 6 9 17l-5-5"></path>
+            </svg>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <span class="text-xs font-bold uppercase tracking-[0.24em] text-[#4D7A73]">Tutor creado</span>
+            <h1 class="text-[30px] font-bold leading-tight text-text-primary">{{ buildTutorName() }}</h1>
+            <p class="text-sm leading-6 text-text-secondary">
+              El tutor ya quedó registrado. El siguiente paso más útil es asociar su primera mascota mientras toda la información está fresca.
+            </p>
+          </div>
+
+          <div class="grid gap-3">
+            <div class="rounded-2xl border border-[#D6E6E1] bg-white p-4">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Cédula</span>
+              <p class="mt-1 text-sm font-semibold text-text-primary">{{ buildTutorCedula() }}</p>
+            </div>
+
+            <div class="rounded-2xl border border-[#D6E6E1] bg-white p-4">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Contacto</span>
+              <p class="mt-1 text-sm text-text-primary">{{ buildTutorPhone() }}</p>
+              <p class="mt-1 text-sm text-text-secondary">{{ buildTutorEmail() }}</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <section class="rounded-[24px] border border-border bg-card p-8 shadow-sm">
+        <div class="flex flex-col gap-8">
+          <div class="flex flex-col gap-3">
+            <span class="text-xs font-bold uppercase tracking-[0.24em] text-brand">Siguiente paso sugerido</span>
+            <h2 class="text-[28px] font-bold text-text-primary">Registrar la primera mascota</h2>
+            <p class="max-w-2xl text-sm leading-6 text-text-secondary">
+              Entrarás al formulario de mascota con este tutor ya seleccionado. Después podrás registrar otra mascota para el mismo tutor sin volver a buscarlo.
+            </p>
+          </div>
+
+          <div class="grid gap-4 md:grid-cols-2">
+            <button
+              type="button"
+              (click)="openCreatePetPage()"
+              class="flex min-h-40 flex-col items-start justify-between rounded-[24px] border border-[#B7D7D1] bg-[#E8F3F0] p-6 text-left shadow-sm transition-all hover:border-[#9CC6BE] hover:bg-[#DDEDE8]"
+            >
+              <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-[#2F605E] shadow-sm">
+                <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M12 5v14M5 12h14"></path>
+                </svg>
+              </div>
+              <div class="flex flex-col gap-2">
+                <span class="text-lg font-bold text-[#244E4A]">Registrar mascota</span>
+                <p class="text-sm leading-6 text-[#406A64]">
+                  Flujo rápido con tutor preseleccionado y continuidad para crear varias mascotas seguidas.
+                </p>
+              </div>
+            </button>
+
+            <a
+              [routerLink]="['/owners', owner.id]"
+              class="flex min-h-40 flex-col items-start justify-between rounded-[24px] border border-border bg-white p-6 text-left shadow-sm transition-all hover:border-brand/20 hover:bg-background/60"
+            >
+              <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-background text-text-secondary shadow-sm">
+                <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"></path>
+                  <path d="M3 20.4a9 9 0 0 1 18 0"></path>
+                </svg>
+              </div>
+              <div class="flex flex-col gap-2">
+                <span class="text-lg font-bold text-text-primary">Ir al perfil del tutor</span>
+                <p class="text-sm leading-6 text-text-secondary">
+                  Revisa el perfil completo del tutor y continúa desde ahí cuando lo necesites.
+                </p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  }
+</div>
