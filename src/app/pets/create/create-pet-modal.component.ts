@@ -21,6 +21,7 @@ import { OwnersApiService } from '../../owners/api/owners-api.service';
 import { ClientTutorBasicApiResponse } from '../../owners/models/client-tutor-basic.model';
 import { ColorApiResponse } from '../models/color.model';
 import { CreatePetRequest } from '../models/create-pet.model';
+import { PetCreateResponseApiResponse } from '../models/pet-create-response.model';
 import { PetImageUploadValue } from '../models/pet-image.model';
 import {
   isValidPetBirthDate,
@@ -156,7 +157,7 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
   @Input() initialTutor: ClientTutorBasicApiResponse | null = null;
 
   @Output() readonly closed = new EventEmitter<void>();
-  @Output() readonly saved = new EventEmitter<void>();
+  @Output() readonly saved = new EventEmitter<PetCreateResponseApiResponse>();
 
   ngOnInit(): void {
     if (this.initialTutor) {
@@ -790,8 +791,8 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
 
     try {
-      await firstValueFrom(this.petsApi.create(payload));
-      this.saved.emit();
+      const createdPet = await firstValueFrom(this.petsApi.create(payload));
+      this.saved.emit(createdPet);
     } catch (error: unknown) {
       this.submitError = this.resolveCreateErrorMessage(error);
     } finally {

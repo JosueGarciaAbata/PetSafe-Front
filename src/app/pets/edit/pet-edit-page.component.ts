@@ -17,6 +17,8 @@ export class PetEditPageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly petsApi = inject(PetsApiService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private detailBackTarget: readonly (string | number)[] = ['/pets'];
+  private detailBackLabel = 'Volver a mascotas';
 
   protected pet: PetBasicDetailApiResponse | null = null;
   protected isLoading = true;
@@ -29,12 +31,20 @@ export class PetEditPageComponent implements OnInit {
       return;
     }
 
+    this.detailBackTarget = history.state?.detailBackTarget ?? ['/pets'];
+    this.detailBackLabel = history.state?.detailBackLabel?.trim() || 'Volver a mascotas';
     void this.loadPet(petId);
   }
 
   protected close(): void {
     const petId = this.route.snapshot.paramMap.get('id');
-    void this.router.navigate(petId ? ['/pets', petId] : ['/pets']);
+    void this.router.navigate(petId ? ['/pets', petId] : ['/pets'], {
+      replaceUrl: true,
+      state: {
+        backTarget: this.detailBackTarget,
+        backLabel: this.detailBackLabel,
+      },
+    });
   }
 
   protected save(): void {

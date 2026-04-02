@@ -1,4 +1,4 @@
-<div class="mx-auto flex max-w-[1280px] flex-col gap-6 pb-12">
+<div class="mx-auto flex max-w-[1400px] flex-col gap-6 pb-12">
   <button
     type="button"
     (click)="close()"
@@ -11,8 +11,7 @@
   </button>
 
   @if (isLoading) {
-    <div class="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
-      <div class="h-56 animate-pulse rounded-[24px] bg-background"></div>
+    <div class="grid gap-6">
       <div class="h-[720px] animate-pulse rounded-[24px] bg-background"></div>
     </div>
   } @else if (loadError) {
@@ -20,24 +19,7 @@
       {{ loadError }}
     </div>
   } @else if (pet) {
-    <div class="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
-      <aside class="rounded-[24px] border border-border bg-card p-6 shadow-sm">
-        <div class="flex flex-col gap-4">
-          <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-active-soft text-brand shadow-sm">
-            <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M12 20h9"></path>
-              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"></path>
-            </svg>
-          </div>
-          <div class="flex flex-col gap-2">
-            <h1 class="text-[28px] font-bold text-text-primary">Editar mascota</h1>
-            <p class="text-sm leading-6 text-text-secondary">
-              Mantiene toda la edición en una vista amplia para trabajar mejor con imagen y datos clínicos.
-            </p>
-          </div>
-        </div>
-      </aside>
-
+    <div class="grid gap-6">
       <app-edit-pet-modal
         [pageMode]="true"
         [pet]="pet"

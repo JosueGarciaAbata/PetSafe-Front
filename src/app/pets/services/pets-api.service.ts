@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { buildApiUrl } from '@app/core/config/api.config';
 import { CreatePetRequest } from '../models/create-pet.model';
+import { PetCreateResponseApiResponse } from '../models/pet-create-response.model';
 import { PetBasicDetailApiResponse } from '../models/pet-detail.model';
 import { PetListApiResponse, PetListQuery } from '../models/pet-list.model';
 import { UpdatePetBasicRequest } from '../models/update-pet-basic.model';
@@ -28,8 +29,8 @@ export class PetsApiService {
     return this.http.get<PetListApiResponse>(this.listUrl, { params });
   }
 
-  create(payload: CreatePetRequest): Observable<unknown> {
-    return this.http.post<unknown>(this.createUrl, this.buildPetFormData(payload));
+  create(payload: CreatePetRequest): Observable<PetCreateResponseApiResponse> {
+    return this.http.post<PetCreateResponseApiResponse>(this.createUrl, this.buildPetFormData(payload));
   }
 
   getBasicById(id: number | string): Observable<PetBasicDetailApiResponse> {

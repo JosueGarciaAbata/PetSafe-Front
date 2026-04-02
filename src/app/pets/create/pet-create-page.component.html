@@ -1,37 +1,93 @@
-<div class="mx-auto flex max-w-[1280px] flex-col gap-6 pb-12">
+<div class="mx-auto flex max-w-[1400px] flex-col gap-6 pb-12">
   <button
     type="button"
-    routerLink="/pets"
+    (click)="close()"
     class="inline-flex items-center gap-2 self-start text-sm font-medium text-text-secondary transition-colors hover:text-brand"
   >
     <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8">
       <path d="m15 18-6-6 6-6"></path>
     </svg>
-    <span>Volver a mascotas</span>
+    <span>{{ buildBackLabel() }}</span>
   </button>
 
-  <div class="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
-    <aside class="rounded-[24px] border border-border bg-card p-6 shadow-sm">
-      <div class="flex flex-col gap-4">
-        <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-white shadow-sm">
-          <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M12 5v14M5 12h14"></path>
-          </svg>
-        </div>
-        <div class="flex flex-col gap-2">
-          <h1 class="text-[28px] font-bold text-text-primary">Nueva mascota</h1>
-          <p class="text-sm leading-6 text-text-secondary">
-            Página completa para registrar al paciente con más espacio visual, mejor ritmo de lectura y menos fricción que un modal.
-          </p>
-        </div>
-      </div>
-    </aside>
+  <div class="grid gap-6">
+    @if (createdPet && quickCreateForTutor && initialTutor) {
+      <section class="rounded-[24px] border border-[#CFE3DD] bg-card p-8 shadow-sm">
+        <div class="flex flex-col gap-8">
+          <div class="flex flex-col gap-3">
+            <span class="text-xs font-bold uppercase tracking-[0.24em] text-brand">Mascota registrada</span>
+            <h2 class="text-[28px] font-bold text-text-primary">{{ createdPet.name }}</h2>
+            <p class="max-w-2xl text-sm leading-6 text-text-secondary">
+              La mascota quedó asociada a {{ buildTutorName() }}. Puedes registrar otra enseguida o continuar con alguno de los perfiles.
+            </p>
+          </div>
 
-    <app-create-pet-modal
-      [pageMode]="true"
-      [initialTutor]="initialTutor"
-      (closed)="close()"
-      (saved)="save()"
-    />
+          <div class="grid gap-4 md:grid-cols-3">
+            <button
+              type="button"
+              (click)="registerAnotherPet()"
+              class="flex min-h-40 flex-col items-start justify-between rounded-[24px] border border-[#B7D7D1] bg-[#E8F3F0] p-6 text-left shadow-sm transition-all hover:border-[#9CC6BE] hover:bg-[#DDEDE8]"
+            >
+              <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-[#2F605E] shadow-sm">
+                <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M12 5v14M5 12h14"></path>
+                </svg>
+              </div>
+              <div class="flex flex-col gap-2">
+                <span class="text-lg font-bold text-[#244E4A]">Registrar otra mascota</span>
+                <p class="text-sm leading-6 text-[#406A64]">
+                  Mantengo el mismo tutor y limpio el formulario para seguir de inmediato.
+                </p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              (click)="openCreatedPet()"
+              class="flex min-h-40 flex-col items-start justify-between rounded-[24px] border border-border bg-white p-6 text-left shadow-sm transition-all hover:border-brand/20 hover:bg-background/60"
+            >
+              <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-background text-text-secondary shadow-sm">
+                <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M5 12h14"></path>
+                  <path d="M12 5v14"></path>
+                </svg>
+              </div>
+              <div class="flex flex-col gap-2">
+                <span class="text-lg font-bold text-text-primary">Ver perfil de la mascota</span>
+                <p class="text-sm leading-6 text-text-secondary">
+                  Revisa el perfil recién creado y continúa desde la ficha del paciente.
+                </p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              (click)="openOwnerProfile()"
+              class="flex min-h-40 flex-col items-start justify-between rounded-[24px] border border-border bg-white p-6 text-left shadow-sm transition-all hover:border-brand/20 hover:bg-background/60"
+            >
+              <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-background text-text-secondary shadow-sm">
+                <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"></path>
+                  <path d="M3 20.4a9 9 0 0 1 18 0"></path>
+                </svg>
+              </div>
+              <div class="flex flex-col gap-2">
+                <span class="text-lg font-bold text-text-primary">Ir al perfil del tutor</span>
+                <p class="text-sm leading-6 text-text-secondary">
+                  Regresa al tutor con la mascota ya asociada en su perfil.
+                </p>
+              </div>
+            </button>
+          </div>
+        </div>
+      </section>
+    } @else {
+      <app-create-pet-modal
+        [pageMode]="true"
+        [initialTutor]="initialTutor"
+        (closed)="close()"
+        (saved)="save($event)"
+      />
+    }
   </div>
 </div>

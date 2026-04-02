@@ -61,6 +61,15 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'owners/:id/next-steps',
+        canActivate: [authGuard],
+        data: { roles: adminRoles },
+        loadComponent: () =>
+          import('@app/owners/create/owner-create-next-steps-page.component').then(
+            (m) => m.OwnerCreateNextStepsPageComponent,
+          ),
+      },
+      {
         path: 'owners/:id',
         canActivate: [authGuard],
         data: { roles: adminRoles },

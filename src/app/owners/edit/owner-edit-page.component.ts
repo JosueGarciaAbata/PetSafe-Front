@@ -10,11 +10,18 @@ import { OwnersApiService } from '../api/owners-api.service';
 import { ClientResponseApiResponse } from '../models/client-detail.model';
 import {
   CLIENT_ADDRESS_MAX_LENGTH,
+  CLIENT_MAX_BIRTH_DATE,
   CLIENT_MIN_BIRTH_DATE,
   CLIENT_NAME_MAX_LENGTH,
   CLIENT_NOTES_MAX_LENGTH,
+  CLIENT_NAME_PATTERN,
+  CLIENT_PHONE_MAX_LENGTH,
   CLIENT_PHONE_PATTERN,
-  clientMinDateValidator,
+  clientDateRangeValidator,
+  normalizeWhitespace,
+  optionalPatternValidator,
+  trimmedMinLengthValidator,
+  trimmedRequiredValidator,
 } from '../models/client-form-validation.util';
 import { ClientGenderCode, UpdateClientRequest } from '../models/client-update.model';
 import { mapClientGenderLabel } from '../models/client-summary.model';
@@ -44,7 +51,8 @@ export class OwnerEditPageComponent implements OnInit {
   private readonly ownersApi = inject(OwnersApiService);
   private readonly cdr = inject(ChangeDetectorRef);
   private ownerId = '';
-  private returnToOwnersListAfterDetail = false;
+  private detailBackTarget: readonly (string | number)[] = ['/owners'];
+  private detailBackLabel = 'Volver a propietarios';
 
   protected owner: ClientResponseApiResponse | null = null;
   protected isLoading = true;
@@ -57,17 +65,19 @@ export class OwnerEditPageComponent implements OnInit {
     { value: 'M', label: 'Masculino' },
     { value: 'OTRO', label: 'Otro' },
   ];
+  protected readonly maxBirthDate = CLIENT_MAX_BIRTH_DATE;
   protected readonly minBirthDate = CLIENT_MIN_BIRTH_DATE;
   protected readonly nameMaxLength = CLIENT_NAME_MAX_LENGTH;
   protected readonly notesMaxLength = CLIENT_NOTES_MAX_LENGTH;
+  protected readonly phoneMaxLength = CLIENT_PHONE_MAX_LENGTH;
 
   protected readonly form = this.fb.nonNullable.group({
-    firstName: ['', [Validators.required, Validators.maxLength(CLIENT_NAME_MAX_LENGTH)]],
-    lastName: ['', [Validators.required, Validators.maxLength(CLIENT_NAME_MAX_LENGTH)]],
+    firstName: ['', [trimmedRequiredValidator(), trimmedMinLengthValidator(2), Validators.maxLength(CLIENT_NAME_MAX_LENGTH), optionalPatternValidator(CLIENT_NAME_PATTERN, 'invalidNamePattern')]],
+    lastName: ['', [trimmedRequiredValidator(), trimmedMinLengthValidator(2), Validators.maxLength(CLIENT_NAME_MAX_LENGTH), optionalPatternValidator(CLIENT_NAME_PATTERN, 'invalidNamePattern')]],
     phone: ['', [Validators.pattern(CLIENT_PHONE_PATTERN)]],
     address: ['', [Validators.maxLength(CLIENT_ADDRESS_MAX_LENGTH)]],
     gender: ['F' as ClientGenderCode],
-    birthDate: ['', [clientMinDateValidator(CLIENT_MIN_BIRTH_DATE)]],
+    birthDate: ['', [clientDateRangeValidator(CLIENT_MIN_BIRTH_DATE, CLIENT_MAX_BIRTH_DATE)]],
     notes: ['', [Validators.maxLength(CLIENT_NOTES_MAX_LENGTH)]],
   });
 
@@ -79,7 +89,8 @@ export class OwnerEditPageComponent implements OnInit {
     }
 
     this.ownerId = ownerId;
-    this.returnToOwnersListAfterDetail = history.state?.returnToOwnersListAfterDetail === true;
+    this.detailBackTarget = history.state?.detailBackTarget ?? ['/owners'];
+    this.detailBackLabel = history.state?.detailBackLabel?.trim() || 'Volver a propietarios';
     void this.loadOwner();
   }
 
@@ -138,13 +149,13 @@ export class OwnerEditPageComponent implements OnInit {
     const birthDate = value.birthDate.trim();
 
     return {
-      firstName: value.firstName.trim(),
-      lastName: value.lastName.trim(),
+      firstName: normalizeWhitespace(value.firstName),
+      lastName: normalizeWhitespace(value.lastName),
       phone: value.phone.trim(),
-      address: value.address.trim(),
+      address: normalizeWhitespace(value.address),
       gender: value.gender,
       birthDate: birthDate || undefined,
-      notes: value.notes.trim(),
+      notes: normalizeWhitespace(value.notes),
     };
   }
 
@@ -173,7 +184,8 @@ export class OwnerEditPageComponent implements OnInit {
     return this.router.navigate(['/owners', this.ownerId], {
       replaceUrl: true,
       state: {
-        forceBackToOwnersList: this.returnToOwnersListAfterDetail,
+        backTarget: this.detailBackTarget,
+        backLabel: this.detailBackLabel,
       },
     });
   }

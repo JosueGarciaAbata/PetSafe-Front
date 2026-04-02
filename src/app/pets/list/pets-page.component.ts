@@ -57,7 +57,12 @@ export class PetsPageComponent implements OnInit {
   }
 
   protected openPetDetail(pet: PetListItemApiResponse): void {
-    void this.router.navigate(['/pets', pet.id]);
+    void this.router.navigate(['/pets', pet.id], {
+      state: {
+        backTarget: ['/pets'],
+        backLabel: 'Volver a mascotas',
+      },
+    });
   }
 
   protected openCreatePage(): void {

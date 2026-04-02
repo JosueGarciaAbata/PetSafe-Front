@@ -72,7 +72,12 @@ export class OwnersPageComponent implements OnInit {
   }
 
   protected openOwnerDetail(owner: ClientSummaryItemApiResponse): void {
-    void this.router.navigate(['/owners', owner.id]);
+    void this.router.navigate(['/owners', owner.id], {
+      state: {
+        backTarget: ['/owners'],
+        backLabel: 'Volver a propietarios',
+      },
+    });
   }
 
   protected onPageChange(page: number): void {

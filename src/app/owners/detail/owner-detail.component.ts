@@ -5,7 +5,6 @@ import {
   OnInit,
   inject,
 } from '@angular/core';
-import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
@@ -22,16 +21,22 @@ import { buildClientFullName, buildClientInitials, mapClientGenderLabel } from '
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OwnerDetailComponent implements OnInit {
-  private readonly location = inject(Location);
   private readonly ownersApi = inject(OwnersApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
   private requestVersion = 0;
-  private forceBackToOwnersList = false;
+  private backTarget: readonly (string | number)[] = ['/owners'];
+  protected backLabel = 'Volver a propietarios';
 
   ngOnInit(): void {
-    this.forceBackToOwnersList = history.state?.forceBackToOwnersList === true;
+    const navigationState = history.state as {
+      backTarget?: readonly (string | number)[] | null;
+      backLabel?: string | null;
+    } | null;
+    this.backTarget = navigationState?.backTarget ?? ['/owners'];
+    this.backLabel = navigationState?.backLabel?.trim() || 'Volver a propietarios';
+
     this.route.paramMap.subscribe((params) => {
       const ownerId = params.get('id');
       if (!ownerId) {
@@ -60,17 +65,7 @@ export class OwnerDetailComponent implements OnInit {
   protected pets: ClientPetApiResponse[] = [];
 
   protected goBack(): void {
-    if (this.forceBackToOwnersList) {
-      void this.router.navigate(['/owners'], { replaceUrl: true });
-      return;
-    }
-
-    if (window.history.length > 1) {
-      this.location.back();
-      return;
-    }
-
-    void this.router.navigate(['/owners']);
+    void this.router.navigate(this.backTarget, { replaceUrl: true });
   }
 
   protected openEditOwnerPage(): void {
@@ -80,7 +75,28 @@ export class OwnerDetailComponent implements OnInit {
 
     void this.router.navigate(['/owners', this.owner.id, 'edit'], {
       state: {
-        returnToOwnersListAfterDetail: true,
+        detailBackTarget: this.backTarget,
+        detailBackLabel: this.backLabel,
+      },
+    });
+  }
+
+  protected openCreatePetPage(): void {
+    if (!this.owner) {
+      return;
+    }
+
+    void this.router.navigate(['/pets/new'], {
+      state: {
+        initialTutor: {
+          id: this.owner.id,
+          firstName: this.owner.person.firstName,
+          lastName: this.owner.person.lastName,
+          phone: this.owner.person.phone ?? null,
+        },
+        quickCreateForTutor: true,
+        ownerBackTarget: ['/owners', this.owner.id],
+        ownerBackLabel: 'Volver al tutor',
       },
     });
   }
@@ -122,6 +138,7 @@ export class OwnerDetailComponent implements OnInit {
   protected openPetDetail(pet: ClientPetApiResponse): void {
     void this.router.navigate(['/pets', pet.id], {
       state: {
+        backTarget: ['/owners', this.owner?.id ?? 0],
         backLabel: 'Volver al propietario',
       },
     });

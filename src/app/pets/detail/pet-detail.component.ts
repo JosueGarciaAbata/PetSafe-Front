@@ -5,7 +5,6 @@ import {
   OnInit,
   inject,
 } from '@angular/core';
-import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import {
@@ -22,16 +21,20 @@ import { PetsApiService } from '../services/pets-api.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PetDetailComponent implements OnInit {
-  private readonly location = inject(Location);
   private readonly petsApi = inject(PetsApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
   private requestVersion = 0;
+  private backTarget: readonly (string | number)[] = ['/pets'];
   protected backLabel = 'Volver a mascotas';
 
   ngOnInit(): void {
-    const navigationState = history.state as { backLabel?: string } | null;
+    const navigationState = history.state as {
+      backTarget?: readonly (string | number)[] | null;
+      backLabel?: string | null;
+    } | null;
+    this.backTarget = navigationState?.backTarget ?? ['/pets'];
     this.backLabel = navigationState?.backLabel?.trim() || 'Volver a mascotas';
 
     this.route.paramMap.subscribe((params) => {
@@ -55,12 +58,7 @@ export class PetDetailComponent implements OnInit {
   protected pet: PetBasicDetailApiResponse | null = null;
 
   protected goBack(): void {
-    if (window.history.length > 1) {
-      this.location.back();
-      return;
-    }
-
-    void this.router.navigate(['/pets']);
+    void this.router.navigate(this.backTarget, { replaceUrl: true });
   }
 
   protected openEditPetPage(): void {
@@ -68,7 +66,12 @@ export class PetDetailComponent implements OnInit {
       return;
     }
 
-    void this.router.navigate(['/pets', this.pet.id, 'edit']);
+    void this.router.navigate(['/pets', this.pet.id, 'edit'], {
+      state: {
+        detailBackTarget: this.backTarget,
+        detailBackLabel: this.backLabel,
+      },
+    });
   }
 
   protected buildPetInitial(): string {

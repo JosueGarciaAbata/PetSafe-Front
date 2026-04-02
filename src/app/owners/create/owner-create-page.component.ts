@@ -10,12 +10,20 @@ import { OwnersApiService } from '../api/owners-api.service';
 import {
   CLIENT_ADDRESS_MAX_LENGTH,
   CLIENT_DOCUMENT_ID_MAX_LENGTH,
+  CLIENT_EMAIL_MAX_LENGTH,
+  CLIENT_MAX_BIRTH_DATE,
   CLIENT_MIN_BIRTH_DATE,
   CLIENT_NAME_MAX_LENGTH,
   CLIENT_NOTES_MAX_LENGTH,
+  CLIENT_NAME_PATTERN,
+  CLIENT_PHONE_MAX_LENGTH,
   CLIENT_PHONE_PATTERN,
-  clientMinDateValidator,
+  clientDateRangeValidator,
   ecuadorCedulaValidator,
+  normalizeWhitespace,
+  optionalPatternValidator,
+  trimmedMinLengthValidator,
+  trimmedRequiredValidator,
 } from '../models/client-form-validation.util';
 import {
   ClientGenderCode,
@@ -39,22 +47,26 @@ export class OwnerCreatePageComponent {
 
   protected readonly addressMaxLength = CLIENT_ADDRESS_MAX_LENGTH;
   protected readonly documentIdMaxLength = CLIENT_DOCUMENT_ID_MAX_LENGTH;
+  protected readonly emailMaxLength = CLIENT_EMAIL_MAX_LENGTH;
   protected readonly genderOptions: Array<{ value: ClientGenderCode; label: string }> = [
     { value: 'F', label: 'Femenino' },
     { value: 'M', label: 'Masculino' },
     { value: 'OTRO', label: 'Otro' },
   ];
+  protected readonly maxBirthDate = CLIENT_MAX_BIRTH_DATE;
   protected readonly minBirthDate = CLIENT_MIN_BIRTH_DATE;
+  protected readonly nameMaxLength = CLIENT_NAME_MAX_LENGTH;
   protected readonly notesMaxLength = CLIENT_NOTES_MAX_LENGTH;
+  protected readonly phoneMaxLength = CLIENT_PHONE_MAX_LENGTH;
 
   protected readonly form = this.fb.nonNullable.group({
-    firstName: ['', [Validators.required, Validators.maxLength(CLIENT_NAME_MAX_LENGTH)]],
-    lastName: ['', [Validators.required, Validators.maxLength(CLIENT_NAME_MAX_LENGTH)]],
+    firstName: ['', [trimmedRequiredValidator(), trimmedMinLengthValidator(2), Validators.maxLength(CLIENT_NAME_MAX_LENGTH), optionalPatternValidator(CLIENT_NAME_PATTERN, 'invalidNamePattern')]],
+    lastName: ['', [trimmedRequiredValidator(), trimmedMinLengthValidator(2), Validators.maxLength(CLIENT_NAME_MAX_LENGTH), optionalPatternValidator(CLIENT_NAME_PATTERN, 'invalidNamePattern')]],
     documentId: ['', [Validators.maxLength(CLIENT_DOCUMENT_ID_MAX_LENGTH), ecuadorCedulaValidator()]],
     gender: ['F' as ClientGenderCode],
-    birthDate: ['', [clientMinDateValidator(CLIENT_MIN_BIRTH_DATE)]],
+    birthDate: ['', [clientDateRangeValidator(CLIENT_MIN_BIRTH_DATE, CLIENT_MAX_BIRTH_DATE)]],
     phone: ['', [Validators.pattern(CLIENT_PHONE_PATTERN)]],
-    email: ['', [Validators.email]],
+    email: ['', [Validators.maxLength(CLIENT_EMAIL_MAX_LENGTH), Validators.email]],
     address: ['', [Validators.maxLength(CLIENT_ADDRESS_MAX_LENGTH)]],
     notes: ['', [Validators.maxLength(CLIENT_NOTES_MAX_LENGTH)]],
   });
@@ -80,8 +92,10 @@ export class OwnerCreatePageComponent {
 
     try {
       const payload = this.buildPayload(this.form.getRawValue() as CreateClientFormValue);
-      await firstValueFrom(this.ownersApi.createClient(payload));
-      void this.router.navigate(['/owners']);
+      const owner = await firstValueFrom(this.ownersApi.createClient(payload));
+      void this.router.navigate(['/owners', owner.id, 'next-steps'], {
+        state: { owner },
+      });
     } catch (error: unknown) {
       this.errorMessage = resolveApiErrorMessage(error, {
         defaultMessage: 'No se pudo crear el cliente. Intenta nuevamente.',
@@ -95,17 +109,17 @@ export class OwnerCreatePageComponent {
 
   private buildPayload(value: CreateClientFormValue): CreateClientRequest {
     const payload: CreateClientRequest = {
-      firstName: value.firstName.trim(),
-      lastName: value.lastName.trim(),
+      firstName: normalizeWhitespace(value.firstName),
+      lastName: normalizeWhitespace(value.lastName),
       gender: value.gender,
     };
 
     const documentId = value.documentId.trim();
     const phone = value.phone.trim();
-    const address = value.address.trim();
+    const address = normalizeWhitespace(value.address);
     const birthDate = value.birthDate.trim();
-    const notes = value.notes.trim();
-    const email = value.email.trim();
+    const notes = normalizeWhitespace(value.notes);
+    const email = value.email.trim().toLowerCase();
 
     if (documentId) {
       payload.documentId = documentId;

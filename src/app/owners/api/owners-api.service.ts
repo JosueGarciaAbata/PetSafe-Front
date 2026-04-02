@@ -35,8 +35,8 @@ export class OwnersApiService {
     return this.http.get<ClientSummaryListApiResponse>(this.listUrl, { params });
   }
 
-  createClient(payload: CreateClientRequest): Observable<unknown> {
-    return this.http.post<unknown>(this.createUrl, payload);
+  createClient(payload: CreateClientRequest): Observable<ClientResponseApiResponse> {
+    return this.http.post<ClientResponseApiResponse>(this.createUrl, payload);
   }
 
   listBasicTutors(

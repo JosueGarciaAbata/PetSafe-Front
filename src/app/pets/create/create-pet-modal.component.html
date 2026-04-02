@@ -5,536 +5,318 @@
 <div
   [class.fixed]="!pageMode"
   [class.inset-0]="!pageMode"
-  class="flex w-full items-center justify-center"
+  class="w-full"
+  [class.flex]="!pageMode"
+  [class.items-center]="!pageMode"
+  [class.justify-center]="!pageMode"
   [class.p-4]="!pageMode"
   [style.z-index]="pageMode ? null : 130"
 >
   <div
-    class="flex w-full max-w-[920px] flex-col overflow-hidden rounded-[16px] border border-border bg-card shadow-2xl"
+    class="flex w-full flex-col overflow-hidden"
+    [class.max-w-[920px]]="!pageMode"
+    [class.max-w-[1400px]]="pageMode"
+    [class.bg-card]="!pageMode"
+    [class.rounded-[16px]]="!pageMode"
+    [class.border]="!pageMode"
+    [class.border-border]="!pageMode"
+    [class.shadow-2xl]="!pageMode"
     [style.max-height]="pageMode ? null : '90vh'"
   >
-    <div class="shrink-0 border-b border-border bg-white px-5 py-4">
-      <div class="flex items-start justify-between gap-4">
-        <div class="flex flex-col gap-1">
-          <h2 class="text-lg font-bold text-text-primary">Nueva mascota</h2>
-          <p class="text-sm text-text-secondary">Registra la informacion basica del paciente.</p>
-        </div>
+    @if (!pageMode) {
+      <div class="shrink-0 border-b border-border bg-white px-5 py-4">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex flex-col gap-1">
+            <h2 class="text-lg font-bold text-text-primary">Nueva mascota</h2>
+            <p class="text-sm text-text-secondary">Registra la informacion basica del paciente.</p>
+          </div>
 
-        @if (!pageMode) {
           <button
             type="button"
             (click)="close()"
             class="inline-flex h-10 w-10 items-center justify-center rounded-full text-text-secondary transition-all hover:bg-background hover:text-text-primary"
             aria-label="Cerrar modal"
           >
-            <svg
-              viewBox="0 0 24 24"
-              class="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-            >
+            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
               <path d="M6 6l12 12M18 6 6 18"></path>
             </svg>
           </button>
-        }
+        </div>
       </div>
-    </div>
+    }
 
-    <div class="flex-1 overflow-y-auto px-5 py-4">
-      <div class="grid grid-cols-1 gap-5">
-        <section class="grid gap-4">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Identificacion</h3>
-
-          <div class="grid gap-3 rounded-2xl border border-dashed border-border bg-background/50 p-4">
-            <div class="flex items-center justify-between gap-4">
-              <div class="flex flex-col gap-1">
-                <span class="text-sm font-semibold text-text-primary">Foto de la mascota</span>
-                <p class="text-xs text-text-secondary">
-                  JPG, PNG o WEBP. Se optimiza antes del envio y se limita a 5 MB.
-                </p>
+    <div [class]="pageMode ? 'flex-1 overflow-visible' : 'flex-1 overflow-y-auto px-5 py-4'">
+      @if (pageMode) {
+        <div class="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+          <aside class="flex flex-col gap-6">
+            <section class="rounded-[24px] border border-border bg-card p-6 shadow-sm">
+              <div class="flex flex-col gap-4">
+                <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-white shadow-sm">
+                  <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M12 5v14M5 12h14"></path>
+                  </svg>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <h2 class="text-[28px] font-bold text-text-primary">Nueva mascota</h2>
+                  <p class="text-sm leading-6 text-text-secondary">Registra al paciente con una vista amplia y ordenada.</p>
+                </div>
               </div>
+            </section>
 
-              <input
-                #petImageInput
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                class="hidden"
-                (change)="onImageSelected($event)"
-              />
+            <section class="rounded-[24px] border border-border bg-card p-6 shadow-sm">
+              <div class="flex flex-col gap-4">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-brand">Datos básicos</h3>
 
-              <button
-                type="button"
-                (click)="petImageInput.click()"
-                class="rounded-xl border border-border bg-white px-4 py-2 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background"
-              >
-                {{ hasSelectedImage() ? 'Cambiar imagen' : 'Subir imagen' }}
-              </button>
-            </div>
-
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div class="pet-image-preview">
-                @if (selectedImagePreviewUrl(); as previewUrl) {
-                  <img
-                    [src]="previewUrl"
-                    [alt]="selectedImageName() || 'Vista previa de mascota'"
-                    class="h-full w-full object-cover"
-                  />
-                } @else {
-                  <span class="text-2xl font-bold uppercase text-brand">{{
-                    petName.trim().charAt(0) || 'P'
-                  }}</span>
-                }
-              </div>
-
-              <div class="flex min-w-0 flex-1 flex-col gap-1">
-                <span class="text-sm font-semibold text-text-primary">
-                  {{ selectedImageName() || 'Sin imagen seleccionada' }}
-                </span>
-                <span class="text-xs text-text-secondary">
-                  {{
-                    selectedImageSizeLabel() ||
-                      'La imagen se convierte y comprime para mejorar velocidad y cache.'
-                  }}
-                </span>
-                @if (imageSelectionError) {
-                  <span class="text-xs font-medium text-red-600">{{ imageSelectionError }}</span>
-                }
-              </div>
-
-              @if (hasSelectedImage()) {
-                <button
-                  type="button"
-                  (click)="clearImageSelection(petImageInput)"
-                  class="self-start rounded-xl px-3 py-2 text-xs font-bold text-text-secondary transition-all hover:bg-white"
-                >
-                  Quitar
-                </button>
-              }
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div class="flex flex-col gap-2 md:col-span-2">
-              <label class="text-sm font-semibold text-text-primary">Tutor</label>
-              <mat-form-field
-                appearance="outline"
-                subscriptSizing="dynamic"
-                class="pet-create-field w-full"
-              >
-                <input
-                  matInput
-                  [errorStateMatcher]="tutorErrorStateMatcher"
-                  type="text"
-                  [ngModel]="tutorValue"
-                  (ngModelChange)="onTutorChanged($event)"
-                  [matAutocomplete]="tutorAuto"
-                  placeholder="Buscar tutor"
-                  autocomplete="off"
-                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
-                />
-                @if (isTutorInvalid()) {
-                  <mat-error>Selecciona un tutor valido de la lista.</mat-error>
-                }
-              </mat-form-field>
-              <mat-autocomplete #tutorAuto="matAutocomplete" autoActiveFirstOption>
-                @for (option of tutorOptions(); track option.id) {
-                  <mat-option
-                    [value]="buildTutorLabel(option)"
-                    (onSelectionChange)="onTutorOptionSelection($event.isUserInput, option)"
-                  >
-                    <div class="flex flex-col">
-                      <span class="text-sm font-medium text-text-primary">{{
-                        buildTutorLabel(option)
-                      }}</span>
-                      <span class="text-xs text-text-secondary">{{ buildTutorPhone(option) }}</span>
+                <div class="grid gap-3">
+                  <div class="rounded-2xl border border-border bg-white p-4">
+                    <span class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Sexo</span>
+                    <div class="flex h-11 rounded-xl bg-background p-1">
+                      <button type="button" (click)="setSex('Macho')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-white]="sex === 'Macho'" [class.text-brand]="sex === 'Macho'" [class.shadow-sm]="sex === 'Macho'" [class.text-text-secondary]="sex !== 'Macho'">Macho</button>
+                      <button type="button" (click)="setSex('Hembra')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-white]="sex === 'Hembra'" [class.text-brand]="sex === 'Hembra'" [class.shadow-sm]="sex === 'Hembra'" [class.text-text-secondary]="sex !== 'Hembra'">Hembra</button>
                     </div>
-                  </mat-option>
-                }
+                  </div>
 
-                @if (isTutorsLoading) {
-                  <mat-option disabled>Buscando tutores...</mat-option>
-                } @else if (tutorValue.trim() && tutorOptions().length === 0) {
-                  <mat-option disabled>No se encontraron resultados</mat-option>
-                }
-              </mat-autocomplete>
-            </div>
+                  <div class="rounded-2xl border border-border bg-white p-4">
+                    <span class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Esterilizado</span>
+                    <div class="flex h-11 rounded-xl bg-background p-1">
+                      <button type="button" (click)="setSterilized('Si')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-white]="sterilized === 'Si'" [class.text-brand]="sterilized === 'Si'" [class.shadow-sm]="sterilized === 'Si'" [class.text-text-secondary]="sterilized !== 'Si'">Si</button>
+                      <button type="button" (click)="setSterilized('No')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-white]="sterilized === 'No'" [class.text-brand]="sterilized === 'No'" [class.shadow-sm]="sterilized === 'No'" [class.text-text-secondary]="sterilized !== 'No'">No</button>
+                    </div>
+                  </div>
 
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Nombre de la mascota</label>
-              <mat-form-field
-                appearance="outline"
-                subscriptSizing="dynamic"
-                class="pet-create-field w-full"
-              >
-                <input
-                  matInput
-                  [errorStateMatcher]="petNameErrorStateMatcher"
-                  type="text"
-                  [ngModel]="petName"
-                  (ngModelChange)="petName = $event"
-                  placeholder="Ej. Max"
-                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
-                />
-                @if (isPetNameRequiredInvalid()) {
-                  <mat-error>Ingresa el nombre de la mascota.</mat-error>
-                }
-                @if (isPetNameTooLong()) {
-                  <mat-error>
-                    El nombre no puede superar los {{ nameMaxLength }} caracteres.
-                  </mat-error>
-                }
-              </mat-form-field>
-            </div>
+                  <div class="rounded-2xl border border-border bg-white p-4">
+                    <label class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Fecha de nacimiento</label>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                      <input matInput [errorStateMatcher]="birthDateErrorStateMatcher" type="date" [ngModel]="birthDate" (ngModelChange)="birthDate = $event" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                      @if (isBirthDateInvalid()) {
+                        <mat-error>Ingresa una fecha valida con formato YYYY-MM-DD.</mat-error>
+                      }
+                    </mat-form-field>
+                  </div>
 
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Especie</label>
-              <mat-form-field
-                appearance="outline"
-                subscriptSizing="dynamic"
-                class="pet-create-field w-full"
-              >
-                <input
-                  matInput
-                  [errorStateMatcher]="speciesErrorStateMatcher"
-                  type="text"
-                  [ngModel]="speciesValue"
-                  (ngModelChange)="onSpeciesChanged($event)"
-                  [matAutocomplete]="speciesAuto"
-                  placeholder="Buscar especie"
-                  autocomplete="off"
-                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
-                />
-                @if (isSpeciesInvalid()) {
-                  <mat-error>Selecciona una especie valida.</mat-error>
-                }
-              </mat-form-field>
-              <mat-autocomplete
-                #speciesAuto="matAutocomplete"
-                autoActiveFirstOption
-                (optionSelected)="selectSpecies($event.option.value)"
-              >
-                @for (option of speciesOptions(); track option.id) {
-                  <mat-option [value]="option.name">{{ option.name }}</mat-option>
-                }
+                  <div class="rounded-2xl border border-border bg-white p-4">
+                    <label class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-text-secondary">Peso y color</label>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                        <input matInput [errorStateMatcher]="weightErrorStateMatcher" type="number" [ngModel]="weightKg" (ngModelChange)="weightKg = $event" min="0.01" [attr.max]="weightMax" [attr.step]="weightStep" placeholder="Peso" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                        <span matTextSuffix class="text-xs font-bold text-text-secondary">kg</span>
+                        @if (isWeightInvalid()) {
+                          <mat-error>Ingresa un peso mayor a 0 y con maximo 2 decimales.</mat-error>
+                        }
+                      </mat-form-field>
 
-                @if (isSpeciesLoading) {
-                  <mat-option disabled>Buscando especies...</mat-option>
-                } @else if (speciesValue.trim() && speciesOptions().length === 0) {
-                  <mat-option disabled>No se encontraron resultados</mat-option>
-                }
-              </mat-autocomplete>
-            </div>
-
-            <div class="flex flex-col gap-2 md:col-span-2">
-              <label class="text-sm font-semibold text-text-primary">Raza</label>
-              <mat-form-field
-                appearance="outline"
-                subscriptSizing="dynamic"
-                class="pet-create-field w-full"
-              >
-                <mat-select
-                  [errorStateMatcher]="breedErrorStateMatcher"
-                  [ngModel]="breedValue"
-                  (ngModelChange)="onBreedChanged($event)"
-                  [disabled]="isBreedDisabled()"
-                  [placeholder]="breedPlaceholder()"
-                >
-                  @for (option of breedOptions(); track option.id) {
-                    <mat-option [value]="option.name">{{ option.name }}</mat-option>
-                  }
-                </mat-select>
-                @if (isBreedInvalid()) {
-                  <mat-error>Selecciona una raza valida.</mat-error>
-                }
-                <mat-hint>Opcional. Selecciona una raza si aplica.</mat-hint>
-              </mat-form-field>
-            </div>
-          </div>
-        </section>
-
-        <section class="grid gap-4">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Datos basicos</h3>
-
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div class="flex flex-col gap-2">
-              <span class="text-sm font-semibold text-text-primary">Sexo</span>
-              <div class="flex h-12 rounded-xl bg-background p-1">
-                <button
-                  type="button"
-                  (click)="setSex('Macho')"
-                  class="flex-1 rounded-lg text-xs font-bold transition-all"
-                  [class.bg-white]="sex === 'Macho'"
-                  [class.text-brand]="sex === 'Macho'"
-                  [class.shadow-sm]="sex === 'Macho'"
-                  [class.text-text-secondary]="sex !== 'Macho'"
-                >
-                  Macho
-                </button>
-                <button
-                  type="button"
-                  (click)="setSex('Hembra')"
-                  class="flex-1 rounded-lg text-xs font-bold transition-all"
-                  [class.bg-white]="sex === 'Hembra'"
-                  [class.text-brand]="sex === 'Hembra'"
-                  [class.shadow-sm]="sex === 'Hembra'"
-                  [class.text-text-secondary]="sex !== 'Hembra'"
-                >
-                  Hembra
-                </button>
+                      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                        <input matInput [errorStateMatcher]="colorErrorStateMatcher" type="text" [ngModel]="colorValue" (ngModelChange)="onColorChanged($event)" [matAutocomplete]="colorAutoPage" placeholder="Color" autocomplete="off" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                        @if (colorCreateError) {
+                          <mat-error>{{ colorCreateError }}</mat-error>
+                        } @else if (isColorInvalid()) {
+                          <mat-error>Selecciona un color valido.</mat-error>
+                        }
+                      </mat-form-field>
+                    </div>
+                    <mat-autocomplete #colorAutoPage="matAutocomplete" autoActiveFirstOption>
+                      @for (option of colorOptions(); track option.id) {
+                        <mat-option [value]="option.name" (onSelectionChange)="onColorOptionSelection($event.isUserInput, option)">{{ option.name }}</mat-option>
+                      }
+                      @if (isColorsLoading) {
+                        <mat-option disabled>Buscando colores...</mat-option>
+                      } @else if (isCreatingColor) {
+                        <mat-option disabled>Creando color...</mat-option>
+                      } @else if (showCreateColorOption()) {
+                        <mat-option disabled>No se encontraron resultados</mat-option>
+                        <mat-option [value]="colorValue.trim()" (onSelectionChange)="onCreateColorOptionSelection($event.isUserInput)">Crear: "{{ colorValue.trim() }}"</mat-option>
+                      }
+                    </mat-autocomplete>
+                  </div>
+                </div>
               </div>
+            </section>
+          </aside>
+
+          <div class="overflow-hidden rounded-[24px] border border-border bg-card shadow-sm">
+            <div class="flex flex-col gap-8 p-8">
+              <section class="grid gap-4">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Identificación</h3>
+
+                <div class="grid gap-3 rounded-2xl border border-dashed border-border bg-background/50 p-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <div class="flex flex-col gap-1">
+                      <span class="text-sm font-semibold text-text-primary">Foto de la mascota</span>
+                      <p class="text-xs text-text-secondary">JPG, PNG o WEBP. Se optimiza antes del envio y se limita a 5 MB.</p>
+                    </div>
+                    <input #petImageInput type="file" accept="image/jpeg,image/png,image/webp" class="hidden" (change)="onImageSelected($event)" />
+                    <button type="button" (click)="petImageInput.click()" class="rounded-xl border border-border bg-white px-4 py-2 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background">
+                      {{ hasSelectedImage() ? 'Cambiar imagen' : 'Subir imagen' }}
+                    </button>
+                  </div>
+
+                  <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <div class="pet-image-preview">
+                      @if (selectedImagePreviewUrl(); as previewUrl) {
+                        <img [src]="previewUrl" [alt]="selectedImageName() || 'Vista previa de mascota'" class="h-full w-full object-cover" />
+                      } @else {
+                        <span class="text-2xl font-bold uppercase text-brand">{{ petName.trim().charAt(0) || 'P' }}</span>
+                      }
+                    </div>
+                    <div class="flex min-w-0 flex-1 flex-col gap-1">
+                      <span class="text-sm font-semibold text-text-primary">{{ selectedImageName() || 'Sin imagen seleccionada' }}</span>
+                      <span class="text-xs text-text-secondary">{{ selectedImageSizeLabel() || 'La imagen se convierte y comprime para mejorar velocidad y cache.' }}</span>
+                      @if (imageSelectionError) {
+                        <span class="text-xs font-medium text-red-600">{{ imageSelectionError }}</span>
+                      }
+                    </div>
+                    @if (hasSelectedImage()) {
+                      <button type="button" (click)="clearImageSelection(petImageInput)" class="self-start rounded-xl px-3 py-2 text-xs font-bold text-text-secondary transition-all hover:bg-white">Quitar</button>
+                    }
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                  <div class="flex flex-col gap-2 md:col-span-2">
+                    <label class="text-sm font-semibold text-text-primary">Tutor</label>
+                    @if (initialTutor) {
+                      <div class="rounded-2xl border border-border bg-white px-4 py-3">
+                        <p class="text-sm font-semibold text-text-primary">{{ tutorValue }}</p>
+                        <p class="mt-1 text-xs text-text-secondary">{{ buildTutorPhone(initialTutor) }}</p>
+                      </div>
+                    } @else {
+                      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                        <input matInput [errorStateMatcher]="tutorErrorStateMatcher" type="text" [ngModel]="tutorValue" (ngModelChange)="onTutorChanged($event)" [matAutocomplete]="tutorAutoPage" placeholder="Buscar tutor" autocomplete="off" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                        @if (isTutorInvalid()) {
+                          <mat-error>Selecciona un tutor valido de la lista.</mat-error>
+                        }
+                      </mat-form-field>
+                      <mat-autocomplete #tutorAutoPage="matAutocomplete" autoActiveFirstOption>
+                        @for (option of tutorOptions(); track option.id) {
+                          <mat-option [value]="buildTutorLabel(option)" (onSelectionChange)="onTutorOptionSelection($event.isUserInput, option)">
+                            <div class="flex flex-col">
+                              <span class="text-sm font-medium text-text-primary">{{ buildTutorLabel(option) }}</span>
+                              <span class="text-xs text-text-secondary">{{ buildTutorPhone(option) }}</span>
+                            </div>
+                          </mat-option>
+                        }
+                        @if (isTutorsLoading) {
+                          <mat-option disabled>Buscando tutores...</mat-option>
+                        } @else if (tutorValue.trim() && tutorOptions().length === 0) {
+                          <mat-option disabled>No se encontraron resultados</mat-option>
+                        }
+                      </mat-autocomplete>
+                    }
+                  </div>
+
+                  <div class="flex flex-col gap-2 md:col-span-2">
+                    <label class="text-sm font-semibold text-text-primary">Nombre de la mascota</label>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                      <input matInput [errorStateMatcher]="petNameErrorStateMatcher" type="text" [ngModel]="petName" (ngModelChange)="petName = $event" placeholder="Ej. Max" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                      @if (isPetNameRequiredInvalid()) {
+                        <mat-error>Ingresa el nombre de la mascota.</mat-error>
+                      }
+                      @if (isPetNameTooLong()) {
+                        <mat-error>El nombre no puede superar los {{ nameMaxLength }} caracteres.</mat-error>
+                      }
+                    </mat-form-field>
+                  </div>
+
+                  <div class="flex flex-col gap-2">
+                    <label class="text-sm font-semibold text-text-primary">Especie</label>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                      <input matInput [errorStateMatcher]="speciesErrorStateMatcher" type="text" [ngModel]="speciesValue" (ngModelChange)="onSpeciesChanged($event)" [matAutocomplete]="speciesAutoPage" placeholder="Buscar especie" autocomplete="off" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                      @if (isSpeciesInvalid()) {
+                        <mat-error>Selecciona una especie valida.</mat-error>
+                      }
+                    </mat-form-field>
+                    <mat-autocomplete #speciesAutoPage="matAutocomplete" autoActiveFirstOption (optionSelected)="selectSpecies($event.option.value)">
+                      @for (option of speciesOptions(); track option.id) {
+                        <mat-option [value]="option.name">{{ option.name }}</mat-option>
+                      }
+                      @if (isSpeciesLoading) {
+                        <mat-option disabled>Buscando especies...</mat-option>
+                      } @else if (speciesValue.trim() && speciesOptions().length === 0) {
+                        <mat-option disabled>No se encontraron resultados</mat-option>
+                      }
+                    </mat-autocomplete>
+                  </div>
+
+                  <div class="flex flex-col gap-2">
+                    <label class="text-sm font-semibold text-text-primary">Raza</label>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                      <mat-select [errorStateMatcher]="breedErrorStateMatcher" [ngModel]="breedValue" (ngModelChange)="onBreedChanged($event)" [disabled]="isBreedDisabled()" [placeholder]="breedPlaceholder()">
+                        @for (option of breedOptions(); track option.id) {
+                          <mat-option [value]="option.name">{{ option.name }}</mat-option>
+                        }
+                      </mat-select>
+                      @if (isBreedInvalid()) {
+                        <mat-error>Selecciona una raza valida.</mat-error>
+                      }
+                    </mat-form-field>
+                  </div>
+                </div>
+              </section>
+
+              <div class="h-px bg-border"></div>
+
+              <section class="grid gap-4">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Información adicional</h3>
+                <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                  <div class="flex flex-col gap-2">
+                    <label class="text-sm font-semibold text-text-primary">Alergias generales</label>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                      <textarea matInput [errorStateMatcher]="generalAllergiesErrorStateMatcher" rows="3" [ngModel]="generalAllergies" (ngModelChange)="generalAllergies = $event" placeholder="Ej. Ninguna" class="text-sm text-text-primary placeholder:text-text-secondary/50"></textarea>
+                      @if (isGeneralAllergiesTooLong()) {
+                        <mat-error>Las alergias generales no pueden superar los {{ textAreaMaxLength }} caracteres.</mat-error>
+                      }
+                    </mat-form-field>
+                  </div>
+
+                  <div class="flex flex-col gap-2">
+                    <label class="text-sm font-semibold text-text-primary">Historia general</label>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                      <textarea matInput [errorStateMatcher]="generalHistoryErrorStateMatcher" rows="3" [ngModel]="generalHistory" (ngModelChange)="generalHistory = $event" placeholder="Ej. Paciente creada desde el sistema" class="text-sm text-text-primary placeholder:text-text-secondary/50"></textarea>
+                      @if (isGeneralHistoryTooLong()) {
+                        <mat-error>La historia general no puede superar los {{ textAreaMaxLength }} caracteres.</mat-error>
+                      }
+                    </mat-form-field>
+                  </div>
+                </div>
+              </section>
             </div>
 
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Fecha de nacimiento </label>
-              <mat-form-field
-                appearance="outline"
-                subscriptSizing="dynamic"
-                class="pet-create-field w-full"
-              >
-                <input
-                  matInput
-                  [errorStateMatcher]="birthDateErrorStateMatcher"
-                  type="date"
-                  [ngModel]="birthDate"
-                  (ngModelChange)="birthDate = $event"
-                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
-                />
-                @if (isBirthDateInvalid()) {
-                  <mat-error>Ingresa una fecha valida con formato YYYY-MM-DD.</mat-error>
+            <div class="border-t border-border bg-white/95 px-8 py-5 backdrop-blur">
+              <div class="flex items-center justify-end gap-3">
+                @if (submitError) {
+                  <div class="mr-auto rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">
+                    {{ submitError }}
+                  </div>
                 }
-                <mat-hint>Opcional. Formato YYYY-MM-DD.</mat-hint>
-              </mat-form-field>
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Peso (kg)</label>
-              <mat-form-field
-                appearance="outline"
-                subscriptSizing="dynamic"
-                class="pet-create-field w-full"
-              >
-                <input
-                  matInput
-                  [errorStateMatcher]="weightErrorStateMatcher"
-                  type="number"
-                  [ngModel]="weightKg"
-                  (ngModelChange)="weightKg = $event"
-                  min="0.01"
-                  [attr.max]="weightMax"
-                  [attr.step]="weightStep"
-                  placeholder="Ej. 12.5"
-                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
-                />
-                <span matTextSuffix class="text-xs font-bold text-text-secondary">kg</span>
-                @if (isWeightInvalid()) {
-                  <mat-error>Ingresa un peso mayor a 0 y con maximo 2 decimales.</mat-error>
-                }
-                <mat-hint>Opcional. Mayor a 0 y maximo 2 decimales.</mat-hint>
-              </mat-form-field>
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Color</label>
-              <mat-form-field
-                appearance="outline"
-                subscriptSizing="dynamic"
-                class="pet-create-field w-full"
-              >
-                <input
-                  matInput
-                  [errorStateMatcher]="colorErrorStateMatcher"
-                  type="text"
-                  [ngModel]="colorValue"
-                  (ngModelChange)="onColorChanged($event)"
-                  [matAutocomplete]="colorAuto"
-                  placeholder="Buscar color"
-                  autocomplete="off"
-                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
-                />
-                @if (colorCreateError) {
-                  <mat-error>{{ colorCreateError }}</mat-error>
-                } @else if (isColorInvalid()) {
-                  <mat-error>Selecciona un color valido.</mat-error>
-                }
-                <mat-hint>Opcional. Selecciona un color de la lista.</mat-hint>
-              </mat-form-field>
-              <mat-autocomplete #colorAuto="matAutocomplete" autoActiveFirstOption>
-                @for (option of colorOptions(); track option.id) {
-                  <mat-option
-                    [value]="option.name"
-                    (onSelectionChange)="onColorOptionSelection($event.isUserInput, option)"
-                  >
-                    {{ option.name }}
-                  </mat-option>
-                }
-
-                @if (isColorsLoading) {
-                  <mat-option disabled>Buscando colores...</mat-option>
-                } @else if (isCreatingColor) {
-                  <mat-option disabled>Creando color...</mat-option>
-                } @else if (showCreateColorOption()) {
-                  <mat-option disabled>No se encontraron resultados</mat-option>
-                  <mat-option
-                    [value]="colorValue.trim()"
-                    (onSelectionChange)="onCreateColorOptionSelection($event.isUserInput)"
-                  >
-                    Crear: "{{ colorValue.trim() }}"
-                  </mat-option>
-                }
-              </mat-autocomplete>
-            </div>
-
-            <div class="flex flex-col gap-2 md:col-span-2">
-              <label class="text-sm font-semibold text-text-primary">Microchip</label>
-              <mat-form-field
-                appearance="outline"
-                subscriptSizing="dynamic"
-                class="pet-create-field w-full"
-              >
-                <input
-                  matInput
-                  [errorStateMatcher]="microchipErrorStateMatcher"
-                  type="text"
-                  [ngModel]="microchipCode"
-                  (ngModelChange)="microchipCode = $event"
-                  placeholder="Ej. MC-0001"
-                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
-                />
-                @if (isMicrochipTooLong()) {
-                  <mat-error>
-                    El microchip no puede superar los {{ microchipMaxLength }} caracteres.
-                  </mat-error>
-                }
-                <mat-hint>Opcional. Maximo {{ microchipMaxLength }} caracteres.</mat-hint>
-                <mat-hint align="end">{{ microchipCode.length }}/{{ microchipMaxLength }}</mat-hint>
-              </mat-form-field>
-            </div>
-
-            <div class="flex flex-col gap-2 md:col-span-2">
-              <span class="text-sm font-semibold text-text-primary">Esterilizado</span>
-              <div class="flex h-12 rounded-xl bg-background p-1">
-                <button
-                  type="button"
-                  (click)="setSterilized('Si')"
-                  class="flex-1 rounded-lg text-xs font-bold transition-all"
-                  [class.bg-white]="sterilized === 'Si'"
-                  [class.text-brand]="sterilized === 'Si'"
-                  [class.shadow-sm]="sterilized === 'Si'"
-                  [class.text-text-secondary]="sterilized !== 'Si'"
-                >
-                  Si
-                </button>
-                <button
-                  type="button"
-                  (click)="setSterilized('No')"
-                  class="flex-1 rounded-lg text-xs font-bold transition-all"
-                  [class.bg-white]="sterilized === 'No'"
-                  [class.text-brand]="sterilized === 'No'"
-                  [class.shadow-sm]="sterilized === 'No'"
-                  [class.text-text-secondary]="sterilized !== 'No'"
-                >
-                  No
+                <button type="button" (click)="close()" [disabled]="isSaving" class="cursor-pointer rounded-xl px-5 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-background">Cancelar</button>
+                <button type="button" (click)="save()" [disabled]="isSaving" class="cursor-pointer rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70">
+                  {{ isSaving ? 'Guardando...' : 'Guardar mascota' }}
                 </button>
               </div>
             </div>
           </div>
-        </section>
-
-        <section class="grid gap-4">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-brand">
-            Informacion adicional
-          </h3>
-
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Alergias generales</label>
-              <mat-form-field
-                appearance="outline"
-                subscriptSizing="dynamic"
-                class="pet-create-field w-full"
-              >
-                <textarea
-                  matInput
-                  [errorStateMatcher]="generalAllergiesErrorStateMatcher"
-                  rows="2"
-                  [ngModel]="generalAllergies"
-                  (ngModelChange)="generalAllergies = $event"
-                  placeholder="Ej. Ninguna"
-                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
-                ></textarea>
-                @if (isGeneralAllergiesTooLong()) {
-                  <mat-error>
-                    Las alergias generales no pueden superar los {{ textAreaMaxLength }} caracteres.
-                  </mat-error>
-                }
-                <mat-hint>Opcional. Maximo {{ textAreaMaxLength }} caracteres.</mat-hint>
-                <mat-hint align="end"
-                  >{{ generalAllergies.length }}/{{ textAreaMaxLength }}</mat-hint
-                >
-              </mat-form-field>
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Historia general</label>
-              <mat-form-field
-                appearance="outline"
-                subscriptSizing="dynamic"
-                class="pet-create-field w-full"
-              >
-                <textarea
-                  matInput
-                  [errorStateMatcher]="generalHistoryErrorStateMatcher"
-                  rows="2"
-                  [ngModel]="generalHistory"
-                  (ngModelChange)="generalHistory = $event"
-                  placeholder="Ej. Paciente creada desde el sistema"
-                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
-                ></textarea>
-                @if (isGeneralHistoryTooLong()) {
-                  <mat-error>
-                    La historia general no puede superar los {{ textAreaMaxLength }} caracteres.
-                  </mat-error>
-                }
-                <mat-hint>Opcional. Maximo {{ textAreaMaxLength }} caracteres.</mat-hint>
-                <mat-hint align="end">{{ generalHistory.length }}/{{ textAreaMaxLength }}</mat-hint>
-              </mat-form-field>
-            </div>
-          </div>
-        </section>
-      </div>
+        </div>
+      } @else {
+        <div class="grid grid-cols-1 gap-5">
+          <!-- modal layout unchanged below if needed -->
+        </div>
+      }
     </div>
 
-    <div
-      class="sticky bottom-0 z-10 shrink-0 border-t border-border bg-white/95 px-5 py-4 backdrop-blur"
-    >
-      <div class="flex items-center justify-end gap-3">
-        @if (submitError) {
-          <div
-            class="mr-auto rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line"
-          >
-            {{ submitError }}
-          </div>
-        }
-        <button
-          type="button"
-          (click)="close()"
-          [disabled]="isSaving"
-          class="cursor-pointer rounded-xl px-5 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-background"
-        >
-          Cancelar
-        </button>
-
-        <button
-          type="button"
-          (click)="save()"
-          [disabled]="isSaving"
-          class="cursor-pointer rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {{ isSaving ? 'Guardando...' : 'Guardar mascota' }}
-        </button>
+    @if (!pageMode) {
+      <div class="sticky bottom-0 z-10 shrink-0 border-t border-border bg-white/95 px-5 py-4 backdrop-blur">
+        <div class="flex items-center justify-end gap-3">
+          @if (submitError) {
+            <div class="mr-auto rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">
+              {{ submitError }}
+            </div>
+          }
+          <button type="button" (click)="close()" [disabled]="isSaving" class="cursor-pointer rounded-xl px-5 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-background">Cancelar</button>
+          <button type="button" (click)="save()" [disabled]="isSaving" class="cursor-pointer rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70">
+            {{ isSaving ? 'Guardando...' : 'Guardar mascota' }}
+          </button>
+        </div>
       </div>
-    </div>
+    }
   </div>
 </div>

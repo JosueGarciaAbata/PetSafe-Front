@@ -81,13 +81,37 @@
               <div class="flex flex-col gap-2">
                 <label class="text-sm font-semibold text-text-primary">Nombres</label>
                 <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
-                  <input matInput formControlName="firstName" type="text" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                  <input matInput formControlName="firstName" type="text" [attr.maxlength]="nameMaxLength" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                  @if (form.controls.firstName.touched && (form.controls.firstName.hasError('required') || form.controls.firstName.hasError('requiredTrimmed'))) {
+                    <mat-error>Los nombres son obligatorios.</mat-error>
+                  }
+                  @if (form.controls.firstName.touched && form.controls.firstName.hasError('trimmedMinLength')) {
+                    <mat-error>Los nombres deben tener al menos 2 caracteres.</mat-error>
+                  }
+                  @if (form.controls.firstName.touched && form.controls.firstName.hasError('invalidNamePattern')) {
+                    <mat-error>Los nombres solo pueden contener letras, espacios, apóstrofes o guiones.</mat-error>
+                  }
+                  @if (form.controls.firstName.touched && form.controls.firstName.hasError('maxlength')) {
+                    <mat-error>Los nombres no pueden superar los {{ nameMaxLength }} caracteres.</mat-error>
+                  }
                 </mat-form-field>
               </div>
               <div class="flex flex-col gap-2">
                 <label class="text-sm font-semibold text-text-primary">Apellidos</label>
                 <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
-                  <input matInput formControlName="lastName" type="text" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                  <input matInput formControlName="lastName" type="text" [attr.maxlength]="nameMaxLength" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                  @if (form.controls.lastName.touched && (form.controls.lastName.hasError('required') || form.controls.lastName.hasError('requiredTrimmed'))) {
+                    <mat-error>Los apellidos son obligatorios.</mat-error>
+                  }
+                  @if (form.controls.lastName.touched && form.controls.lastName.hasError('trimmedMinLength')) {
+                    <mat-error>Los apellidos deben tener al menos 2 caracteres.</mat-error>
+                  }
+                  @if (form.controls.lastName.touched && form.controls.lastName.hasError('invalidNamePattern')) {
+                    <mat-error>Los apellidos solo pueden contener letras, espacios, apóstrofes o guiones.</mat-error>
+                  }
+                  @if (form.controls.lastName.touched && form.controls.lastName.hasError('maxlength')) {
+                    <mat-error>Los apellidos no pueden superar los {{ nameMaxLength }} caracteres.</mat-error>
+                  }
                 </mat-form-field>
               </div>
               <div class="flex flex-col gap-2">
@@ -103,7 +127,16 @@
               <div class="flex flex-col gap-2">
                 <label class="text-sm font-semibold text-text-primary">Fecha de nacimiento</label>
                 <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
-                  <input matInput formControlName="birthDate" type="date" [attr.min]="minBirthDate" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                  <input matInput formControlName="birthDate" type="date" [attr.min]="minBirthDate" [attr.max]="maxBirthDate" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                  @if (form.controls.birthDate.touched && form.controls.birthDate.hasError('invalidDate')) {
+                    <mat-error>Ingresa una fecha válida.</mat-error>
+                  }
+                  @if (form.controls.birthDate.touched && form.controls.birthDate.hasError('minDate')) {
+                    <mat-error>La fecha de nacimiento debe ser {{ minBirthDate }} o posterior.</mat-error>
+                  }
+                  @if (form.controls.birthDate.touched && form.controls.birthDate.hasError('maxDate')) {
+                    <mat-error>La fecha de nacimiento no puede ser posterior a {{ maxBirthDate }}.</mat-error>
+                  }
                 </mat-form-field>
               </div>
             </div>
@@ -115,13 +148,19 @@
               <div class="flex flex-col gap-2">
                 <label class="text-sm font-semibold text-text-primary">Teléfono</label>
                 <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
-                  <input matInput formControlName="phone" type="tel" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                  <input matInput formControlName="phone" type="tel" [attr.maxlength]="phoneMaxLength" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                  @if (form.controls.phone.touched && form.controls.phone.hasError('pattern')) {
+                    <mat-error>El teléfono debe tener entre 7 y 15 dígitos.</mat-error>
+                  }
                 </mat-form-field>
               </div>
               <div class="flex flex-col gap-2">
                 <label class="text-sm font-semibold text-text-primary">Dirección</label>
                 <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
-                  <input matInput formControlName="address" type="text" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                  <input matInput formControlName="address" type="text" [attr.maxlength]="addressMaxLength" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                  @if (form.controls.address.touched && form.controls.address.hasError('maxlength')) {
+                    <mat-error>La dirección no puede superar los {{ addressMaxLength }} caracteres.</mat-error>
+                  }
                 </mat-form-field>
               </div>
             </div>
@@ -130,7 +169,10 @@
           <section class="grid gap-4">
             <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Notas</h3>
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
-              <textarea matInput formControlName="notes" rows="4" class="text-sm text-text-primary placeholder:text-text-secondary/50"></textarea>
+              <textarea matInput formControlName="notes" rows="4" [attr.maxlength]="notesMaxLength" class="text-sm text-text-primary placeholder:text-text-secondary/50"></textarea>
+              @if (form.controls.notes.touched && form.controls.notes.hasError('maxlength')) {
+                <mat-error>Las observaciones no pueden superar los {{ notesMaxLength }} caracteres.</mat-error>
+              }
             </mat-form-field>
           </section>
         </div>
