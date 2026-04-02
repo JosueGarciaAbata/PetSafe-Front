@@ -1,0 +1,60 @@
+<div class="fixed inset-0 z-[120] bg-black/40 backdrop-blur-[2px]" (click)="close()"></div>
+
+<div class="fixed inset-0 z-[130] flex items-center justify-center p-4">
+  <div class="w-full max-w-[560px] overflow-hidden rounded-[20px] border border-border bg-card shadow-2xl">
+    <div class="border-b border-border bg-white px-6 py-5">
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex flex-col gap-1">
+          <h2 class="text-xl font-bold text-text-primary">Generar cuenta</h2>
+          <p class="text-sm text-text-secondary">Crea el acceso para {{ ownerName }} con el correo del usuario.</p>
+        </div>
+
+        <button
+          type="button"
+          (click)="close()"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full text-text-secondary transition-all hover:bg-background hover:text-text-primary"
+          aria-label="Cerrar modal"
+        >
+          <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M6 6l12 12M18 6 6 18"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="save()" novalidate class="flex flex-col gap-5 p-6">
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-semibold text-text-primary">Correo electrónico</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
+          <input matInput formControlName="email" type="email" placeholder="correo@dominio.com" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+          @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+            <mat-error>El correo es obligatorio.</mat-error>
+          }
+          @if (form.controls.email.touched && form.controls.email.hasError('email')) {
+            <mat-error>Ingresa un correo válido.</mat-error>
+          }
+          @if (form.controls.email.touched && form.controls.email.hasError('maxlength')) {
+            <mat-error>El correo no puede superar los 120 caracteres.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="rounded-xl border border-dashed border-border bg-background/70 p-4 text-sm text-text-secondary">
+        Se enviarán credenciales temporales al correo registrado.
+      </div>
+
+      @if (errorMessage) {
+        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">
+          {{ errorMessage }}
+        </div>
+      }
+
+      <div class="flex items-center justify-end gap-3 border-t border-border pt-5">
+        <button type="button" (click)="close()" [disabled]="isSaving" class="rounded-xl px-5 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-background">Cancelar</button>
+        <button type="submit" [disabled]="isSaving" class="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70">
+          {{ isSaving ? 'Generando...' : 'Generar cuenta' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

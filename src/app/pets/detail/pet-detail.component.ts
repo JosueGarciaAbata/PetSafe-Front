@@ -2,13 +2,11 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  EventEmitter,
-  Input,
-  Output,
+  OnInit,
   inject,
 } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { EditPetModalComponent } from '../edit/edit-pet-modal.component';
 import {
   PetBasicDetailApiResponse,
   PetClinicalObservationApiResponse,
@@ -18,70 +16,74 @@ import { PetsApiService } from '../services/pets-api.service';
 @Component({
   selector: 'app-pet-detail',
   standalone: true,
-  imports: [EditPetModalComponent],
   templateUrl: './pet-detail.component.html',
   styleUrl: './pet-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PetDetailComponent {
+export class PetDetailComponent implements OnInit {
   private readonly petsApi = inject(PetsApiService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
-  private _petId = '';
   private requestVersion = 0;
+  private backTarget: readonly (string | number)[] = ['/pets'];
+  protected backLabel = 'Volver a mascotas';
 
-  @Input({ required: true })
-  set petId(value: string) {
-    this._petId = value;
-    if (!value) {
-      return;
-    }
+  ngOnInit(): void {
+    const navigationState = history.state as {
+      backTarget?: readonly (string | number)[] | null;
+      backLabel?: string | null;
+    } | null;
+    this.backTarget = navigationState?.backTarget ?? ['/pets'];
+    this.backLabel = navigationState?.backLabel?.trim() || 'Volver a mascotas';
 
-    const requestToken = ++this.requestVersion;
-    this.isLoading = true;
-    this.loadError = null;
-    this.pet = null;
-    this.cdr.detectChanges();
-    void this.loadPet(value, requestToken);
+    this.route.paramMap.subscribe((params) => {
+      const petId = params.get('id');
+      if (!petId) {
+        void this.router.navigate(['/pets']);
+        return;
+      }
+
+      const requestToken = ++this.requestVersion;
+      this.isLoading = true;
+      this.loadError = null;
+      this.pet = null;
+      this.cdr.detectChanges();
+      void this.loadPet(petId, requestToken);
+    });
   }
-
-  get petId(): string {
-    return this._petId;
-  }
-
-  @Output() readonly back = new EventEmitter<void>();
 
   protected isLoading = false;
   protected loadError: string | null = null;
   protected pet: PetBasicDetailApiResponse | null = null;
-  protected isEditPetModalOpen = false;
 
   protected goBack(): void {
-    this.back.emit();
+    void this.router.navigate(this.backTarget, { replaceUrl: true });
   }
 
-  protected openEditPetModal(): void {
-    this.isEditPetModalOpen = true;
-  }
-
-  protected closeEditPetModal(): void {
-    this.isEditPetModalOpen = false;
-  }
-
-  protected saveEditPetDraft(): void {
-    this.closeEditPetModal();
-    if (!this.petId) {
+  protected openEditPetPage(): void {
+    if (!this.pet) {
       return;
     }
 
-    const requestToken = ++this.requestVersion;
-    this.isLoading = true;
-    this.loadError = null;
-    this.cdr.detectChanges();
-    void this.loadPet(this.petId, requestToken);
+    void this.router.navigate(['/pets', this.pet.id, 'edit'], {
+      state: {
+        detailBackTarget: this.backTarget,
+        detailBackLabel: this.backLabel,
+      },
+    });
   }
 
   protected buildPetInitial(): string {
     return this.pet?.name.trim().charAt(0).toUpperCase() || 'P';
+  }
+
+  protected petImageUrl(): string | null {
+    return this.pet?.image?.url?.trim() || null;
+  }
+
+  protected petImageAlt(): string {
+    return this.pet ? `Foto de ${this.pet.name}` : 'Foto de mascota';
   }
 
   protected buildSpeciesLabel(): string {

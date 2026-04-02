@@ -85,7 +85,7 @@
             </div>
 
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Documento de identidad</label>
+              <label class="text-sm font-semibold text-text-primary">Cédula</label>
               <mat-form-field
                 appearance="outline"
                 subscriptSizing="dynamic"
@@ -101,11 +101,19 @@
                 @if (
                   form.controls.documentId.touched && form.controls.documentId.hasError('maxlength')
                 ) {
-                  <mat-error>
-                    El documento no puede superar los {{ documentIdMaxLength }} caracteres.
-                  </mat-error>
+                  <mat-error>La cédula no puede superar los {{ documentIdMaxLength }} caracteres.</mat-error>
                 }
-                <mat-hint>Opcional. Máximo {{ documentIdMaxLength }} caracteres.</mat-hint>
+                @if (
+                  form.controls.documentId.touched && form.controls.documentId.hasError('invalidCedulaFormat')
+                ) {
+                  <mat-error>La cédula debe tener exactamente 10 dígitos.</mat-error>
+                }
+                @if (
+                  form.controls.documentId.touched && form.controls.documentId.hasError('invalidCedula')
+                ) {
+                  <mat-error>Ingresa una cédula ecuatoriana válida.</mat-error>
+                }
+                <mat-hint>Opcional. Debe ser una cédula ecuatoriana válida.</mat-hint>
                 <mat-hint align="end">
                   {{ form.controls.documentId.value.length }}/{{ documentIdMaxLength }}
                 </mat-hint>

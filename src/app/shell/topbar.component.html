@@ -1,6 +1,6 @@
 <header class="sticky top-0 z-20 flex h-[72px] w-full items-center border-b border-border bg-card px-8 shadow-sm">
   <div class="flex w-full items-center justify-between gap-6">
-    <div class="flex min-w-0 flex-1 items-center gap-3">
+    <div class="flex items-center gap-3">
       <button
         type="button"
         (click)="toggleSidebar.emit()"
@@ -10,19 +10,6 @@
       >
         <app-shell-icon name="menu" [size]="20"></app-shell-icon>
       </button>
-
-      <div class="max-w-[520px] flex-1">
-        <div class="group relative">
-          <div class="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary transition-colors group-focus-within:text-brand">
-            <app-shell-icon name="search" [size]="18"></app-shell-icon>
-          </div>
-          <input
-            type="text"
-            placeholder="Buscar mascotas, propietarios, citas..."
-            class="h-11 w-full rounded-xl border border-border bg-white pl-11 pr-4 text-sm text-text-primary transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
-          />
-        </div>
-      </div>
     </div>
 
     <div class="flex items-center gap-6">
