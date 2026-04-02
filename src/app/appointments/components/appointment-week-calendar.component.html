@@ -1,5 +1,5 @@
 <section class="overflow-hidden rounded-[24px] border border-border bg-card shadow-sm">
-  <div class="overflow-x-auto">
+  <div class="calendar-scroll-area overflow-x-auto">
     <div class="grid min-w-[1100px] grid-cols-7">
       @for (day of days; track trackByDate($index, day)) {
         <section class="border-r border-border/80 p-3 last:border-r-0">
@@ -22,7 +22,7 @@
             </div>
           </div>
 
-          <div class="flex min-h-[460px] flex-col gap-2">
+          <div class="appointment-week-column flex min-h-[520px] flex-col gap-2">
             @if (day.appointments.length === 0) {
               <div class="rounded-[18px] border border-dashed border-border bg-background/60 px-3 py-6 text-center text-xs text-text-secondary">
                 Sin citas

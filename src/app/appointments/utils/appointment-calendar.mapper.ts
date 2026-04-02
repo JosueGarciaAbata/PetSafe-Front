@@ -59,6 +59,9 @@ export function buildAppointmentSummary(
     inProcessAppointments: appointments.filter(
       (appointment) => appointment.status === 'EN_PROCESO',
     ).length,
+    cancelledAppointments: appointments.filter(
+      (appointment) => appointment.status === 'CANCELADA',
+    ).length,
   };
 }
 

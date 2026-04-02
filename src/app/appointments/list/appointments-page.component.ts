@@ -29,11 +29,14 @@ import {
   buildAppointmentWeekDays,
 } from '../utils/appointment-calendar.mapper';
 import {
+  addDays,
+  addMonths,
   buildFullDateLabel,
   endOfMonth,
   endOfWeek,
   formatDateKey,
   buildMonthLabel,
+  parseDateKey,
   startOfMonth,
   startOfWeek,
   buildWeekRangeLabel,
@@ -72,6 +75,7 @@ export class AppointmentsPageComponent implements OnInit {
   protected selectedAppointment: AppointmentRecord | null = null;
   protected isLoading = false;
   protected loadError: string | null = null;
+  protected selectedDateInput = this.activeDate;
 
   ngOnInit(): void {
     void this.loadAppointments();
@@ -116,6 +120,42 @@ export class AppointmentsPageComponent implements OnInit {
     void this.loadAppointments();
   }
 
+  protected goToPreviousRange(): void {
+    const currentDate = parseDateKey(this.activeDate);
+    const nextDate =
+      this.currentView === 'week' ? addDays(currentDate, -7) : addMonths(currentDate, -1);
+
+    this.activeDate = formatDateKey(nextDate);
+    this.selectedDateInput = this.activeDate;
+    void this.loadAppointments();
+  }
+
+  protected goToNextRange(): void {
+    const currentDate = parseDateKey(this.activeDate);
+    const nextDate =
+      this.currentView === 'week' ? addDays(currentDate, 7) : addMonths(currentDate, 1);
+
+    this.activeDate = formatDateKey(nextDate);
+    this.selectedDateInput = this.activeDate;
+    void this.loadAppointments();
+  }
+
+  protected goToToday(): void {
+    this.activeDate = getTodayDateKey();
+    this.selectedDateInput = this.activeDate;
+    void this.loadAppointments();
+  }
+
+  protected onDateSelected(value: string): void {
+    if (!value) {
+      return;
+    }
+
+    this.activeDate = value;
+    this.selectedDateInput = value;
+    void this.loadAppointments();
+  }
+
   private async loadAppointments(): Promise<void> {
     const requestToken = ++this.requestVersion;
     const query = this.buildCalendarQuery();
@@ -141,6 +181,8 @@ export class AppointmentsPageComponent implements OnInit {
         response.view === 'week'
           ? buildWeekRangeLabel(response.activeDate)
           : buildMonthLabel(response.activeDate);
+      this.activeDate = response.activeDate;
+      this.selectedDateInput = response.activeDate;
       this.todayLabel = buildFullDateLabel(response.activeDate);
       this.monthCells =
         response.view === 'month'

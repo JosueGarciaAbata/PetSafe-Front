@@ -2,6 +2,29 @@
   display: block;
 }
 
+.calendar-scroll-area,
+.appointment-week-column {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(85, 99, 119, 0.35) transparent;
+}
+
+.calendar-scroll-area::-webkit-scrollbar,
+.appointment-week-column::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.calendar-scroll-area::-webkit-scrollbar-thumb,
+.appointment-week-column::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(85, 99, 119, 0.35);
+}
+
+.calendar-scroll-area::-webkit-scrollbar-track,
+.appointment-week-column::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 .appointment-week-status {
   border-width: 1px;
 }

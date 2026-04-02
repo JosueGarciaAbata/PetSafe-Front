@@ -31,6 +31,7 @@ export interface AppointmentCalendarSummary {
   scheduledAppointments: number;
   confirmedAppointments: number;
   inProcessAppointments: number;
+  cancelledAppointments: number;
 }
 
 export interface AppointmentCalendarMonthResponse {
@@ -50,4 +51,5 @@ export const EMPTY_APPOINTMENT_SUMMARY: AppointmentCalendarSummary = {
   scheduledAppointments: 0,
   confirmedAppointments: 0,
   inProcessAppointments: 0,
+  cancelledAppointments: 0,
 };
