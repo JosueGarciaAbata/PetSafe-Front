@@ -8,6 +8,7 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
+import { CreateOwnerAccessModalComponent } from '../create/create-owner-access-modal.component';
 import { OwnersApiService } from '../api/owners-api.service';
 import { ClientPetApiResponse } from '../models/client-pet.model';
 import { ClientResponseApiResponse } from '../models/client-detail.model';
@@ -17,6 +18,7 @@ import { buildClientFullName, buildClientInitials, mapClientGenderLabel } from '
 @Component({
   selector: 'app-owner-detail',
   standalone: true,
+  imports: [CreateOwnerAccessModalComponent],
   templateUrl: './owner-detail.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -63,6 +65,7 @@ export class OwnerDetailComponent implements OnInit {
   protected loadPetError: string | null = null;
   protected owner: ClientResponseApiResponse | null = null;
   protected pets: ClientPetApiResponse[] = [];
+  protected isCreateAccessModalOpen = false;
 
   protected goBack(): void {
     void this.router.navigate(this.backTarget, { replaceUrl: true });
@@ -115,6 +118,36 @@ export class OwnerDetailComponent implements OnInit {
 
   protected buildPhoneLabel(): string {
     return this.owner?.person.phone?.trim() || 'Sin telefono asignado';
+  }
+
+  protected shouldShowCreateAccessButton(): boolean {
+    return !this.owner?.email?.trim();
+  }
+
+  protected openCreateAccessModal(): void {
+    if (!this.owner || !this.shouldShowCreateAccessButton()) {
+      return;
+    }
+
+    this.isCreateAccessModalOpen = true;
+  }
+
+  protected closeCreateAccessModal(): void {
+    this.isCreateAccessModalOpen = false;
+  }
+
+  protected onOwnerAccessCreated(owner: ClientResponseApiResponse): void {
+    this.owner = owner;
+    this.isCreateAccessModalOpen = false;
+    this.cdr.detectChanges();
+  }
+
+  protected buildIdentificationLabel(): string {
+    return (
+      this.owner?.person.identification?.trim()
+      || this.owner?.person.documentId?.trim()
+      || 'No registrada'
+    );
   }
 
   protected buildAddressLabel(): string {

@@ -23,6 +23,7 @@ export interface ClientSummaryPersonApiResponse {
   firstName: string;
   lastName: string;
   documentId?: string | null;
+  identification?: string | null;
   phone?: string | null;
   address?: string | null;
   gender?: string | null;

@@ -10,69 +10,34 @@
     <span>Volver a propietarios</span>
   </button>
 
-  <div class="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
-    <aside class="flex flex-col gap-6">
-      <section class="rounded-[24px] border border-border bg-card p-6 shadow-sm">
-        <div class="flex flex-col gap-4">
-          <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-white shadow-sm">
-            <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M12 5v14M5 12h14"></path>
-            </svg>
-          </div>
-          <div class="flex flex-col gap-2">
-            <h1 class="text-[28px] font-bold text-text-primary">Nuevo propietario</h1>
-            <p class="text-sm leading-6 text-text-secondary">
-              Registra la ficha principal del cliente con una vista completa y mejor contexto del proceso.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section class="rounded-[24px] border border-border bg-card p-6 shadow-sm">
-        <div class="flex flex-col gap-4">
-          <h2 class="text-sm font-bold uppercase tracking-wider text-brand">Resumen rápido</h2>
-
-          <div class="grid gap-3">
-            <div class="rounded-2xl border border-border bg-white p-4">
-              <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Nombre visible</span>
-              <p class="mt-1 text-sm font-semibold text-text-primary">
-                {{ form.controls.firstName.value || 'Sin nombres' }}
-                {{ form.controls.lastName.value || '' }}
-              </p>
+  <form
+    [formGroup]="form"
+    (ngSubmit)="save()"
+    novalidate
+    class="overflow-hidden rounded-[24px] border border-border bg-card shadow-sm"
+  >
+    <div class="grid lg:grid-cols-[minmax(0,2fr)_minmax(340px,1fr)]">
+      <div class="flex flex-col gap-6 p-6">
+        <section class="grid gap-4">
+          <div class="flex items-start gap-4">
+            <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand text-white shadow-sm">
+              <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 5v14M5 12h14"></path>
+              </svg>
             </div>
-
-            <div class="rounded-2xl border border-border bg-white p-4">
-              <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Canal de contacto</span>
-              <p class="mt-1 text-sm text-text-primary">
-                {{ form.controls.phone.value || 'Sin teléfono' }}
-              </p>
-              <p class="mt-1 text-sm text-text-secondary">
-                {{ form.controls.email.value || 'Sin correo' }}
-              </p>
-            </div>
-
-            <div class="rounded-2xl border border-dashed border-border bg-background/70 p-4">
-              <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Siguiente paso</span>
-              <p class="mt-1 text-sm text-text-secondary">
-                Cuando guardes el tutor te llevaré a un flujo rápido para registrar su primera mascota sin volver a buscarlo.
+            <div class="flex flex-col gap-1">
+              <h1 class="text-[28px] font-bold text-text-primary">Nuevo propietario</h1>
+              <p class="text-sm leading-6 text-text-secondary">
+                Registro rápido del tutor. Los campos marcados como opcionales pueden completarse después.
               </p>
             </div>
           </div>
-        </div>
-      </section>
-    </aside>
+        </section>
 
-    <form
-      [formGroup]="form"
-      (ngSubmit)="save()"
-      novalidate
-      class="overflow-hidden rounded-[24px] border border-border bg-card shadow-sm"
-    >
-      <div class="flex flex-col gap-8 p-8">
         <section class="grid gap-4">
           <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Datos personales</h3>
 
-          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
             <div class="flex flex-col gap-2">
               <label class="text-sm font-semibold text-text-primary">Nombres</label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
@@ -111,8 +76,8 @@
               </mat-form-field>
             </div>
 
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Cédula</label>
+            <div class="flex flex-col gap-2 md:col-span-2 xl:col-span-1">
+              <label class="text-sm font-semibold text-text-primary">Cédula <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span></label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
                 <input matInput formControlName="documentId" type="text" inputmode="numeric" [attr.maxlength]="documentIdMaxLength" placeholder="Ej. 1234567890" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
                 @if (form.controls.documentId.touched && form.controls.documentId.hasError('maxlength')) {
@@ -138,8 +103,8 @@
               </mat-form-field>
             </div>
 
-            <div class="flex flex-col gap-2 md:col-span-2">
-              <label class="text-sm font-semibold text-text-primary">Fecha de nacimiento</label>
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Fecha de nacimiento <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span></label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
                 <input matInput formControlName="birthDate" type="date" [attr.min]="minBirthDate" [attr.max]="maxBirthDate" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
                 @if (form.controls.birthDate.touched && form.controls.birthDate.hasError('invalidDate')) {
@@ -157,11 +122,31 @@
         </section>
 
         <section class="grid gap-4">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Contacto</h3>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Notas</h3>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-text-primary">Observaciones <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span></label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
+              <textarea matInput formControlName="notes" rows="3" [attr.maxlength]="notesMaxLength" placeholder="Preferencias, contexto del cliente o información adicional." class="text-sm text-text-primary placeholder:text-text-secondary/50"></textarea>
+              @if (form.controls.notes.touched && form.controls.notes.hasError('maxlength')) {
+                <mat-error>Las observaciones no pueden superar los {{ notesMaxLength }} caracteres.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </section>
+      </div>
 
-          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+      <aside class="border-t border-border bg-white/40 p-6 lg:border-t-0 lg:border-l">
+        <div class="flex flex-col gap-6">
+          <div class="flex flex-col gap-2">
+            <span class="text-sm font-bold uppercase tracking-wider text-brand">Contacto</span>
+            <p class="text-sm leading-6 text-text-secondary">
+              Completa estos datos si los tienes a la mano.
+            </p>
+          </div>
+
+          <div class="flex flex-col gap-5">
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Teléfono</label>
+              <label class="text-sm font-semibold text-text-primary">Teléfono <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span></label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
                 <input matInput formControlName="phone" type="tel" [attr.maxlength]="phoneMaxLength" placeholder="0991234567" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
                 @if (form.controls.phone.touched && form.controls.phone.hasError('pattern')) {
@@ -171,7 +156,7 @@
             </div>
 
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Correo electrónico</label>
+              <label class="text-sm font-semibold text-text-primary">Correo electrónico <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span></label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
                 <input matInput formControlName="email" type="email" [attr.maxlength]="emailMaxLength" placeholder="correo@dominio.com" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
                 @if (form.controls.email.touched && form.controls.email.hasError('email')) {
@@ -184,7 +169,7 @@
             </div>
 
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Dirección</label>
+              <label class="text-sm font-semibold text-text-primary">Dirección <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span></label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
                 <input matInput formControlName="address" type="text" [attr.maxlength]="addressMaxLength" placeholder="Ej. Calle principal y avenida secundaria" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
                 @if (form.controls.address.touched && form.controls.address.hasError('maxlength')) {
@@ -193,28 +178,33 @@
               </mat-form-field>
             </div>
           </div>
-        </section>
 
-        <section class="grid gap-4">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Notas</h3>
-          <div class="flex flex-col gap-2">
-            <label class="text-sm font-semibold text-text-primary">Observaciones</label>
-            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
-              <textarea matInput formControlName="notes" rows="4" [attr.maxlength]="notesMaxLength" placeholder="Preferencias, contexto del cliente o información adicional." class="text-sm text-text-primary placeholder:text-text-secondary/50"></textarea>
-              @if (form.controls.notes.touched && form.controls.notes.hasError('maxlength')) {
-                <mat-error>Las observaciones no pueden superar los {{ notesMaxLength }} caracteres.</mat-error>
-              }
-            </mat-form-field>
+          <div class="rounded-2xl border border-dashed border-border bg-background/70 p-4">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Consejo</span>
+            <p class="mt-2 text-sm leading-6 text-text-secondary">
+              Si faltan correo o dirección, puedes guardar igual y seguir con la mascota.
+            </p>
           </div>
-        </section>
-      </div>
+        </div>
+      </aside>
+    </div>
 
-      <div class="border-t border-border bg-white/95 px-8 py-5 backdrop-blur">
-        @if (errorMessage) {
-          <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">
-            {{ errorMessage }}
-          </div>
-        }
+    <div class="border-t border-border bg-white/95 px-6 py-4 backdrop-blur">
+      @if (errorMessage) {
+        <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">
+          {{ errorMessage }}
+        </div>
+      }
+
+      <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <label class="inline-flex cursor-pointer items-center gap-3 text-sm text-text-primary">
+          <mat-checkbox
+            [checked]="continueWithPetCreation"
+            (change)="continueWithPetCreation = $event.checked"
+            color="primary"
+          ></mat-checkbox>
+          <span class="font-medium">Continuar con la creación de mascota</span>
+        </label>
 
         <div class="flex items-center justify-end gap-3">
           <a routerLink="/owners" class="rounded-xl px-5 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-background">Cancelar</a>
@@ -223,6 +213,6 @@
           </button>
         </div>
       </div>
-    </form>
-  </div>
+    </div>
+  </form>
 </div>

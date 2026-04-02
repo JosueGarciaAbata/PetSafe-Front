@@ -20,7 +20,12 @@ import { ColorApiResponse } from '../models/color.model';
 import { PetBasicDetailApiResponse } from '../models/pet-detail.model';
 import { PetImageUploadValue } from '../models/pet-image.model';
 import {
+  isValidPetName,
   isValidPetBirthDate,
+  normalizePetText,
+  PET_COLOR_MAX_LENGTH,
+  PET_MAX_BIRTH_DATE,
+  PET_MIN_BIRTH_DATE,
   parsePositivePetWeight,
   PET_NAME_MAX_LENGTH,
   PET_TEXTAREA_MAX_LENGTH,
@@ -82,11 +87,14 @@ export class EditPetModalComponent implements OnDestroy {
   private _pet!: PetBasicDetailApiResponse;
 
   protected readonly nameMaxLength = PET_NAME_MAX_LENGTH;
+  protected readonly colorMaxLength = PET_COLOR_MAX_LENGTH;
+  protected readonly maxBirthDate = PET_MAX_BIRTH_DATE;
+  protected readonly minBirthDate = PET_MIN_BIRTH_DATE;
   protected readonly textAreaMaxLength = PET_TEXTAREA_MAX_LENGTH;
   protected readonly weightMax = PET_WEIGHT_MAX;
   protected readonly weightStep = PET_WEIGHT_STEP;
   protected readonly nameErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
-    this.isNameRequiredInvalid() || this.isNameTooLong(),
+    this.isNameRequiredInvalid() || this.isNameInvalid(),
   );
   protected readonly speciesErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
     this.isSpeciesInvalid(),
@@ -128,6 +136,8 @@ export class EditPetModalComponent implements OnDestroy {
   protected isCreatingColor = false;
   protected isSaving = false;
   protected showValidationErrors = false;
+  protected hasTouchedName = false;
+  protected hasTouchedSpecies = false;
   protected submitError: string | null = null;
   protected colorCreateError: string | null = null;
   protected imageSelectionError: string | null = null;
@@ -161,6 +171,8 @@ export class EditPetModalComponent implements OnDestroy {
       (value.sex ?? '').trim().toUpperCase() === 'HEMBRA' ? 'Hembra' : 'Macho';
     this.editSterilized = value.sterilized === true ? 'Si' : 'No';
     this.showValidationErrors = false;
+    this.hasTouchedName = false;
+    this.hasTouchedSpecies = false;
     this.submitError = null;
     this.colorCreateError = null;
     this.imageSelectionError = null;
@@ -302,6 +314,7 @@ export class EditPetModalComponent implements OnDestroy {
   }
 
   protected onSpeciesChanged(value: string): void {
+    this.hasTouchedSpecies = true;
     this.speciesValue = value;
     this.submitError = null;
     const matchedSpecies =
@@ -342,8 +355,17 @@ export class EditPetModalComponent implements OnDestroy {
   }
 
   protected onNameChanged(value: string): void {
+    this.hasTouchedName = true;
     this.name = value;
     this.submitError = null;
+  }
+
+  protected markNameTouched(): void {
+    this.hasTouchedName = true;
+  }
+
+  protected markSpeciesTouched(): void {
+    this.hasTouchedSpecies = true;
   }
 
   protected onBreedChanged(value: number | null): void {
@@ -419,20 +441,32 @@ export class EditPetModalComponent implements OnDestroy {
   }
 
   protected isNameRequiredInvalid(): boolean {
-    return this.showValidationErrors && this.name.trim().length === 0;
+    return (this.showValidationErrors || this.hasTouchedName) && normalizePetText(this.name).length === 0;
   }
 
   protected isNameTooLong(): boolean {
-    return this.showValidationErrors && this.name.trim().length > PET_NAME_MAX_LENGTH;
+    return normalizePetText(this.name).length > PET_NAME_MAX_LENGTH;
+  }
+
+  protected isNameInvalid(): boolean {
+    const normalizedName = normalizePetText(this.name);
+    return (
+      (this.showValidationErrors || this.hasTouchedName) &&
+      normalizedName.length > 0 &&
+      normalizedName.length <= PET_NAME_MAX_LENGTH &&
+      !isValidPetName(this.name)
+    );
   }
 
   protected isSpeciesInvalid(): boolean {
-    return this.showValidationErrors && !this.resolveSpeciesByName(this.speciesValue);
+    return (
+      (this.showValidationErrors || this.hasTouchedSpecies) &&
+      !this.resolveSpeciesByName(this.speciesValue)
+    );
   }
 
   protected isBreedInvalid(): boolean {
     return (
-      this.showValidationErrors &&
       this.breedId !== null &&
       this.resolveSpeciesByName(this.speciesValue) !== null &&
       this.resolveBreedById(this.resolveSpeciesByName(this.speciesValue), this.breedId) === null
@@ -440,28 +474,30 @@ export class EditPetModalComponent implements OnDestroy {
   }
 
   protected isBirthDateInvalid(): boolean {
-    return this.showValidationErrors && !isValidPetBirthDate(this.birthDate);
+    return this.birthDate.trim().length > 0 && !isValidPetBirthDate(this.birthDate);
   }
 
   protected isWeightInvalid(): boolean {
     const rawWeight = this.normalizedWeightValue();
     return (
-      this.showValidationErrors &&
       rawWeight.length > 0 &&
       this.parseWeight() === null
     );
   }
 
   protected isColorInvalid(): boolean {
-    return this.showValidationErrors && this.colorValue.trim().length > 0 && !this.selectedColor;
+    return (
+      this.colorValue.trim().length > 0 &&
+      (this.colorValue.trim().length > PET_COLOR_MAX_LENGTH || !this.selectedColor)
+    );
   }
 
   protected isGeneralAllergiesTooLong(): boolean {
-    return this.showValidationErrors && this.generalAllergies.trim().length > PET_TEXTAREA_MAX_LENGTH;
+    return this.generalAllergies.trim().length > PET_TEXTAREA_MAX_LENGTH;
   }
 
   protected isGeneralHistoryTooLong(): boolean {
-    return this.showValidationErrors && this.generalHistory.trim().length > PET_TEXTAREA_MAX_LENGTH;
+    return this.generalHistory.trim().length > PET_TEXTAREA_MAX_LENGTH;
   }
 
   private scheduleSpeciesSearch(): void {
@@ -642,21 +678,21 @@ export class EditPetModalComponent implements OnDestroy {
   }
 
   private buildPayload(): UpdatePetBasicRequest | null {
-    const name = this.name.trim();
+    const name = normalizePetText(this.name);
     const selectedSpecies = this.resolveSpeciesByName(this.speciesValue);
     const selectedBreed = this.resolveBreedById(selectedSpecies, this.breedId);
     const currentWeight = this.parseWeight();
     const birthDate = this.birthDate.trim();
-    const generalAllergies = this.generalAllergies.trim();
-    const generalHistory = this.generalHistory.trim();
+    const generalAllergies = normalizePetText(this.generalAllergies);
+    const generalHistory = normalizePetText(this.generalHistory);
+    const colorValue = normalizePetText(this.colorValue);
 
     if (
-      !name ||
-      name.length > PET_NAME_MAX_LENGTH ||
+      !isValidPetName(name) ||
       !selectedSpecies ||
       !isValidPetBirthDate(birthDate) ||
       (this.breedId !== null && !selectedBreed) ||
-      (this.colorValue.trim().length > 0 && !this.selectedColor) ||
+      (colorValue.length > 0 && (colorValue.length > PET_COLOR_MAX_LENGTH || !this.selectedColor)) ||
       (this.normalizedWeightValue().length > 0 && currentWeight === null) ||
       generalAllergies.length > PET_TEXTAREA_MAX_LENGTH ||
       generalHistory.length > PET_TEXTAREA_MAX_LENGTH

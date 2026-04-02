@@ -57,6 +57,30 @@
           <span>Editar propietario</span>
         </button>
 
+        @if (shouldShowCreateAccessButton()) {
+          <button
+            type="button"
+            (click)="openCreateAccessModal()"
+            class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              class="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M19 8v6"></path>
+              <path d="M22 11h-6"></path>
+            </svg>
+            <span>Generar cuenta</span>
+          </button>
+        }
+
         <button
           type="button"
           (click)="openCreatePetPage()"
@@ -123,9 +147,7 @@
             </div>
             <div class="flex flex-col">
               <span class="text-xl font-bold text-text-primary">{{ buildFullName() }}</span>
-              <span class="text-sm text-text-secondary"
-                >Cédula: {{ owner.person.documentId ?? 'No registrada' }}</span
-              >
+              <span class="text-sm text-text-secondary">Cédula: {{ buildIdentificationLabel() }}</span>
             </div>
           </div>
 
@@ -321,4 +343,13 @@
       </section> -->
     </div>
   </div>
+
+  @if (owner && isCreateAccessModalOpen) {
+    <app-create-owner-access-modal
+      [ownerId]="owner.id"
+      [ownerName]="buildFullName()"
+      (closed)="closeCreateAccessModal()"
+      (saved)="onOwnerAccessCreated($event)"
+    />
+  }
 </div>

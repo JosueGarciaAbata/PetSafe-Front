@@ -4,9 +4,11 @@ import { Router, RouterLink } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { firstValueFrom } from 'rxjs';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
 import { OwnersApiService } from '../api/owners-api.service';
+import { ClientTutorBasicApiResponse } from '../models/client-tutor-basic.model';
 import {
   CLIENT_ADDRESS_MAX_LENGTH,
   CLIENT_DOCUMENT_ID_MAX_LENGTH,
@@ -34,7 +36,7 @@ import {
 @Component({
   selector: 'app-owner-create-page',
   standalone: true,
-  imports: [MatFormFieldModule, MatInputModule, MatSelectModule, ReactiveFormsModule, RouterLink],
+  imports: [MatCheckboxModule, MatFormFieldModule, MatInputModule, MatSelectModule, ReactiveFormsModule, RouterLink],
   templateUrl: './owner-create-page.component.html',
   styleUrl: './owner-create-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -73,6 +75,7 @@ export class OwnerCreatePageComponent {
 
   protected isSaving = false;
   protected errorMessage: string | null = null;
+  protected continueWithPetCreation = true;
 
   protected async save(): Promise<void> {
     if (this.isSaving) {
@@ -93,9 +96,20 @@ export class OwnerCreatePageComponent {
     try {
       const payload = this.buildPayload(this.form.getRawValue() as CreateClientFormValue);
       const owner = await firstValueFrom(this.ownersApi.createClient(payload));
-      void this.router.navigate(['/owners', owner.id, 'next-steps'], {
-        state: { owner },
-      });
+      if (this.continueWithPetCreation) {
+        void this.router.navigate(['/pets/new'], {
+          state: {
+            initialTutor: this.mapOwnerToTutor(owner),
+            quickCreateForTutor: true,
+            ownerBackTarget: ['/owners', owner.id],
+            ownerBackLabel: 'Volver al tutor',
+          },
+        });
+      } else {
+        void this.router.navigate(['/owners', owner.id, 'next-steps'], {
+          state: { owner },
+        });
+      }
     } catch (error: unknown) {
       this.errorMessage = resolveApiErrorMessage(error, {
         defaultMessage: 'No se pudo crear el cliente. Intenta nuevamente.',
@@ -146,5 +160,17 @@ export class OwnerCreatePageComponent {
     }
 
     return payload;
+  }
+
+  private mapOwnerToTutor(owner: {
+    id: number;
+    person: { firstName?: string | null; lastName?: string | null; phone?: string | null };
+  }): ClientTutorBasicApiResponse {
+    return {
+      id: owner.id,
+      firstName: owner.person.firstName?.trim() || 'Tutor',
+      lastName: owner.person.lastName?.trim() || '',
+      phone: owner.person.phone?.trim() || null,
+    };
   }
 }
