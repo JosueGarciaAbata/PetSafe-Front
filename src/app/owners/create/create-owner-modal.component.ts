@@ -25,6 +25,7 @@ import {
   CLIENT_NOTES_MAX_LENGTH,
   CLIENT_PHONE_PATTERN,
   clientMinDateValidator,
+  ecuadorCedulaValidator,
 } from '../models/client-form-validation.util';
 import {
   ClientGenderCode,
@@ -58,7 +59,7 @@ export class CreateOwnerModalComponent {
   protected readonly form = this.fb.nonNullable.group({
     firstName: ['', [Validators.required, Validators.maxLength(CLIENT_NAME_MAX_LENGTH)]],
     lastName: ['', [Validators.required, Validators.maxLength(CLIENT_NAME_MAX_LENGTH)]],
-    documentId: ['', [Validators.maxLength(CLIENT_DOCUMENT_ID_MAX_LENGTH)]],
+    documentId: ['', [Validators.maxLength(CLIENT_DOCUMENT_ID_MAX_LENGTH), ecuadorCedulaValidator()]],
     gender: ['F' as ClientGenderCode],
     birthDate: ['', [clientMinDateValidator(CLIENT_MIN_BIRTH_DATE)]],
     phone: ['', [Validators.pattern(CLIENT_PHONE_PATTERN)]],

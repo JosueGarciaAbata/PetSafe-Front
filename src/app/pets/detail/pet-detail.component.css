@@ -1,3 +1,7 @@
 :host {
   display: block;
 }
+
+:host .pet-hero-image img {
+  display: block;
+}

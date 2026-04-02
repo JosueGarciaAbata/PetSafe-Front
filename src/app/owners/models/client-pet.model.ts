@@ -1,3 +1,5 @@
+import { PetImageApiResponse } from '@app/pets/models/pet-image.model';
+
 export interface ClientPetSpeciesApiResponse {
   id: number;
   name: string;
@@ -20,4 +22,5 @@ export interface ClientPetApiResponse {
   species: ClientPetSpeciesApiResponse | null;
   breed: ClientPetBreedApiResponse | null;
   color: ClientPetColorApiResponse | null;
+  image: PetImageApiResponse | null;
 }

@@ -1,4 +1,5 @@
 import { PaginationMeta } from '@app/shared/pagination/pagination.model';
+import { PetImageApiResponse } from '@app/pets/models/pet-image.model';
 
 export interface ClientSummaryListApiResponse {
   data: ClientSummaryItemApiResponse[];
@@ -31,6 +32,7 @@ export interface ClientSummaryPersonApiResponse {
 export interface ClientSummaryPetApiResponse {
   id: number;
   name: string;
+  image?: PetImageApiResponse | null;
 }
 
 export interface ClientSummaryQuery {

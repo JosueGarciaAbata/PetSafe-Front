@@ -1,0 +1,154 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-6 pb-12">
+  <button
+    type="button"
+    [routerLink]="owner ? ['/owners', owner.id] : ['/owners']"
+    class="inline-flex items-center gap-2 self-start text-sm font-medium text-text-secondary transition-colors hover:text-brand"
+  >
+    <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="m15 18-6-6 6-6"></path>
+    </svg>
+    <span>Volver al propietario</span>
+  </button>
+
+  @if (isLoading) {
+    <div class="grid gap-6 lg:grid-cols-[340px_minmax(0,1fr)]">
+      <div class="h-80 animate-pulse rounded-[24px] bg-background"></div>
+      <div class="h-[640px] animate-pulse rounded-[24px] bg-background"></div>
+    </div>
+  } @else if (loadError) {
+    <div class="rounded-[24px] border border-border bg-card p-8 text-sm text-text-secondary shadow-sm">
+      {{ loadError }}
+    </div>
+  } @else if (owner) {
+    <div class="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+      <aside class="flex flex-col gap-6">
+        <section class="rounded-[24px] border border-border bg-card p-6 shadow-sm">
+          <div class="flex flex-col gap-4">
+            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-active-soft text-brand shadow-sm">
+              <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"></path>
+              </svg>
+            </div>
+            <div class="flex flex-col gap-2">
+              <h1 class="text-[28px] font-bold text-text-primary">Editar propietario</h1>
+              <p class="text-sm leading-6 text-text-secondary">
+                Actualiza la ficha de {{ owner.person.firstName }} {{ owner.person.lastName }} sin perder contexto del registro.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="rounded-[24px] border border-border bg-card p-6 shadow-sm">
+          <div class="flex flex-col gap-4">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-brand">Resumen actual</h2>
+
+            <div class="grid gap-3">
+              <div class="rounded-2xl border border-border bg-white p-4">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Propietario</span>
+                <p class="mt-1 text-sm font-semibold text-text-primary">
+                  {{ form.controls.firstName.value || owner.person.firstName }}
+                  {{ form.controls.lastName.value || owner.person.lastName }}
+                </p>
+              </div>
+
+              <div class="rounded-2xl border border-border bg-white p-4">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Contacto</span>
+                <p class="mt-1 text-sm text-text-primary">
+                  {{ form.controls.phone.value || owner.person.phone || 'Sin teléfono' }}
+                </p>
+                <p class="mt-1 text-sm text-text-secondary">
+                  {{ owner.email || 'Sin correo' }}
+                </p>
+              </div>
+
+              <div class="rounded-2xl border border-dashed border-border bg-background/70 p-4">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Estado</span>
+                <p class="mt-1 text-sm text-text-secondary">
+                  {{ form.dirty ? 'Hay cambios pendientes por guardar.' : 'Sin cambios pendientes.' }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate class="overflow-hidden rounded-[24px] border border-border bg-card shadow-sm">
+        <div class="flex flex-col gap-8 p-8">
+          <section class="grid gap-4">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Datos personales</h3>
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-text-primary">Nombres</label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
+                  <input matInput formControlName="firstName" type="text" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                </mat-form-field>
+              </div>
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-text-primary">Apellidos</label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
+                  <input matInput formControlName="lastName" type="text" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                </mat-form-field>
+              </div>
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-text-primary">Género</label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
+                  <mat-select formControlName="gender">
+                    @for (option of genderOptions; track option.value) {
+                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              </div>
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-text-primary">Fecha de nacimiento</label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
+                  <input matInput formControlName="birthDate" type="date" [attr.min]="minBirthDate" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                </mat-form-field>
+              </div>
+            </div>
+          </section>
+
+          <section class="grid gap-4">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Contacto</h3>
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-text-primary">Teléfono</label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
+                  <input matInput formControlName="phone" type="tel" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                </mat-form-field>
+              </div>
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-text-primary">Dirección</label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
+                  <input matInput formControlName="address" type="text" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                </mat-form-field>
+              </div>
+            </div>
+          </section>
+
+          <section class="grid gap-4">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Notas</h3>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
+              <textarea matInput formControlName="notes" rows="4" class="text-sm text-text-primary placeholder:text-text-secondary/50"></textarea>
+            </mat-form-field>
+          </section>
+        </div>
+
+        <div class="border-t border-border bg-white/95 px-8 py-5 backdrop-blur">
+          @if (errorMessage) {
+            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">
+              {{ errorMessage }}
+            </div>
+          }
+          <div class="flex items-center justify-end gap-3">
+            <a [routerLink]="['/owners', owner.id]" class="rounded-xl px-5 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-background">Cancelar</a>
+            <button type="submit" [disabled]="isSaving" class="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70">
+              {{ isSaving ? 'Guardando...' : 'Guardar cambios' }}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  }
+</div>

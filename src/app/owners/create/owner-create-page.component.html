@@ -1,0 +1,201 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-6 pb-12">
+  <button
+    type="button"
+    routerLink="/owners"
+    class="inline-flex items-center gap-2 self-start text-sm font-medium text-text-secondary transition-colors hover:text-brand"
+  >
+    <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="m15 18-6-6 6-6"></path>
+    </svg>
+    <span>Volver a propietarios</span>
+  </button>
+
+  <div class="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+    <aside class="flex flex-col gap-6">
+      <section class="rounded-[24px] border border-border bg-card p-6 shadow-sm">
+        <div class="flex flex-col gap-4">
+          <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-white shadow-sm">
+            <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M12 5v14M5 12h14"></path>
+            </svg>
+          </div>
+          <div class="flex flex-col gap-2">
+            <h1 class="text-[28px] font-bold text-text-primary">Nuevo propietario</h1>
+            <p class="text-sm leading-6 text-text-secondary">
+              Registra la ficha principal del cliente con una vista completa y mejor contexto del proceso.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="rounded-[24px] border border-border bg-card p-6 shadow-sm">
+        <div class="flex flex-col gap-4">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-brand">Resumen rápido</h2>
+
+          <div class="grid gap-3">
+            <div class="rounded-2xl border border-border bg-white p-4">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Nombre visible</span>
+              <p class="mt-1 text-sm font-semibold text-text-primary">
+                {{ form.controls.firstName.value || 'Sin nombres' }}
+                {{ form.controls.lastName.value || '' }}
+              </p>
+            </div>
+
+            <div class="rounded-2xl border border-border bg-white p-4">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Canal de contacto</span>
+              <p class="mt-1 text-sm text-text-primary">
+                {{ form.controls.phone.value || 'Sin teléfono' }}
+              </p>
+              <p class="mt-1 text-sm text-text-secondary">
+                {{ form.controls.email.value || 'Sin correo' }}
+              </p>
+            </div>
+
+            <div class="rounded-2xl border border-dashed border-border bg-background/70 p-4">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Siguiente paso</span>
+              <p class="mt-1 text-sm text-text-secondary">
+                Cuando guardes el propietario podrás asociarle mascotas desde su perfil o desde el módulo de mascotas.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <form
+      [formGroup]="form"
+      (ngSubmit)="save()"
+      novalidate
+      class="overflow-hidden rounded-[24px] border border-border bg-card shadow-sm"
+    >
+      <div class="flex flex-col gap-8 p-8">
+        <section class="grid gap-4">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Datos personales</h3>
+
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Nombres</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
+                <input matInput formControlName="firstName" type="text" placeholder="Ej. Adriana" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                @if (form.controls.firstName.touched && form.controls.firstName.hasError('required')) {
+                  <mat-error>Los nombres son obligatorios.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Apellidos</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
+                <input matInput formControlName="lastName" type="text" placeholder="Ej. Montes" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                @if (form.controls.lastName.touched && form.controls.lastName.hasError('required')) {
+                  <mat-error>Los apellidos son obligatorios.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Cédula</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
+                <input matInput formControlName="documentId" type="text" inputmode="numeric" placeholder="Ej. 1234567890" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                @if (form.controls.documentId.touched && form.controls.documentId.hasError('maxlength')) {
+                  <mat-error>La cédula no puede superar los {{ documentIdMaxLength }} caracteres.</mat-error>
+                }
+                @if (form.controls.documentId.touched && form.controls.documentId.hasError('invalidCedulaFormat')) {
+                  <mat-error>La cédula debe tener exactamente 10 dígitos.</mat-error>
+                }
+                @if (form.controls.documentId.touched && form.controls.documentId.hasError('invalidCedula')) {
+                  <mat-error>Ingresa una cédula ecuatoriana válida.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Género</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
+                <mat-select formControlName="gender">
+                  @for (option of genderOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2 md:col-span-2">
+              <label class="text-sm font-semibold text-text-primary">Fecha de nacimiento</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
+                <input matInput formControlName="birthDate" type="date" [attr.min]="minBirthDate" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                @if (form.controls.birthDate.touched && form.controls.birthDate.hasError('minDate')) {
+                  <mat-error>La fecha de nacimiento debe ser {{ minBirthDate }} o posterior.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid gap-4">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Contacto</h3>
+
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Teléfono</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
+                <input matInput formControlName="phone" type="tel" placeholder="0991234567" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                @if (form.controls.phone.touched && form.controls.phone.hasError('pattern')) {
+                  <mat-error>El teléfono solo debe contener números.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Correo electrónico</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
+                <input matInput formControlName="email" type="email" placeholder="correo@dominio.com" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                @if (form.controls.email.touched && form.controls.email.hasError('email')) {
+                  <mat-error>Ingresa un correo válido.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Dirección</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
+                <input matInput formControlName="address" type="text" placeholder="Ej. Calle principal y avenida secundaria" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                @if (form.controls.address.touched && form.controls.address.hasError('maxlength')) {
+                  <mat-error>La dirección no puede superar los {{ addressMaxLength }} caracteres.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid gap-4">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Notas</h3>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-text-primary">Observaciones</label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
+              <textarea matInput formControlName="notes" rows="4" placeholder="Preferencias, contexto del cliente o información adicional." class="text-sm text-text-primary placeholder:text-text-secondary/50"></textarea>
+              @if (form.controls.notes.touched && form.controls.notes.hasError('maxlength')) {
+                <mat-error>Las observaciones no pueden superar los {{ notesMaxLength }} caracteres.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </section>
+      </div>
+
+      <div class="border-t border-border bg-white/95 px-8 py-5 backdrop-blur">
+        @if (errorMessage) {
+          <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">
+            {{ errorMessage }}
+          </div>
+        }
+
+        <div class="flex items-center justify-end gap-3">
+          <a routerLink="/owners" class="rounded-xl px-5 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-background">Cancelar</a>
+          <button type="submit" [disabled]="isSaving" class="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70">
+            {{ isSaving ? 'Guardando...' : 'Guardar propietario' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

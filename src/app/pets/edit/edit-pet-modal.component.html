@@ -1,36 +1,117 @@
-<div class="fixed inset-0 z-[120] bg-black/40 backdrop-blur-[2px]" (click)="close()"></div>
+@if (!pageMode) {
+  <div class="fixed inset-0 z-[120] bg-black/40 backdrop-blur-[2px]" (click)="close()"></div>
+}
 
-<div class="fixed inset-0 z-[130] flex items-center justify-center p-4">
-  <div class="w-full max-w-[720px] overflow-hidden rounded-[16px] border border-border bg-card shadow-2xl">
+<div
+  [class.fixed]="!pageMode"
+  [class.inset-0]="!pageMode"
+  class="flex w-full items-center justify-center"
+  [class.p-4]="!pageMode"
+  [style.z-index]="pageMode ? null : 130"
+>
+  <div class="w-full max-w-[920px] overflow-hidden rounded-[16px] border border-border bg-card shadow-2xl">
     <div class="flex items-center justify-between border-b border-border bg-white px-6 py-5">
       <div class="flex flex-col gap-1">
         <h2 class="text-xl font-bold text-text-primary">Editar mascota</h2>
         <p class="text-sm text-text-secondary">Actualiza la informacion basica del paciente.</p>
       </div>
 
-      <button
-        type="button"
-        (click)="close()"
-        class="inline-flex h-10 w-10 items-center justify-center rounded-full text-text-secondary transition-all hover:bg-background hover:text-text-primary"
-        aria-label="Cerrar modal"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          class="h-5 w-5"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
+      @if (!pageMode) {
+        <button
+          type="button"
+          (click)="close()"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full text-text-secondary transition-all hover:bg-background hover:text-text-primary"
+          aria-label="Cerrar modal"
         >
-          <path d="M6 6l12 12M18 6 6 18"></path>
-        </svg>
-      </button>
+          <svg
+            viewBox="0 0 24 24"
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <path d="M6 6l12 12M18 6 6 18"></path>
+          </svg>
+        </button>
+      }
     </div>
 
     <div class="max-h-[70vh] overflow-y-auto p-6">
       <div class="flex flex-col gap-6">
         <section class="grid gap-5">
           <h3 class="text-sm font-bold uppercase tracking-wider text-brand">Identificacion</h3>
+
+          <div class="grid gap-3 rounded-2xl border border-dashed border-border bg-background/50 p-4">
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex flex-col gap-1">
+                <span class="text-sm font-semibold text-text-primary">Foto de la mascota</span>
+                <p class="text-xs text-text-secondary">
+                  Puedes reemplazar la imagen actual con un archivo optimizado antes del envio.
+                </p>
+              </div>
+
+              <input
+                #petImageInput
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                class="hidden"
+                (change)="onImageSelected($event)"
+              />
+
+              <button
+                type="button"
+                (click)="petImageInput.click()"
+                class="rounded-xl border border-border bg-white px-4 py-2 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background"
+              >
+                {{ currentImageUrl() ? 'Reemplazar imagen' : 'Subir imagen' }}
+              </button>
+            </div>
+
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div class="pet-image-preview">
+                @if (currentImageUrl(); as imageUrl) {
+                  <img
+                    [src]="imageUrl"
+                    [alt]="currentImageName() || 'Foto de mascota'"
+                    class="h-full w-full object-cover"
+                  />
+                } @else {
+                  <span class="text-2xl font-bold uppercase text-brand">{{
+                    name.trim().charAt(0) || 'P'
+                  }}</span>
+                }
+              </div>
+
+              <div class="flex min-w-0 flex-1 flex-col gap-1">
+                <span class="text-sm font-semibold text-text-primary">
+                  {{ currentImageName() || 'Sin imagen registrada' }}
+                </span>
+                <span class="text-xs text-text-secondary">
+                  {{
+                    currentImageSizeLabel() ||
+                      'Se eliminan metadata innecesaria y exceso de resolucion antes de enviar.'
+                  }}
+                </span>
+                @if (hasSelectedReplacementImage()) {
+                  <span class="text-xs font-medium text-brand">Nueva imagen lista para guardar.</span>
+                }
+                @if (imageSelectionError) {
+                  <span class="text-xs font-medium text-red-600">{{ imageSelectionError }}</span>
+                }
+              </div>
+
+              @if (hasSelectedReplacementImage()) {
+                <button
+                  type="button"
+                  (click)="clearImageSelection(petImageInput)"
+                  class="self-start rounded-xl px-3 py-2 text-xs font-bold text-text-secondary transition-all hover:bg-white"
+                >
+                  Descartar
+                </button>
+              }
+            </div>
+          </div>
 
           <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div class="flex flex-col gap-2">

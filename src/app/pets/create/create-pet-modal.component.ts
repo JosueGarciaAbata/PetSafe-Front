@@ -21,6 +21,7 @@ import { OwnersApiService } from '../../owners/api/owners-api.service';
 import { ClientTutorBasicApiResponse } from '../../owners/models/client-tutor-basic.model';
 import { ColorApiResponse } from '../models/color.model';
 import { CreatePetRequest } from '../models/create-pet.model';
+import { PetImageUploadValue } from '../models/pet-image.model';
 import {
   isValidPetBirthDate,
   parsePositivePetWeight,
@@ -35,6 +36,7 @@ import {
   SpeciesBreedApiResponse,
 } from '../models/species.model';
 import { ColorsApiService } from '../services/colors-api.service';
+import { PetImageUploadService } from '../services/pet-image-upload.service';
 import { PetsApiService } from '../services/pets-api.service';
 import { SpeciesApiService } from '../services/species-api.service';
 
@@ -70,6 +72,7 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
   private readonly colorsApi = inject(ColorsApiService);
   private readonly ownersApi = inject(OwnersApiService);
   private readonly petsApi = inject(PetsApiService);
+  private readonly petImageUploadService = inject(PetImageUploadService);
   private readonly speciesApi = inject(SpeciesApiService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly tutorsPageSize = 10;
@@ -147,6 +150,9 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
   protected showValidationErrors = false;
   protected submitError: string | null = null;
   protected colorCreateError: string | null = null;
+  protected imageSelectionError: string | null = null;
+  protected imageUpload: PetImageUploadValue | null = null;
+  @Input() pageMode = false;
   @Input() initialTutor: ClientTutorBasicApiResponse | null = null;
 
   @Output() readonly closed = new EventEmitter<void>();
@@ -166,6 +172,7 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
     this.clearTutorSearchTimer();
     this.clearSpeciesSearchTimer();
     this.clearColorSearchTimer();
+    this.clearSelectedImage();
   }
 
   protected close(): void {
@@ -193,6 +200,60 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
     this.clearSpeciesSearchTimer();
     this.clearColorSearchTimer();
     void this.submitCreate(payload);
+  }
+
+  protected async onImageSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    this.submitError = null;
+    this.imageSelectionError = null;
+
+    try {
+      const preparedImage = await this.petImageUploadService.prepareImage(file);
+      this.replaceSelectedImage(preparedImage);
+    } catch (error) {
+      this.imageSelectionError =
+        error instanceof Error ? error.message : 'No se pudo preparar la imagen.';
+      input.value = '';
+    } finally {
+      this.cdr.detectChanges();
+    }
+  }
+
+  protected clearImageSelection(fileInput?: HTMLInputElement): void {
+    this.imageSelectionError = null;
+    this.clearSelectedImage();
+
+    if (fileInput) {
+      fileInput.value = '';
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  protected hasSelectedImage(): boolean {
+    return this.imageUpload !== null;
+  }
+
+  protected selectedImagePreviewUrl(): string | null {
+    return this.imageUpload?.previewUrl ?? null;
+  }
+
+  protected selectedImageName(): string | null {
+    return this.imageUpload?.file.name ?? null;
+  }
+
+  protected selectedImageSizeLabel(): string | null {
+    if (!this.imageUpload) {
+      return null;
+    }
+
+    return this.formatFileSize(this.imageUpload.file.size);
   }
 
   protected setSex(value: CreatePetGender): void {
@@ -685,6 +746,8 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
       payload.colorId = this.selectedColor.id;
     }
 
+    payload.sterilized = this.sterilized === 'Si';
+
     if (microchipCode) {
       payload.microchipCode = microchipCode;
     }
@@ -703,6 +766,10 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
 
     if (generalHistory) {
       payload.generalHistory = generalHistory;
+    }
+
+    if (this.imageUpload) {
+      payload.image = this.imageUpload.file;
     }
 
     return payload;
@@ -738,5 +805,28 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
       defaultMessage: 'No se pudo guardar la mascota.',
       clientErrorMessage: 'Revisa los datos ingresados.',
     });
+  }
+
+  private replaceSelectedImage(imageUpload: PetImageUploadValue): void {
+    this.clearSelectedImage();
+    this.imageUpload = imageUpload;
+  }
+
+  private clearSelectedImage(): void {
+    this.petImageUploadService.revokePreviewUrl(this.imageUpload?.previewUrl);
+    this.imageUpload = null;
+  }
+
+  private formatFileSize(bytes: number): string {
+    if (bytes < 1024) {
+      return `${bytes} B`;
+    }
+
+    const kib = bytes / 1024;
+    if (kib < 1024) {
+      return `${kib.toFixed(1)} KB`;
+    }
+
+    return `${(kib / 1024).toFixed(2)} MB`;
   }
 }

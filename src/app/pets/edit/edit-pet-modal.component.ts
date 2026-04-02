@@ -18,6 +18,7 @@ import { firstValueFrom } from 'rxjs';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
 import { ColorApiResponse } from '../models/color.model';
 import { PetBasicDetailApiResponse } from '../models/pet-detail.model';
+import { PetImageUploadValue } from '../models/pet-image.model';
 import {
   isValidPetBirthDate,
   parsePositivePetWeight,
@@ -32,6 +33,7 @@ import {
 } from '../models/species.model';
 import { UpdatePetBasicRequest } from '../models/update-pet-basic.model';
 import { ColorsApiService } from '../services/colors-api.service';
+import { PetImageUploadService } from '../services/pet-image-upload.service';
 import { PetsApiService } from '../services/pets-api.service';
 import { SpeciesApiService } from '../services/species-api.service';
 
@@ -65,6 +67,7 @@ class ManualFieldErrorStateMatcher implements ErrorStateMatcher {
 })
 export class EditPetModalComponent implements OnDestroy {
   private readonly colorsApi = inject(ColorsApiService);
+  private readonly petImageUploadService = inject(PetImageUploadService);
   private readonly petsApi = inject(PetsApiService);
   private readonly speciesApi = inject(SpeciesApiService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -127,6 +130,9 @@ export class EditPetModalComponent implements OnDestroy {
   protected showValidationErrors = false;
   protected submitError: string | null = null;
   protected colorCreateError: string | null = null;
+  protected imageSelectionError: string | null = null;
+  protected imageUpload: PetImageUploadValue | null = null;
+  @Input() pageMode = false;
 
   @Input({ required: true })
   set pet(value: PetBasicDetailApiResponse) {
@@ -157,6 +163,8 @@ export class EditPetModalComponent implements OnDestroy {
     this.showValidationErrors = false;
     this.submitError = null;
     this.colorCreateError = null;
+    this.imageSelectionError = null;
+    this.clearSelectedImage();
     void this.loadSpecies(this.speciesValue);
     void this.loadColors(this.colorValue);
   }
@@ -171,6 +179,7 @@ export class EditPetModalComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.clearSpeciesSearchTimer();
     this.clearColorSearchTimer();
+    this.clearSelectedImage();
   }
 
   protected close(): void {
@@ -207,6 +216,57 @@ export class EditPetModalComponent implements OnDestroy {
       this.isSaving = false;
       this.cdr.detectChanges();
     }
+  }
+
+  protected async onImageSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    this.submitError = null;
+    this.imageSelectionError = null;
+
+    try {
+      const preparedImage = await this.petImageUploadService.prepareImage(file);
+      this.replaceSelectedImage(preparedImage);
+    } catch (error) {
+      this.imageSelectionError =
+        error instanceof Error ? error.message : 'No se pudo preparar la imagen.';
+      input.value = '';
+    } finally {
+      this.cdr.detectChanges();
+    }
+  }
+
+  protected clearImageSelection(fileInput?: HTMLInputElement): void {
+    this.imageSelectionError = null;
+    this.clearSelectedImage();
+
+    if (fileInput) {
+      fileInput.value = '';
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  protected currentImageUrl(): string | null {
+    return this.imageUpload?.previewUrl ?? this.pet.image?.url ?? null;
+  }
+
+  protected currentImageName(): string | null {
+    return this.imageUpload?.file.name ?? this.pet.image?.originalName ?? null;
+  }
+
+  protected currentImageSizeLabel(): string | null {
+    const sizeBytes = this.imageUpload?.file.size ?? this.pet.image?.sizeBytes ?? null;
+    return sizeBytes ? this.formatFileSize(sizeBytes) : null;
+  }
+
+  protected hasSelectedReplacementImage(): boolean {
+    return this.imageUpload !== null;
   }
 
   protected setGender(value: EditPetGender): void {
@@ -629,6 +689,10 @@ export class EditPetModalComponent implements OnDestroy {
       payload.colorId = this.selectedColor.id;
     }
 
+    if (this.imageUpload) {
+      payload.image = this.imageUpload.file;
+    }
+
     return payload;
   }
 
@@ -646,5 +710,28 @@ export class EditPetModalComponent implements OnDestroy {
     return resolveApiErrorMessage(error, {
       defaultMessage: 'No se pudo actualizar la mascota.',
     });
+  }
+
+  private replaceSelectedImage(imageUpload: PetImageUploadValue): void {
+    this.clearSelectedImage();
+    this.imageUpload = imageUpload;
+  }
+
+  private clearSelectedImage(): void {
+    this.petImageUploadService.revokePreviewUrl(this.imageUpload?.previewUrl);
+    this.imageUpload = null;
+  }
+
+  private formatFileSize(bytes: number): string {
+    if (bytes < 1024) {
+      return `${bytes} B`;
+    }
+
+    const kib = bytes / 1024;
+    if (kib < 1024) {
+      return `${kib.toFixed(1)} KB`;
+    }
+
+    return `${(kib / 1024).toFixed(2)} MB`;
   }
 }
