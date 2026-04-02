@@ -8,7 +8,6 @@ import { finalize } from 'rxjs';
 import { AuthApiService } from '@app/core/auth/auth-api.service';
 import { AuthService } from '@app/core/auth/auth.service';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
-import { LogoComponent } from '@app/logo/logo';
 
 @Component({
   selector: 'app-login-form',
@@ -19,7 +18,6 @@ import { LogoComponent } from '@app/logo/logo';
     MatInputModule,
     ReactiveFormsModule,
     RouterLink,
-    LogoComponent,
   ],
   templateUrl: './login-form.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
