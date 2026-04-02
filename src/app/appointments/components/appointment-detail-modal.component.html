@@ -73,6 +73,18 @@
         </button>
       }
 
+      @if (canRegisterArrival) {
+        <button type="button" (click)="registerArrival()" class="rounded-xl border border-border bg-white px-4 py-2 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background disabled:opacity-50" [disabled]="isSaving">
+          Registrar llegada
+        </button>
+      }
+
+      @if (canMarkNoShow) {
+        <button type="button" (click)="markNoShow()" class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-bold text-amber-700 shadow-sm transition-all hover:bg-amber-100 disabled:opacity-50" [disabled]="isSaving">
+          Marcar no asistió
+        </button>
+      }
+
       @if (canConfirm) {
         <button type="button" (click)="confirmAppointment()" class="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90 disabled:opacity-50" [disabled]="isSaving">
           @if (isSaving) {

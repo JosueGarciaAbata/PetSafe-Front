@@ -59,6 +59,12 @@
   color: #b42318;
 }
 
+.appointment-week-status--no-show {
+  border-color: #f7d7a8;
+  background-color: #fff8eb;
+  color: #b54708;
+}
+
 .appointment-week-avatar {
   color: #ffffff;
 }

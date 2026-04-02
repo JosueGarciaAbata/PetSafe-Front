@@ -82,6 +82,8 @@ export class AppointmentWeekCalendarComponent {
         return 'appointment-week-status appointment-week-status--finished';
       case 'CANCELADA':
         return 'appointment-week-status appointment-week-status--cancelled';
+      case 'NO_ASISTIO':
+        return 'appointment-week-status appointment-week-status--no-show';
     }
   }
 

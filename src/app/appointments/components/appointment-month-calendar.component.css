@@ -69,6 +69,12 @@
   color: #b42318;
 }
 
+.appointment-card-status--no-show {
+  border-color: #f7d7a8;
+  background-color: #fff8eb;
+  color: #b54708;
+}
+
 .appointment-card-avatar {
   color: #ffffff;
 }

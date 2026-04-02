@@ -223,15 +223,12 @@ export class QueuePageComponent implements OnInit {
 
     try {
       if (entry.queueStatus === 'EN_ATENCION') {
-        // En un caso real buscaríamos el encounter activo, pero para no saturar simulamos
-        // que creamos y el back devuelve el existente (nuestro back actual falla si creamos 2 veces
-        // sobre la misma cola, o no? El back crea uno nuevo si se le pide, lo mejor es abrir el endpoint get active).
-        // Por simplicidad en la demo, obligaremos a un nuevo o si falla mostramos error
         const encounter = await firstValueFrom(this.encountersApi.create({ queueEntryId: entry.id }));
         void this.router.navigate(['/encounters', encounter.id]);
         return;
       }
-      
+
+      await firstValueFrom(this.queueApi.startAttention(entry.id));
       const encounter = await firstValueFrom(this.encountersApi.create({ queueEntryId: entry.id }));
       void this.router.navigate(['/encounters', encounter.id]);
     } catch {

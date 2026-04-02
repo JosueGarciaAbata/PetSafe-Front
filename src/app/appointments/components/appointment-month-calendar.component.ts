@@ -87,6 +87,8 @@ export class AppointmentMonthCalendarComponent {
         return 'appointment-card-status appointment-card-status--finished';
       case 'CANCELADA':
         return 'appointment-card-status appointment-card-status--cancelled';
+      case 'NO_ASISTIO':
+        return 'appointment-card-status appointment-card-status--no-show';
     }
   }
 

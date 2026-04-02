@@ -3,7 +3,8 @@ export type AppointmentStatus =
   | 'CONFIRMADA'
   | 'EN_PROCESO'
   | 'FINALIZADA'
-  | 'CANCELADA';
+  | 'CANCELADA'
+  | 'NO_ASISTIO';
 
 export const APPOINTMENT_REASON_VALUES = [
   'CONSULTA_GENERAL',
@@ -71,5 +72,7 @@ export function buildAppointmentStatusLabel(status: AppointmentStatus): string {
       return 'Finalizada';
     case 'CANCELADA':
       return 'Cancelada';
+    case 'NO_ASISTIO':
+      return 'No asistio';
   }
 }

@@ -75,6 +75,11 @@ export class AppointmentsApiService {
     return this.http.patch<AppointmentRecord>(`${this.listUrl}/${id}/cancel`, {});
   }
 
+  // ── Marcar cita como no asistió (PATCH) ──
+  markNoShow(id: number): Observable<AppointmentRecord> {
+    return this.http.patch<AppointmentRecord>(`${this.listUrl}/${id}/no-show`, {});
+  }
+
   // ── Fetch interno: GET /appointments?from=&to= ──
   private fetchAppointments(query: AppointmentCalendarQuery): Observable<AppointmentRecord[]> {
     const params = new HttpParams()
