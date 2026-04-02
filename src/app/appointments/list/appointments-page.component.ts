@@ -11,6 +11,7 @@ import { AppointmentsApiService } from '../api/appointments-api.service';
 import { AppointmentMonthCalendarComponent } from '../components/appointment-month-calendar.component';
 import { CreateAppointmentModalComponent } from '../components/create-appointment-modal.component';
 import { AppointmentWeekCalendarComponent } from '../components/appointment-week-calendar.component';
+import { AppointmentDetailModalComponent } from '../components/appointment-detail-modal.component';
 import {
   AppointmentCalendarQuery,
   AppointmentCalendarMonthResponse,
@@ -21,6 +22,7 @@ import {
   AppointmentWeekDay,
   EMPTY_APPOINTMENT_SUMMARY,
 } from '../models/appointment-calendar.model';
+import { AppointmentRecord } from '../models/appointment.model';
 import {
   buildAppointmentMonthCells,
   buildAppointmentSummary,
@@ -47,6 +49,7 @@ import {
     AppointmentMonthCalendarComponent,
     AppointmentWeekCalendarComponent,
     CreateAppointmentModalComponent,
+    AppointmentDetailModalComponent,
   ],
   templateUrl: './appointments-page.component.html',
   styleUrl: './appointments-page.component.css',
@@ -66,6 +69,7 @@ export class AppointmentsPageComponent implements OnInit {
   protected weekDays: readonly AppointmentWeekDay[] = [];
   protected summary: AppointmentCalendarSummary = EMPTY_APPOINTMENT_SUMMARY;
   protected isCreateAppointmentModalOpen = false;
+  protected selectedAppointment: AppointmentRecord | null = null;
   protected isLoading = false;
   protected loadError: string | null = null;
 
@@ -83,6 +87,19 @@ export class AppointmentsPageComponent implements OnInit {
 
   protected onCreateAppointmentSaved(): void {
     this.closeCreateAppointmentModal();
+    void this.loadAppointments();
+  }
+
+  protected openAppointmentDetail(appointment: AppointmentRecord): void {
+    this.selectedAppointment = appointment;
+  }
+
+  protected closeAppointmentDetail(): void {
+    this.selectedAppointment = null;
+  }
+
+  protected onAppointmentDetailUpdated(): void {
+    this.closeAppointmentDetail();
     void this.loadAppointments();
   }
 

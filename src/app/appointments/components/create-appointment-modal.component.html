@@ -88,7 +88,7 @@
         <section class="grid gap-4">
           <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Programacion</h3>
 
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div class="flex flex-col gap-2">
               <label class="text-sm font-semibold text-text-primary">Fecha programada</label>
               <mat-form-field
@@ -111,7 +111,7 @@
             </div>
 
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Hora programada</label>
+              <label class="text-sm font-semibold text-text-primary">Hora inicio</label>
               <mat-form-field
                 appearance="outline"
                 subscriptSizing="dynamic"
@@ -121,12 +121,33 @@
                   matInput
                   type="time"
                   [ngModel]="scheduledTime"
-                  (ngModelChange)="scheduledTime = $event"
+                  (ngModelChange)="onScheduledTimeChanged($event)"
                   [errorStateMatcher]="scheduledTimeErrorStateMatcher"
                   class="text-sm text-text-primary"
                 />
                 @if (isScheduledTimeInvalid()) {
-                  <mat-error>Selecciona una hora programada.</mat-error>
+                  <mat-error>Selecciona una hora de inicio.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Hora fin</label>
+              <mat-form-field
+                appearance="outline"
+                subscriptSizing="dynamic"
+                class="appointment-create-field w-full"
+              >
+                <input
+                  matInput
+                  type="time"
+                  [ngModel]="endTime"
+                  (ngModelChange)="onEndTimeChanged($event)"
+                  [errorStateMatcher]="endTimeErrorStateMatcher"
+                  class="text-sm text-text-primary"
+                />
+                @if (isEndTimeInvalid()) {
+                  <mat-error>{{ buildEndTimeErrorMessage() }}</mat-error>
                 }
               </mat-form-field>
             </div>
@@ -144,17 +165,19 @@
                 subscriptSizing="dynamic"
                 class="appointment-create-field w-full"
               >
-                <input
-                  matInput
-                  type="text"
+                <mat-select
                   [ngModel]="reason"
                   (ngModelChange)="reason = $event"
                   [errorStateMatcher]="reasonErrorStateMatcher"
-                  placeholder="Ej. Revision por cojera"
-                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
-                />
+                  placeholder="Selecciona un motivo"
+                  class="text-sm text-text-primary"
+                >
+                  @for (option of reasonOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
                 @if (isReasonInvalid()) {
-                  <mat-error>Ingresa la razon de la cita.</mat-error>
+                  <mat-error>Selecciona la razon de la cita.</mat-error>
                 }
               </mat-form-field>
             </div>

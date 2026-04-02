@@ -1,0 +1,87 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="appointment-detail-title">
+  <div class="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity" (click)="close()"></div>
+
+  <div class="relative w-full max-w-lg rounded-2xl bg-card shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-border px-6 py-5">
+      <h2 id="appointment-detail-title" class="text-xl font-bold text-text-primary">Detalle de la cita</h2>
+      <button type="button" (click)="close()" class="rounded-lg p-2 text-text-secondary hover:bg-background transition-colors" [disabled]="isSaving">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="px-6 py-5 flex flex-col gap-6">
+      @if (submitError) {
+        <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          {{ submitError }}
+        </div>
+      }
+
+      <!-- Patient Info -->
+      <div class="flex items-center gap-4">
+        <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xl font-bold text-primary">
+          {{ initals }}
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-text-primary">{{ appointment.patientName || 'Paciente desconocido' }}</h3>
+          <p class="text-sm text-text-secondary">Tutor: {{ appointment.ownerName || 'No registrado' }}</p>
+        </div>
+      </div>
+
+      <hr class="border-border">
+
+      <!-- Details -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-bold uppercase tracking-wider text-text-secondary">Fecha</span>
+          <span class="text-sm font-semibold text-text-primary">{{ appointment.scheduledDate }}</span>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-bold uppercase tracking-wider text-text-secondary">Hora</span>
+          <span class="text-sm font-semibold text-text-primary">{{ appointment.startsAt }} {{ appointment.endsAt ? '- ' + appointment.endsAt : '' }}</span>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-bold uppercase tracking-wider text-text-secondary">Motivo</span>
+          <span class="text-sm font-semibold text-text-primary">{{ buildReasonLabel(appointment.reason) }}</span>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-bold uppercase tracking-wider text-text-secondary">Estado actual</span>
+          <span class="text-sm font-semibold text-text-primary">{{ buildStatusLabel(appointment.status) }}</span>
+        </div>
+      </div>
+
+      @if (appointment.notes) {
+        <div class="flex flex-col gap-2 rounded-xl bg-background p-4">
+          <span class="text-xs font-bold uppercase tracking-wider text-text-secondary">Notas</span>
+          <p class="text-sm text-text-primary">{{ appointment.notes }}</p>
+        </div>
+      }
+    </div>
+
+    <!-- Footer / Actions -->
+    <div class="flex items-center justify-end gap-3 border-t border-border bg-background/50 px-6 py-4">
+      <button type="button" (click)="close()" class="rounded-xl px-4 py-2 text-sm font-bold text-text-secondary transition-colors hover:bg-border/50" [disabled]="isSaving">
+        Cerrar
+      </button>
+
+      @if (canCancel) {
+        <button type="button" (click)="cancelAppointment()" class="rounded-xl bg-red-50 text-red-600 border border-red-200 px-4 py-2 text-sm font-bold shadow-sm transition-all hover:bg-red-100 disabled:opacity-50" [disabled]="isSaving">
+          Cancelar cita
+        </button>
+      }
+
+      @if (canConfirm) {
+        <button type="button" (click)="confirmAppointment()" class="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90 disabled:opacity-50" [disabled]="isSaving">
+          @if (isSaving) {
+            Procesando...
+          } @else {
+            Confirmar cita
+          }
+        </button>
+      }
+    </div>
+  </div>
+</div>

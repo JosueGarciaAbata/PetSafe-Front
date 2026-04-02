@@ -36,7 +36,8 @@
             <div class="flex max-h-[114px] flex-col gap-1.5 overflow-y-auto pr-1">
               @for (appointment of cell.appointments; track trackByAppointment($index, appointment)) {
                 <article
-                  class="rounded-[18px] border border-border bg-white p-2.5 shadow-sm"
+                  class="cursor-pointer rounded-[18px] border border-border bg-white p-2.5 shadow-sm transition-all hover:ring-2 hover:ring-primary/20"
+                  (click)="appointmentClick.emit(appointment)"
                   [class.opacity-70]="appointment.status === 'CANCELADA' || !appointment.isActive"
                 >
                   <div class="flex items-start gap-2.5">

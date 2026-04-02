@@ -1,0 +1,146 @@
+<div class="reports-page">
+
+  <!-- ── Encabezado ── -->
+  <header class="page-header">
+    <div class="page-header__text">
+      <h1 class="page-header__title">Reportes</h1>
+      <p class="page-header__subtitle">Genera y descarga reportes en PDF para gestión clínica y administrativa.</p>
+    </div>
+  </header>
+
+  <!-- ── Grid de tarjetas (estado inicial: ninguna seleccionada) ── -->
+  <section *ngIf="!selectedCard" class="cards-grid">
+    <article
+      *ngFor="let card of cards"
+      class="report-card report-card--{{ card.color }}"
+      (click)="selectCard(card)"
+      tabindex="0"
+      (keydown.enter)="selectCard(card)"
+      (keydown.space)="selectCard(card)"
+      [attr.aria-label]="'Generar reporte ' + card.title"
+    >
+      <div class="report-card__icon" aria-hidden="true">{{ card.icon }}</div>
+      <div class="report-card__body">
+        <h2 class="report-card__title">{{ card.title }}</h2>
+        <p class="report-card__desc">{{ card.description }}</p>
+      </div>
+      <div class="report-card__cta">
+        <span class="btn-pill">Configurar →</span>
+      </div>
+    </article>
+  </section>
+
+  <!-- ── Panel de configuración (tarjeta seleccionada) ── -->
+  <section *ngIf="selectedCard" class="config-panel">
+
+    <!-- Back -->
+    <button class="btn-back" type="button" (click)="clearSelection()">
+      ← Volver a reportes
+    </button>
+
+    <div class="config-card config-card--{{ selectedCard.color }}">
+
+      <!-- Encabezado del panel -->
+      <div class="config-card__header">
+        <span class="config-card__icon" aria-hidden="true">{{ selectedCard.icon }}</span>
+        <div>
+          <h2 class="config-card__title">{{ selectedCard.title }}</h2>
+          <p class="config-card__desc">{{ selectedCard.description }}</p>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Formulario rango (from + to) -->
+      <form
+        *ngIf="selectedCard.needsRange"
+        [formGroup]="rangeForm"
+        (ngSubmit)="generate()"
+        class="config-form"
+        id="report-range-form"
+        novalidate
+      >
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="rpt-from">Desde</label>
+            <input
+              id="rpt-from"
+              class="form-input"
+              type="date"
+              formControlName="from"
+              [max]="todayIso"
+            />
+            <span
+              class="form-error"
+              *ngIf="rangeForm.controls.from.invalid && rangeForm.controls.from.touched"
+            >Este campo es obligatorio.</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="rpt-to">Hasta</label>
+            <input
+              id="rpt-to"
+              class="form-input"
+              type="date"
+              formControlName="to"
+              [max]="todayIso"
+            />
+            <span
+              class="form-error"
+              *ngIf="rangeForm.controls.to.invalid && rangeForm.controls.to.touched"
+            >Este campo es obligatorio.</span>
+          </div>
+        </div>
+      </form>
+
+      <!-- Formulario día único -->
+      <form
+        *ngIf="!selectedCard.needsRange"
+        [formGroup]="dayForm"
+        (ngSubmit)="generate()"
+        class="config-form"
+        id="report-day-form"
+        novalidate
+      >
+        <div class="form-row form-row--single">
+          <div class="form-group">
+            <label class="form-label" for="rpt-date">Fecha</label>
+            <input
+              id="rpt-date"
+              class="form-input"
+              type="date"
+              formControlName="date"
+              [max]="todayIso"
+            />
+            <span
+              class="form-error"
+              *ngIf="dayForm.controls.date.invalid && dayForm.controls.date.touched"
+            >Este campo es obligatorio.</span>
+          </div>
+        </div>
+      </form>
+
+      <!-- Mensajes de estado -->
+      <div class="alert alert--success" *ngIf="successMessage">
+        <span>✅</span> {{ successMessage }}
+      </div>
+      <div class="alert alert--error" *ngIf="errorMessage">
+        <span>⚠️</span> {{ errorMessage }}
+      </div>
+
+      <!-- CTA -->
+      <div class="config-card__footer">
+        <button
+          class="btn-generate"
+          type="button"
+          [disabled]="isGenerating"
+          (click)="generate()"
+        >
+          <span *ngIf="!isGenerating">⬇&nbsp; Generar PDF</span>
+          <span *ngIf="isGenerating" class="spinner"></span>
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+</div>

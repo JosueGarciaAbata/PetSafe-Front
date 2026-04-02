@@ -5,6 +5,18 @@ export type AppointmentStatus =
   | 'FINALIZADA'
   | 'CANCELADA';
 
+export const APPOINTMENT_REASON_VALUES = [
+  'CONSULTA_GENERAL',
+  'VACUNACION',
+  'TRATAMIENTO',
+  'CIRUGIA',
+  'PROCEDIMIENTO',
+  'CONTROL',
+  'EMERGENCIA',
+] as const;
+
+export type AppointmentReason = (typeof APPOINTMENT_REASON_VALUES)[number];
+
 export interface AppointmentRecord {
   id: number;
   patientId: number;
@@ -14,20 +26,37 @@ export interface AppointmentRecord {
   scheduledDate: string;
   startsAt: string;
   endsAt: string | null;
-  reason: string | null;
+  reason: AppointmentReason | null;
   notes: string | null;
   status: AppointmentStatus;
   isActive: boolean;
 }
 
-export function buildAppointmentReasonLabel(reason: string | null): string {
+export function buildAppointmentReasonLabel(reason: AppointmentReason | string | null): string {
   const normalizedReason = reason?.trim() ?? '';
 
   if (!normalizedReason) {
     return 'Sin motivo';
   }
 
-  return normalizedReason;
+  switch (normalizedReason) {
+    case 'CONSULTA_GENERAL':
+      return 'Consulta general';
+    case 'VACUNACION':
+      return 'Vacunacion';
+    case 'TRATAMIENTO':
+      return 'Tratamiento';
+    case 'CIRUGIA':
+      return 'Cirugia';
+    case 'PROCEDIMIENTO':
+      return 'Procedimiento';
+    case 'CONTROL':
+      return 'Control';
+    case 'EMERGENCIA':
+      return 'Emergencia';
+    default:
+      return normalizedReason;
+  }
 }
 
 export function buildAppointmentStatusLabel(status: AppointmentStatus): string {

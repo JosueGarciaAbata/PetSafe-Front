@@ -12,12 +12,33 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { firstValueFrom } from 'rxjs';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
+import { MetadataStore } from '@app/core/metadata/metadata-store.service';
 import { AppointmentsApiService } from '../api/appointments-api.service';
 import { CreateAppointmentRequest } from '../models/appointment-create.model';
+import {
+  AppointmentReason,
+  APPOINTMENT_REASON_VALUES,
+  buildAppointmentReasonLabel,
+} from '../models/appointment.model';
 import { AppointmentPatientSearchItemApiResponse } from '../models/appointment-patient-search.model';
 import { getTodayDateKey } from '../utils/appointment-date.util';
+
+interface AppointmentReasonOption {
+  value: AppointmentReason;
+  label: string;
+}
+
+function addMinutes(time: string, minutes: number): string {
+  const [hoursStr, minsStr] = time.split(':');
+  const totalMinutes = parseInt(hoursStr, 10) * 60 + parseInt(minsStr, 10) + minutes;
+  const clamped = Math.min(totalMinutes, 23 * 60 + 59);
+  const h = Math.floor(clamped / 60);
+  const m = clamped % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
 
 class ManualFieldErrorStateMatcher implements ErrorStateMatcher {
   constructor(private readonly hasError: () => boolean) {}
@@ -30,13 +51,14 @@ class ManualFieldErrorStateMatcher implements ErrorStateMatcher {
 @Component({
   selector: 'app-create-appointment-modal',
   standalone: true,
-  imports: [FormsModule, MatAutocompleteModule, MatFormFieldModule, MatInputModule],
+  imports: [FormsModule, MatAutocompleteModule, MatFormFieldModule, MatInputModule, MatSelectModule],
   templateUrl: './create-appointment-modal.component.html',
   styleUrl: './create-appointment-modal.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreateAppointmentModalComponent implements OnDestroy {
   private readonly appointmentsApi = inject(AppointmentsApiService);
+  private readonly metadataStore = inject(MetadataStore);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly patientSearchLimit = 10;
   private patientRequestVersion = 0;
@@ -52,6 +74,9 @@ export class CreateAppointmentModalComponent implements OnDestroy {
   protected readonly scheduledTimeErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
     this.isScheduledTimeInvalid(),
   );
+  protected readonly endTimeErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
+    this.isEndTimeInvalid(),
+  );
   protected readonly reasonErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
     this.isReasonInvalid(),
   );
@@ -59,8 +84,10 @@ export class CreateAppointmentModalComponent implements OnDestroy {
   protected patientSearch = '';
   protected scheduledDate = getTodayDateKey();
   protected scheduledTime = this.getCurrentTime();
-  protected reason = '';
+  protected endTime = addMinutes(this.scheduledTime, 30);
+  protected reason: AppointmentReason | '' = '';
   protected notes = '';
+  protected readonly reasonOptions = this.buildReasonOptions();
 
   protected selectedPatient: AppointmentPatientSearchItemApiResponse | null = null;
   protected patients: AppointmentPatientSearchItemApiResponse[] = [];
@@ -155,8 +182,44 @@ export class CreateAppointmentModalComponent implements OnDestroy {
     return this.showValidationErrors && !this.scheduledTime.trim();
   }
 
+  protected isEndTimeInvalid(): boolean {
+    if (!this.showValidationErrors) {
+      return false;
+    }
+
+    return !this.endTime.trim() || !this.isTimeRangeValid(this.scheduledTime, this.endTime);
+  }
+
   protected isReasonInvalid(): boolean {
-    return this.showValidationErrors && !this.reason.trim();
+    return this.showValidationErrors && !this.reason;
+  }
+
+  protected buildEndTimeErrorMessage(): string {
+    if (!this.endTime.trim()) {
+      return 'Selecciona una hora fin.';
+    }
+
+    return 'La hora fin debe ser mayor que la hora inicio.';
+  }
+
+  protected onScheduledTimeChanged(value: string): void {
+    const previousSuggestedEndTime = addMinutes(this.scheduledTime, 30);
+    this.scheduledTime = value;
+    this.submitError = null;
+
+    if (!this.endTime.trim() || this.endTime === previousSuggestedEndTime) {
+      this.endTime = addMinutes(value, 30);
+      return;
+    }
+
+    if (!this.isTimeRangeValid(this.scheduledTime, this.endTime)) {
+      this.endTime = addMinutes(value, 30);
+    }
+  }
+
+  protected onEndTimeChanged(value: string): void {
+    this.endTime = value;
+    this.submitError = null;
   }
 
   protected save(): void {
@@ -239,7 +302,9 @@ export class CreateAppointmentModalComponent implements OnDestroy {
       !this.selectedPatient ||
       !this.scheduledDate.trim() ||
       !this.scheduledTime.trim() ||
-      !this.reason.trim()
+      !this.endTime.trim() ||
+      !this.isTimeRangeValid(this.scheduledTime, this.endTime) ||
+      !this.reason
     ) {
       return null;
     }
@@ -248,23 +313,38 @@ export class CreateAppointmentModalComponent implements OnDestroy {
       patientId: this.selectedPatient.patientId,
       scheduledDate: this.scheduledDate.trim(),
       scheduledTime: this.scheduledTime.trim(),
-      reason: this.reason.trim(),
+      endTime: this.endTime.trim(),
+      reason: this.reason,
       notes: this.notes.trim() || null,
     };
   }
 
-  private async submitCreate(payload: CreateAppointmentRequest): Promise<void> {
-    const selectedPatient = this.selectedPatient;
+  private buildReasonOptions(): AppointmentReasonOption[] {
+    const metadataValues = this.metadataStore.getEnumValues('AppointmentReasonEnum');
+    const enumValues = metadataValues.filter(this.isAppointmentReason);
+    const values = enumValues.length > 0 ? enumValues : [...APPOINTMENT_REASON_VALUES];
 
+    return values.map((value) => ({
+      value,
+      label: buildAppointmentReasonLabel(value),
+    }));
+  }
+
+  private isAppointmentReason(value: string): value is AppointmentReason {
+    return APPOINTMENT_REASON_VALUES.includes(value as AppointmentReason);
+  }
+
+  private isTimeRangeValid(startTime: string, endTime: string): boolean {
+    return Boolean(startTime.trim()) && Boolean(endTime.trim()) && endTime > startTime;
+  }
+
+  private async submitCreate(payload: CreateAppointmentRequest): Promise<void> {
     this.isSaving = true;
     this.submitError = null;
     this.cdr.markForCheck();
 
     try {
       await firstValueFrom(this.appointmentsApi.create(payload));
-      if (selectedPatient) {
-        this.appointmentsApi.registerLocalCreatedAppointment(payload, selectedPatient);
-      }
       this.saved.emit();
     } catch (error) {
       this.submitError = resolveApiErrorMessage(error, {

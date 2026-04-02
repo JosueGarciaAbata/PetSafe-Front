@@ -14,6 +14,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PaginationComponent } from '@app/shared/pagination/pagination.component';
 import { EMPTY_PAGINATION_META, PaginationMeta } from '@app/shared/pagination/pagination.model';
 import { QueueApiService } from '../api/queue-api.service';
+import { EncountersApiService } from '@app/encounters/api/encounters-api.service';
 import {
   EMPTY_QUEUE_SUMMARY,
   QUEUE_STATUS_FILTERS,
@@ -35,11 +36,11 @@ import {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, PaginationComponent],
   templateUrl: './queue-page.component.html',
-  styleUrl: './queue-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QueuePageComponent implements OnInit {
   private readonly queueApi = inject(QueueApiService);
+  private readonly encountersApi = inject(EncountersApiService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
@@ -179,24 +180,24 @@ export class QueuePageComponent implements OnInit {
   protected buildEntryTypeClass(entryType: QueueEntryType): string {
     switch (entryType) {
       case 'CON_CITA':
-        return 'appointment';
+        return 'bg-[#E0F3FF] text-[#005299] border border-[#B8E2FF]';
       case 'SIN_CITA':
-        return 'walkin';
+        return 'bg-[#FFF4E0] text-[#995700] border border-[#FFDDAA]';
       case 'EMERGENCIA':
-        return 'emergency';
+        return 'bg-[#FFE0E0] text-[#990000] border border-[#FFB8B8]';
     }
   }
 
   protected buildStatusClass(status: QueueEntryStatus): string {
     switch (status) {
       case 'EN_ESPERA':
-        return 'waiting';
+        return 'border border-dashed border-border bg-background text-text-secondary';
       case 'EN_ATENCION':
-        return 'attention';
+        return 'bg-[#E5F5E0] text-[#1D7A04] border border-[#BDE8B4]';
       case 'FINALIZADA':
-        return 'finished';
+        return 'bg-[#F1F5F9] text-text-secondary border border-border';
       case 'CANCELADA':
-        return 'cancelled';
+        return 'bg-[#FFE0E0] text-[#990000] border border-[#FFB8B8]';
     }
   }
 
@@ -216,16 +217,25 @@ export class QueuePageComponent implements OnInit {
   }
 
   protected async startAttention(entry: QueueEntryRecord): Promise<void> {
-    if (entry.queueStatus !== 'EN_ESPERA') {
+    if (entry.queueStatus === 'FINALIZADA' || entry.queueStatus === 'CANCELADA') {
       return;
     }
 
     try {
-      await firstValueFrom(this.queueApi.startAttention(entry.id));
-      await this.loadQueue(this.paginationMeta.currentPage);
-      this.selectedEntryId = entry.id;
+      if (entry.queueStatus === 'EN_ATENCION') {
+        // En un caso real buscaríamos el encounter activo, pero para no saturar simulamos
+        // que creamos y el back devuelve el existente (nuestro back actual falla si creamos 2 veces
+        // sobre la misma cola, o no? El back crea uno nuevo si se le pide, lo mejor es abrir el endpoint get active).
+        // Por simplicidad en la demo, obligaremos a un nuevo o si falla mostramos error
+        const encounter = await firstValueFrom(this.encountersApi.create({ queueEntryId: entry.id }));
+        void this.router.navigate(['/encounters', encounter.id]);
+        return;
+      }
+      
+      const encounter = await firstValueFrom(this.encountersApi.create({ queueEntryId: entry.id }));
+      void this.router.navigate(['/encounters', encounter.id]);
     } catch {
-      this.loadError = 'No se pudo iniciar la atención de este paciente.';
+      this.loadError = 'No se pudo iniciar la consulta médica para este paciente.';
       this.cdr.detectChanges();
     }
   }

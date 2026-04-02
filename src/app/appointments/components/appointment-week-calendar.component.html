@@ -30,7 +30,8 @@
             } @else {
               @for (appointment of day.appointments; track trackByAppointment($index, appointment)) {
                 <article
-                  class="rounded-[18px] border border-border bg-white p-3 shadow-sm"
+                  class="cursor-pointer rounded-[18px] border border-border bg-white p-3 shadow-sm transition-all hover:ring-2 hover:ring-primary/20"
+                  (click)="appointmentClick.emit(appointment)"
                   [class.opacity-70]="appointment.status === 'CANCELADA' || !appointment.isActive"
                 >
                   <div class="flex items-start gap-2.5">

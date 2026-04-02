@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { AppointmentWeekDay } from '../models/appointment-calendar.model';
 import {
   AppointmentRecord,
@@ -18,6 +18,7 @@ import {
 })
 export class AppointmentWeekCalendarComponent {
   @Input({ required: true }) days: readonly AppointmentWeekDay[] = [];
+  @Output() readonly appointmentClick = new EventEmitter<AppointmentRecord>();
 
   protected trackByDate(_index: number, day: AppointmentWeekDay): string {
     return day.date;

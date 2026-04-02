@@ -110,12 +110,13 @@
     </section>
   } @else {
     @if (currentView === 'week') {
-      <app-appointment-week-calendar [days]="weekDays" />
+      <app-appointment-week-calendar [days]="weekDays" (appointmentClick)="openAppointmentDetail($event)" />
     } @else {
       <app-appointment-month-calendar
         [monthLabel]="monthLabel"
         [weekdayLabels]="weekdayLabels"
         [cells]="monthCells"
+        (appointmentClick)="openAppointmentDetail($event)"
       />
     }
   }
@@ -124,6 +125,14 @@
     <app-create-appointment-modal
       (closed)="closeCreateAppointmentModal()"
       (saved)="onCreateAppointmentSaved()"
+    />
+  }
+
+  @if (selectedAppointment) {
+    <app-appointment-detail-modal
+      [appointment]="selectedAppointment"
+      (closed)="closeAppointmentDetail()"
+      (updated)="onAppointmentDetailUpdated()"
     />
   }
 </div>
