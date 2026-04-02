@@ -1,7 +1,7 @@
 <div class="mx-auto flex max-w-[1400px] flex-col gap-6 pb-12">
   <button
     type="button"
-    [routerLink]="owner ? ['/owners', owner.id] : ['/owners']"
+    (click)="cancel()"
     class="inline-flex items-center gap-2 self-start text-sm font-medium text-text-secondary transition-colors hover:text-brand"
   >
     <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -142,7 +142,7 @@
             </div>
           }
           <div class="flex items-center justify-end gap-3">
-            <a [routerLink]="['/owners', owner.id]" class="rounded-xl px-5 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-background">Cancelar</a>
+            <button type="button" (click)="cancel()" class="rounded-xl px-5 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-background">Cancelar</button>
             <button type="submit" [disabled]="isSaving" class="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70">
               {{ isSaving ? 'Guardando...' : 'Guardar cambios' }}
             </button>

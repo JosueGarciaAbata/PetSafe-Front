@@ -28,8 +28,10 @@ export class OwnerDetailComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
   private requestVersion = 0;
+  private forceBackToOwnersList = false;
 
   ngOnInit(): void {
+    this.forceBackToOwnersList = history.state?.forceBackToOwnersList === true;
     this.route.paramMap.subscribe((params) => {
       const ownerId = params.get('id');
       if (!ownerId) {
@@ -58,6 +60,11 @@ export class OwnerDetailComponent implements OnInit {
   protected pets: ClientPetApiResponse[] = [];
 
   protected goBack(): void {
+    if (this.forceBackToOwnersList) {
+      void this.router.navigate(['/owners'], { replaceUrl: true });
+      return;
+    }
+
     if (window.history.length > 1) {
       this.location.back();
       return;
@@ -71,7 +78,11 @@ export class OwnerDetailComponent implements OnInit {
       return;
     }
 
-    void this.router.navigate(['/owners', this.owner.id, 'edit']);
+    void this.router.navigate(['/owners', this.owner.id, 'edit'], {
+      state: {
+        returnToOwnersListAfterDetail: true,
+      },
+    });
   }
 
   protected buildFullName(): string {

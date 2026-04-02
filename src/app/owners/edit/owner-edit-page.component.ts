@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -32,7 +32,7 @@ interface EditOwnerFormValue {
 @Component({
   selector: 'app-owner-edit-page',
   standalone: true,
-  imports: [MatFormFieldModule, MatInputModule, MatSelectModule, ReactiveFormsModule, RouterLink],
+  imports: [MatFormFieldModule, MatInputModule, MatSelectModule, ReactiveFormsModule],
   templateUrl: './owner-edit-page.component.html',
   styleUrl: './owner-edit-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,6 +44,7 @@ export class OwnerEditPageComponent implements OnInit {
   private readonly ownersApi = inject(OwnersApiService);
   private readonly cdr = inject(ChangeDetectorRef);
   private ownerId = '';
+  private returnToOwnersListAfterDetail = false;
 
   protected owner: ClientResponseApiResponse | null = null;
   protected isLoading = true;
@@ -78,6 +79,7 @@ export class OwnerEditPageComponent implements OnInit {
     }
 
     this.ownerId = ownerId;
+    this.returnToOwnersListAfterDetail = history.state?.returnToOwnersListAfterDetail === true;
     void this.loadOwner();
   }
 
@@ -95,7 +97,7 @@ export class OwnerEditPageComponent implements OnInit {
     try {
       const payload = this.buildPayload(this.form.getRawValue() as EditOwnerFormValue);
       await firstValueFrom(this.ownersApi.updateClient(this.owner.id, payload));
-      void this.router.navigate(['/owners', this.owner.id]);
+      void this.navigateToOwnerDetail();
     } catch (error: unknown) {
       this.errorMessage = resolveApiErrorMessage(error, {
         defaultMessage: 'No se pudo actualizar el propietario.',
@@ -156,5 +158,23 @@ export class OwnerEditPageComponent implements OnInit {
       default:
         return 'F';
     }
+  }
+
+  protected cancel(): void {
+    if (!this.owner) {
+      void this.router.navigate(['/owners']);
+      return;
+    }
+
+    void this.navigateToOwnerDetail();
+  }
+
+  private navigateToOwnerDetail(): Promise<boolean> {
+    return this.router.navigate(['/owners', this.ownerId], {
+      replaceUrl: true,
+      state: {
+        forceBackToOwnersList: this.returnToOwnersListAfterDetail,
+      },
+    });
   }
 }
