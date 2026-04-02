@@ -3,11 +3,40 @@
 }
 
 .appointment-month-grid {
-  grid-auto-rows: minmax(136px, 1fr);
+  grid-auto-rows: minmax(224px, 1fr);
+}
+
+.calendar-scroll-area,
+.appointment-day-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(85, 99, 119, 0.35) transparent;
+}
+
+.calendar-scroll-area::-webkit-scrollbar,
+.appointment-day-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.calendar-scroll-area::-webkit-scrollbar-thumb,
+.appointment-day-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(85, 99, 119, 0.35);
+}
+
+.calendar-scroll-area::-webkit-scrollbar-track,
+.appointment-day-scroll::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .appointment-card-status {
   border-width: 1px;
+}
+
+.month-status-chip {
+  max-width: 72px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .appointment-card-status--scheduled {
@@ -38,6 +67,12 @@
   border-color: #f7c3c0;
   background-color: #fef3f2;
   color: #b42318;
+}
+
+.appointment-card-status--no-show {
+  border-color: #f7d7a8;
+  background-color: #fff8eb;
+  color: #b54708;
 }
 
 .appointment-card-avatar {

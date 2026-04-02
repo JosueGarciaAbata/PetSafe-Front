@@ -1,0 +1,322 @@
+<div class="flex h-full flex-col overflow-hidden bg-background">
+  <!-- Encabezado superior tipo barra -->
+  <header class="flex items-center justify-between border-b border-border bg-white px-6 py-4 shadow-sm">
+    <div class="flex items-center gap-4">
+      <button
+        type="button"
+        (click)="goBack()"
+        class="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+        title="Volver a la cola"
+      >
+        <span class="material-symbols-rounded text-text-secondary">arrow_back</span>
+      </button>
+
+      <div>
+        <h1 class="text-xl font-bold tracking-tight text-text-primary">
+          {{ encounter?.patient?.name || 'Cargando consulta...' }}
+        </h1>
+        @if (encounter) {
+          <p class="text-sm font-medium text-text-secondary">
+            {{ encounter.patient.species }} • {{ encounter.patient.breed }}
+          </p>
+        }
+      </div>
+    </div>
+
+    <!-- Acciones globales -->
+    @if (encounter) {
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 rounded-full border border-border bg-gray-50 px-3 py-1.5 shadow-sm">
+          <span class="h-2 w-2 rounded-full bg-green-500"></span>
+          <span class="text-sm font-semibold tracking-wide text-text-primary">EN ATENCIÓN</span>
+        </div>
+        <button
+          type="button"
+          [disabled]="isSaving"
+          (click)="finishEncounter()"
+          class="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-all hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
+        >
+          <span class="material-symbols-rounded text-lg">check_circle</span>
+          Finalizar Atención
+        </button>
+      </div>
+    }
+  </header>
+
+  <!-- Contenido principal -->
+  <main class="flex flex-1 overflow-hidden" *ngIf="!isLoading && encounter; else loadingOrError">
+    <!-- Barra lateral izquierda para Pestañas -->
+    <aside class="w-64 border-r border-border bg-gray-50 p-4 shrink-0 flex flex-col gap-2">
+      <h2 class="mb-2 text-xs font-bold uppercase tracking-wider text-text-secondary">Menú Clínico</h2>
+      
+      <button
+        type="button"
+        (click)="activeTab = 'REASON'"
+        [class.bg-white]="activeTab === 'REASON'"
+        [class.shadow-sm]="activeTab === 'REASON'"
+        [class.text-primary]="activeTab === 'REASON'"
+        [class.text-text-secondary]="activeTab !== 'REASON'"
+        class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left font-medium transition-all hover:bg-white/60"
+      >
+        <span class="material-symbols-rounded">chat_error</span>
+        Motivo
+      </button>
+
+      <button
+        type="button"
+        (click)="activeTab = 'ANAMNESIS'"
+        [class.bg-white]="activeTab === 'ANAMNESIS'"
+        [class.shadow-sm]="activeTab === 'ANAMNESIS'"
+        [class.text-primary]="activeTab === 'ANAMNESIS'"
+        [class.text-text-secondary]="activeTab !== 'ANAMNESIS'"
+        class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left font-medium transition-all hover:bg-white/60"
+      >
+        <span class="material-symbols-rounded">history_edu</span>
+        Anamnesis
+      </button>
+
+      <button
+        type="button"
+        (click)="activeTab = 'EXAM'"
+        [class.bg-white]="activeTab === 'EXAM'"
+        [class.shadow-sm]="activeTab === 'EXAM'"
+        [class.text-primary]="activeTab === 'EXAM'"
+        [class.text-text-secondary]="activeTab !== 'EXAM'"
+        class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left font-medium transition-all hover:bg-white/60"
+      >
+        <span class="material-symbols-rounded">medical_information</span>
+        Examen Físico
+      </button>
+
+      <button
+        type="button"
+        (click)="activeTab = 'IMPRESSION'"
+        [class.bg-white]="activeTab === 'IMPRESSION'"
+        [class.shadow-sm]="activeTab === 'IMPRESSION'"
+        [class.text-primary]="activeTab === 'IMPRESSION'"
+        [class.text-text-secondary]="activeTab !== 'IMPRESSION'"
+        class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left font-medium transition-all hover:bg-white/60"
+      >
+        <span class="material-symbols-rounded">psychiatry</span>
+        Pre-diagnóstico
+      </button>
+
+      <button
+        type="button"
+        (click)="activeTab = 'PLAN'"
+        [class.bg-white]="activeTab === 'PLAN'"
+        [class.shadow-sm]="activeTab === 'PLAN'"
+        [class.text-primary]="activeTab === 'PLAN'"
+        [class.text-text-secondary]="activeTab !== 'PLAN'"
+        class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left font-medium transition-all hover:bg-white/60"
+      >
+        <span class="material-symbols-rounded">description</span>
+        Plan y Recetas
+      </button>
+    </aside>
+
+    <!-- Área de trabajo central -->
+    <div class="flex-1 overflow-y-auto bg-white p-8">
+      <div class="mx-auto max-w-4xl rounded-xl border border-border bg-white shadow-sm overflow-hidden">
+        
+        <!-- MOTIVO -->
+        <section *ngIf="activeTab === 'REASON'" class="p-6">
+          <div class="mb-6 flex items-center justify-between">
+            <h3 class="text-xl font-bold text-text-primary">Motivo de la Consulta</h3>
+            <button
+              [disabled]="isSaving"
+              (click)="saveReason()"
+              class="rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-text-primary hover:bg-gray-200"
+            >
+              Guardar Sección
+            </button>
+          </div>
+          
+          <form [formGroup]="reasonForm" class="grid gap-6">
+            <div class="space-y-1">
+              <label class="text-sm font-semibold text-text-secondary">Motivo principal reportado</label>
+              <textarea
+                formControlName="consultationReason"
+                placeholder="Escribe el motivo..."
+                class="min-h-[100px] w-full resize-y rounded-lg border border-border bg-background px-4 py-3 text-text-primary placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              ></textarea>
+            </div>
+            <div class="space-y-1">
+              <label class="text-sm font-semibold text-text-secondary">Historia de la enfermedad actual</label>
+              <textarea
+                formControlName="currentIllnessHistory"
+                class="min-h-[100px] w-full resize-y rounded-lg border border-border bg-background px-4 py-3 text-text-primary placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              ></textarea>
+            </div>
+          </form>
+        </section>
+
+        <!-- ANAMNESIS -->
+        <section *ngIf="activeTab === 'ANAMNESIS'" class="p-6">
+          <div class="mb-6 flex items-center justify-between">
+            <h3 class="text-xl font-bold text-text-primary">Anamnesis Previas</h3>
+            <button
+              [disabled]="isSaving"
+              (click)="saveAnamnesis()"
+              class="rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-text-primary hover:bg-gray-200"
+            >
+              Guardar Anamnesis
+            </button>
+          </div>
+          
+          <form [formGroup]="anamnesisForm" class="grid gap-6">
+            <div class="space-y-1">
+              <label class="text-sm font-semibold text-text-secondary">Inicio del problema actual</label>
+              <input
+                type="text"
+                formControlName="problemStartText"
+                class="w-full rounded-lg border border-border bg-background px-4 py-3 text-text-primary"
+              />
+            </div>
+            <div class="grid grid-cols-2 gap-6">
+              <label class="flex items-center gap-3">
+                <input type="checkbox" formControlName="vaccinesUpToDate" class="h-5 w-5 rounded border-gray-300 text-primary" />
+                <span class="text-sm font-medium">Vacunas al día</span>
+              </label>
+              <label class="flex items-center gap-3">
+                <input type="checkbox" formControlName="dewormingUpToDate" class="h-5 w-5 rounded border-gray-300 text-primary" />
+                <span class="text-sm font-medium">Desparasitación al día</span>
+              </label>
+            </div>
+            <div class="space-y-1">
+              <label class="text-sm font-semibold text-text-secondary">Otras notas y hábitos</label>
+              <textarea
+                formControlName="notes"
+                class="min-h-[100px] w-full rounded-lg border border-border bg-background px-4 py-3 text-text-primary"
+              ></textarea>
+            </div>
+          </form>
+        </section>
+
+        <!-- EXAMEN FISICO -->
+        <section *ngIf="activeTab === 'EXAM'" class="p-6">
+          <div class="mb-6 flex items-center justify-between">
+            <h3 class="text-xl font-bold text-text-primary">Examen Físico / Constantes</h3>
+            <button
+              [disabled]="isSaving"
+              (click)="saveExam()"
+              class="rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-text-primary hover:bg-gray-200"
+            >
+              Guardar Constantes
+            </button>
+          </div>
+          
+          <form [formGroup]="examForm" class="grid gap-6 md:grid-cols-2">
+            <div class="space-y-1">
+              <label class="text-sm font-semibold text-text-secondary">Peso (Kg)</label>
+              <input
+                type="number"
+                step="0.1"
+                formControlName="weightKg"
+                class="w-full rounded-lg border border-border bg-background px-4 py-3 text-text-primary"
+              />
+            </div>
+            <div class="space-y-1">
+              <label class="text-sm font-semibold text-text-secondary">Temperatura (°C)</label>
+              <input
+                type="number"
+                step="0.1"
+                formControlName="temperatureC"
+                class="w-full rounded-lg border border-border bg-background px-4 py-3 text-text-primary"
+              />
+            </div>
+            <div class="space-y-1">
+              <label class="text-sm font-semibold text-text-secondary">Frecuencia Cardíaca (LPM)</label>
+              <input
+                type="number"
+                formControlName="heartRate"
+                class="w-full rounded-lg border border-border bg-background px-4 py-3 text-text-primary"
+              />
+            </div>
+            <div class="col-span-full space-y-1">
+              <label class="text-sm font-semibold text-text-secondary">Hallazgos Clínicos Adicionales</label>
+              <textarea
+                formControlName="examNotes"
+                class="min-h-[100px] w-full rounded-lg border border-border bg-background px-4 py-3 text-text-primary"
+              ></textarea>
+            </div>
+          </form>
+        </section>
+
+        <!-- DIAGNOSTICO -->
+        <section *ngIf="activeTab === 'IMPRESSION'" class="p-6">
+          <div class="mb-6 flex items-center justify-between">
+            <h3 class="text-xl font-bold text-text-primary">Pre-diagnóstico</h3>
+            <button
+              [disabled]="isSaving"
+              (click)="saveImpression()"
+              class="rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-text-primary hover:bg-gray-200"
+            >
+              Guardar Diagnóstico
+            </button>
+          </div>
+          <form [formGroup]="impressionForm" class="grid gap-6">
+            <div class="space-y-1">
+              <label class="text-sm font-semibold text-text-secondary">Diagnóstico Presuntivo</label>
+              <textarea
+                formControlName="presumptiveDiagnosis"
+                class="min-h-[80px] w-full rounded-lg border border-border bg-background px-4 py-3 text-text-primary"
+              ></textarea>
+            </div>
+            <div class="space-y-1">
+              <label class="text-sm font-semibold text-text-secondary">Observaciones de Diagnóstico</label>
+              <textarea
+                formControlName="clinicalNotes"
+                class="min-h-[100px] w-full rounded-lg border border-border bg-background px-4 py-3 text-text-primary"
+              ></textarea>
+            </div>
+          </form>
+        </section>
+
+        <!-- PLAN -->
+        <section *ngIf="activeTab === 'PLAN'" class="p-6">
+          <div class="mb-6 flex items-center justify-between">
+            <h3 class="text-xl font-bold text-text-primary">Plan a seguir</h3>
+            <button
+              [disabled]="isSaving"
+              (click)="savePlan()"
+              class="rounded-lg bg-gray-100 px-4 py-2 text-sm font-semibold text-text-primary hover:bg-gray-200"
+            >
+              Guardar Plan
+            </button>
+          </div>
+          <form [formGroup]="planForm" class="grid gap-6">
+            <div class="space-y-1">
+              <label class="text-sm font-semibold text-text-secondary">Plan Clínico y Tratamiento</label>
+              <textarea
+                formControlName="clinicalPlan"
+                class="min-h-[150px] w-full rounded-lg border border-border bg-background px-4 py-3 text-text-primary"
+              ></textarea>
+            </div>
+            <div class="space-y-1">
+              <label class="text-sm font-semibold text-text-secondary">Notas Adicionales</label>
+              <textarea
+                formControlName="planNotes"
+                class="min-h-[100px] w-full rounded-lg border border-border bg-background px-4 py-3 text-text-primary"
+              ></textarea>
+            </div>
+          </form>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <ng-template #loadingOrError>
+    <div class="flex flex-1 flex-col items-center justify-center p-8 text-center text-text-secondary">
+      @if (isLoading) {
+        <div class="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+        <p class="mt-4 font-medium">Abriendo historia clínica...</p>
+      } @else if (loadError) {
+        <span class="material-symbols-rounded mb-2 text-4xl text-red-500">error</span>
+        <p class="font-medium text-red-700">{{ loadError }}</p>
+        <button type="button" (click)="goBack()" class="mt-4 rounded bg-primary px-4 py-2 text-white">Volver a cola</button>
+      }
+    </div>
+  </ng-template>
+</div>

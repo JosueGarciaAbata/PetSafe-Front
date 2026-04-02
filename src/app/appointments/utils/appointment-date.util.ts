@@ -29,6 +29,10 @@ export function addDays(date: Date, amount: number): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() + amount);
 }
 
+export function addMonths(date: Date, amount: number): Date {
+  return new Date(date.getFullYear(), date.getMonth() + amount, date.getDate());
+}
+
 export function startOfMonth(dateKey: string): Date {
   const date = parseDateKey(dateKey);
   return new Date(date.getFullYear(), date.getMonth(), 1);

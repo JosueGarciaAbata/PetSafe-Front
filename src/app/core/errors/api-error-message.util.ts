@@ -70,7 +70,8 @@ export function resolveApiErrorMessage(
   }
 
   if (error.status === 0) {
-    return options.networkMessage ?? 'No fue posible conectar con el servidor. Intenta nuevamente.';
+    const debugMsg = `${error.name}: ${error.message}`;
+    return options.networkMessage ?? `Error de conexión: ${debugMsg}`;
   }
 
   if (

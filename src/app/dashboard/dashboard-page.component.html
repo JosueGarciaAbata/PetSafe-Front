@@ -1,0 +1,81 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-8 pb-12 pt-6">
+  <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+    <header class="flex flex-col gap-1">
+      <h1 class="text-[28px] font-bold text-text-primary">Dashboard</h1>
+      <p class="text-base text-text-secondary">
+        Resumen operativo de hoy, {{ todayLabel }}
+      </p>
+    </header>
+  </div>
+
+  @if (isLoading) {
+    <div class="flex items-center justify-center p-12">
+      <div class="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent"></div>
+    </div>
+  } @else if (loadError) {
+    <div class="flex items-center justify-between rounded-xl border border-[#FFB8B8] bg-[#FFE0E0] p-4 text-[#990000]">
+      <span class="text-sm font-medium">{{ loadError }}</span>
+      <button type="button" class="text-sm font-bold underline hover:opacity-80" (click)="loadMetrics()">Reintentar</button>
+    </div>
+  } @else if (metrics) {
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      
+      <!-- Citas Pendientes -->
+      <div class="relative overflow-hidden rounded-[16px] border border-[#B8E2FF] bg-[#F4F9FF] p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-[#005299]">Citas de Hoy</h3>
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#005299] shadow-sm">
+            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+        </div>
+        <p class="text-4xl font-black text-[#003866]">{{ metrics.pendingAppointments }}</p>
+        <p class="mt-2 text-xs font-semibold text-[#005299]/70">Por atender o confirmar</p>
+      </div>
+
+      <!-- En Cola de Espera -->
+      <div class="relative overflow-hidden rounded-[16px] border border-[#FFDDAA] bg-[#FFF8EE] p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-[#995700]">En Cola</h3>
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#995700] shadow-sm">
+            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+        </div>
+        <p class="text-4xl font-black text-[#663A00]">{{ metrics.waitingInQueue }}</p>
+        <p class="mt-2 text-xs font-semibold text-[#995700]/70">Pacientes físicamente esperando</p>
+      </div>
+
+      <!-- Atenciones Activas -->
+      <div class="relative overflow-hidden rounded-[16px] border border-brand/20 bg-brand/5 p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-brand">En Consulta</h3>
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white text-brand shadow-sm">
+            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+          </div>
+        </div>
+        <p class="text-4xl font-black text-brand">{{ metrics.activeEncounters }}</p>
+        <p class="mt-2 text-xs font-semibold text-brand/70">Consultas en progreso ahora</p>
+      </div>
+
+      <!-- Atenciones Finalizadas -->
+      <div class="relative overflow-hidden rounded-[16px] border border-[#BDE8B4] bg-[#F1FCEF] p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-[#1D7A04]">Finalizados</h3>
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#1D7A04] shadow-sm">
+            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+        </div>
+        <p class="text-4xl font-black text-[#135A02]">{{ metrics.finishedEncountersToday }}</p>
+        <p class="mt-2 text-xs font-semibold text-[#1D7A04]/70">Atenciones completadas hoy</p>
+      </div>
+
+    </div>
+  }
+</div>

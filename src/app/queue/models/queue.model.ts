@@ -62,13 +62,10 @@ export interface QueueListResponse {
 }
 
 export interface QueueEntryCreateRequest {
-  patientName: string;
-  patientSpecies: string;
-  patientBreed: string;
-  tutorName: string;
-  tutorPhone: string;
-  veterinarianId: number;
+  patientId: number;
+  veterinarianId?: number | null;
   entryType: QueueEntryType;
+  appointmentId?: number | null;
   scheduledTime?: string | null;
   notes?: string | null;
 }

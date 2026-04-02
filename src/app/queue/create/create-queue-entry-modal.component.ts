@@ -18,7 +18,6 @@ import { PetsApiService } from '@app/pets/services/pets-api.service';
 import { PetListItemApiResponse } from '@app/pets/models/pet-list.model';
 import { QueueApiService } from '../api/queue-api.service';
 import {
-  QUEUE_VETERINARIANS,
   QueueEntryCreateRequest,
   QueueEntryType,
 } from '../models/queue.model';
@@ -48,7 +47,6 @@ export class QueueIntakePageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly defaultVeterinarianId = QUEUE_VETERINARIANS[0].id;
   private readonly lookupLimit = 5;
   private lookupRequestVersion = 0;
   private tutorPetsRequestVersion = 0;
@@ -258,12 +256,7 @@ export class QueueIntakePageComponent implements OnInit {
     try {
       const value = this.form.getRawValue();
       const payload: QueueEntryCreateRequest = {
-        patientName: value.patientName.trim(),
-        patientSpecies: value.patientSpecies.trim(),
-        patientBreed: value.patientBreed.trim(),
-        tutorName: value.tutorName.trim(),
-        tutorPhone: value.tutorPhone.trim(),
-        veterinarianId: this.defaultVeterinarianId,
+        patientId: this.selectedPet.id,
         entryType: value.isEmergency ? 'EMERGENCIA' : this.initialEntryType,
         scheduledTime: value.scheduledTime.trim() || null,
         notes: value.notes.trim() || null,

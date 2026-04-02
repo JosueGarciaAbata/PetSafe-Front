@@ -40,9 +40,10 @@ export const routes: Routes = [
         canActivate: [authGuard],
         data: { roles: adminRoles },
         loadComponent: () =>
-          import('@app/internal-section-page/internal-section-page.component').then(
-            (m) => m.InternalSectionPageComponent,
+          import('@app/dashboard/dashboard-page.component').then(
+            (m) => m.DashboardPageComponent,
           ),
+
       },
       {
         path: 'owners',
@@ -146,6 +147,15 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'encounters/:id',
+        canActivate: [authGuard],
+        data: { roles: adminRoles },
+        loadComponent: () =>
+          import('@app/encounters/workspace/encounter-workspace-page.component').then(
+            (m) => m.EncounterWorkspacePageComponent,
+          ),
+      },
+      {
         path: 'treatments',
         canActivate: [authGuard],
         data: { roles: adminRoles },
@@ -168,8 +178,8 @@ export const routes: Routes = [
         canActivate: [authGuard],
         data: { roles: adminRoles },
         loadComponent: () =>
-          import('@app/internal-section-page/internal-section-page.component').then(
-            (m) => m.InternalSectionPageComponent,
+          import('@app/reports/list/reports-page.component').then(
+            (m) => m.ReportsPageComponent,
           ),
       },
       {
