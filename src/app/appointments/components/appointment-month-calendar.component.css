@@ -62,10 +62,73 @@
   border-width: 1px;
 }
 
-.month-status-chip {
-  max-width: 72px;
+.appointment-month-card {
+  min-width: 0;
+}
+
+.appointment-card-content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.appointment-card-time {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--ps-text-secondary);
+}
+
+.appointment-card-heading {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.appointment-card-patient {
+  min-width: 0;
+  flex: 1 1 auto;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ps-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appointment-card-details {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.appointment-card-detail {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--ps-text-secondary);
+}
+
+.appointment-card-detail--notes {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  overflow: hidden;
+}
+
+.month-status-chip {
+  max-width: 100%;
+  white-space: nowrap;
 }
 
 .appointment-card-status--scheduled {

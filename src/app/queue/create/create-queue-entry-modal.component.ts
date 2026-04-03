@@ -9,6 +9,9 @@ import {
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged, firstValueFrom, map, tap } from 'rxjs';
 import { OwnersApiService } from '@app/owners/api/owners-api.service';
@@ -17,10 +20,7 @@ import { ClientTutorBasicApiResponse } from '@app/owners/models/client-tutor-bas
 import { PetsApiService } from '@app/pets/services/pets-api.service';
 import { PetListItemApiResponse } from '@app/pets/models/pet-list.model';
 import { QueueApiService } from '../api/queue-api.service';
-import {
-  QueueEntryCreateRequest,
-  QueueEntryType,
-} from '../models/queue.model';
+import { QueueEntryCreateRequest, QueueEntryType } from '../models/queue.model';
 
 interface QueueSelectedPet {
   id: number;
@@ -31,10 +31,26 @@ interface QueueSelectedPet {
   tutorPhone: string;
 }
 
+interface QueueLookupResult {
+  id: string;
+  type: 'pet' | 'tutor';
+  title: string;
+  subtitle: string;
+  detail: string;
+  pet?: PetListItemApiResponse;
+  tutor?: ClientTutorBasicApiResponse;
+}
+
 @Component({
   selector: 'app-queue-intake-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatAutocompleteModule,
+    MatFormFieldModule,
+    MatInputModule,
+  ],
   templateUrl: './create-queue-entry-modal.component.html',
   styleUrl: './create-queue-entry-modal.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,21 +63,27 @@ export class QueueIntakePageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly lookupLimit = 5;
+  private readonly lookupLimit = 6;
   private lookupRequestVersion = 0;
   private tutorPetsRequestVersion = 0;
 
-  protected readonly lookupControl = new FormControl('', { nonNullable: true });
+  protected readonly lookupControl = new FormControl<string | QueueLookupResult>('', {
+    nonNullable: true,
+  });
+  protected readonly tutorPetControl = new FormControl<string | ClientPetApiResponse>('', {
+    nonNullable: true,
+  });
   protected initialEntryType: QueueEntryType = 'SIN_CITA';
+  protected readonly displayLookupValue = (
+    value: string | QueueLookupResult | null,
+  ): string => (typeof value === 'string' ? value : value?.title ?? '');
+  protected readonly displayTutorPetValue = (
+    value: string | ClientPetApiResponse | null,
+  ): string => (typeof value === 'string' ? value : value?.name?.trim() ?? '');
 
   protected readonly form = this.fb.nonNullable.group({
-    patientName: ['', [Validators.required, Validators.maxLength(120)]],
-    patientSpecies: ['', [Validators.required, Validators.maxLength(80)]],
-    patientBreed: ['', [Validators.required, Validators.maxLength(80)]],
-    tutorName: ['', [Validators.required, Validators.maxLength(120)]],
-    tutorPhone: ['', [Validators.required, Validators.maxLength(25)]],
     scheduledTime: [''],
-    notes: [''],
+    notes: ['', [Validators.maxLength(600)]],
     isEmergency: [false],
   });
 
@@ -71,8 +93,7 @@ export class QueueIntakePageComponent implements OnInit {
   protected lookupError: string | null = null;
   protected tutorPetsError: string | null = null;
   protected errorMessage: string | null = null;
-  protected tutorMatches: readonly ClientTutorBasicApiResponse[] = [];
-  protected petMatches: readonly PetListItemApiResponse[] = [];
+  protected lookupResults: readonly QueueLookupResult[] = [];
   protected selectedTutor: ClientTutorBasicApiResponse | null = null;
   protected selectedTutorPets: readonly ClientPetApiResponse[] = [];
   protected selectedPet: QueueSelectedPet | null = null;
@@ -87,9 +108,13 @@ export class QueueIntakePageComponent implements OnInit {
 
     this.lookupControl.valueChanges
       .pipe(
-        tap((value) => this.handleLookupChange(value)),
+        tap((value) => {
+          if (typeof value === 'string') {
+            this.handleLookupChange(value);
+          }
+        }),
         debounceTime(300),
-        map((value) => value.trim()),
+        map((value) => (typeof value === 'string' ? value.trim() : '')),
         distinctUntilChanged(),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -106,24 +131,59 @@ export class QueueIntakePageComponent implements OnInit {
     void this.backToQueue();
   }
 
+  protected get entryModeLabel(): string {
+    return this.initialEntryType === 'CON_CITA' ? 'Con cita' : 'Sin cita';
+  }
+
   protected hasLookupTerm(): boolean {
-    return this.lookupControl.value.trim().length > 0;
+    return typeof this.lookupControl.value === 'string' && this.lookupControl.value.trim().length > 0;
+  }
+
+  protected hasTutorPetTerm(): boolean {
+    return (
+      typeof this.tutorPetControl.value === 'string' &&
+      this.tutorPetControl.value.trim().length > 0
+    );
+  }
+
+  protected get petLookupResults(): readonly QueueLookupResult[] {
+    return this.lookupResults.filter((result) => result.type === 'pet');
+  }
+
+  protected get tutorLookupResults(): readonly QueueLookupResult[] {
+    return this.lookupResults.filter((result) => result.type === 'tutor');
+  }
+
+  protected get hasLookupResults(): boolean {
+    return this.lookupResults.length > 0;
   }
 
   protected clearSelection(): void {
     this.lookupRequestVersion++;
     this.tutorPetsRequestVersion++;
+    this.lookupControl.setValue('', { emitEvent: false });
+    this.tutorPetControl.setValue('', { emitEvent: false });
+    this.lookupResults = [];
     this.selectedTutor = null;
     this.selectedTutorPets = [];
     this.selectedPet = null;
-    this.lookupControl.setValue('', { emitEvent: false });
-    this.tutorMatches = [];
-    this.petMatches = [];
     this.lookupError = null;
     this.tutorPetsError = null;
     this.errorMessage = null;
     this.isSearching = false;
-    this.patchSelectionIntoForm(null);
+    this.isLoadingTutorPets = false;
+    this.cdr.markForCheck();
+  }
+
+  protected resetTutorSelection(): void {
+    this.tutorPetsRequestVersion++;
+    this.lookupControl.setValue('', { emitEvent: false });
+    this.tutorPetControl.setValue('', { emitEvent: false });
+    this.selectedTutor = null;
+    this.selectedTutorPets = [];
+    this.tutorPetsError = null;
+    this.isLoadingTutorPets = false;
+    this.errorMessage = null;
     this.cdr.markForCheck();
   }
 
@@ -136,46 +196,53 @@ export class QueueIntakePageComponent implements OnInit {
   }
 
   protected buildPetSubtitle(
-    pet: Pick<PetListItemApiResponse, 'species' | 'breed'> | Pick<ClientPetApiResponse, 'species' | 'breed'>,
+    pet:
+      | Pick<PetListItemApiResponse, 'species' | 'breed'>
+      | Pick<ClientPetApiResponse, 'species' | 'breed'>,
   ): string {
     const species = pet.species?.name?.trim() || 'Sin especie registrada';
     const breed = pet.breed?.name?.trim() || 'Sin raza registrada';
-    return `${species} · ${breed}`;
+    return `${species} | ${breed}`;
   }
 
-  protected selectTutor(tutor: ClientTutorBasicApiResponse): void {
-    this.lookupRequestVersion++;
-    this.tutorPetsRequestVersion++;
-    this.selectedTutor = tutor;
-    this.selectedTutorPets = [];
-    this.selectedPet = null;
-    this.lookupError = null;
-    this.tutorPetsError = null;
-    this.errorMessage = null;
-    this.tutorMatches = [];
-    this.petMatches = [];
-    this.lookupControl.setValue('', { emitEvent: false });
-    this.patchSelectionIntoForm(null);
-    void this.loadTutorPets(tutor);
-    this.cdr.markForCheck();
+  protected buildPetTutorMeta(pet: PetListItemApiResponse): string {
+    const tutorName = pet.tutorName?.trim() || 'Sin tutor registrado';
+    const tutorPhone = pet.tutorContact?.trim() || 'Sin telefono registrado';
+    return `${tutorName} | ${tutorPhone}`;
   }
 
-  protected selectGlobalPet(pet: PetListItemApiResponse): void {
-    const selection = this.buildGlobalPetSelection(pet);
+  protected getInitials(value: string): string {
+    const parts = value.trim().split(/\s+/).filter(Boolean);
+    const firstInitial = parts[0]?.charAt(0) ?? '';
+    const secondInitial = parts[1]?.charAt(0) ?? parts[0]?.charAt(1) ?? '';
+    return `${firstInitial}${secondInitial}`.trim().toUpperCase() || 'Q';
+  }
 
-    this.lookupRequestVersion++;
-    this.tutorPetsRequestVersion++;
-    this.selectedTutor = null;
-    this.selectedTutorPets = [];
-    this.selectedPet = selection;
-    this.lookupError = null;
-    this.tutorPetsError = null;
-    this.errorMessage = null;
-    this.tutorMatches = [];
-    this.petMatches = [];
-    this.lookupControl.setValue('', { emitEvent: false });
-    this.patchSelectionIntoForm(selection);
-    this.cdr.markForCheck();
+  protected onLookupOptionSelection(isUserInput: boolean, result: QueueLookupResult): void {
+    if (!isUserInput) {
+      return;
+    }
+
+    this.onLookupResultSelect(result);
+  }
+
+  protected onLookupResultSelect(result: QueueLookupResult): void {
+    if (result.type === 'pet' && result.pet) {
+      this.selectGlobalPet(result.pet);
+      return;
+    }
+
+    if (result.type === 'tutor' && result.tutor) {
+      this.selectTutor(result.tutor);
+    }
+  }
+
+  protected onTutorPetOptionSelection(isUserInput: boolean, pet: ClientPetApiResponse): void {
+    if (!isUserInput) {
+      return;
+    }
+
+    this.selectTutorPet(pet);
   }
 
   protected selectTutorPet(pet: ClientPetApiResponse): void {
@@ -183,20 +250,31 @@ export class QueueIntakePageComponent implements OnInit {
       return;
     }
 
-    const selection = this.buildTutorPetSelection(pet, this.selectedTutor);
-    this.lookupRequestVersion++;
-    this.tutorPetsRequestVersion++;
-    this.selectedTutor = null;
-    this.selectedTutorPets = [];
-    this.selectedPet = selection;
-    this.lookupError = null;
-    this.tutorPetsError = null;
-    this.errorMessage = null;
-    this.tutorMatches = [];
-    this.petMatches = [];
-    this.lookupControl.setValue('', { emitEvent: false });
-    this.patchSelectionIntoForm(selection);
-    this.cdr.markForCheck();
+    this.applySelection(this.buildTutorPetSelection(pet, this.selectedTutor));
+  }
+
+  protected retrySelectedTutorPets(): void {
+    if (!this.selectedTutor || this.isLoadingTutorPets) {
+      return;
+    }
+
+    void this.loadTutorPets(this.selectedTutor);
+  }
+
+  protected filteredTutorPets(): readonly ClientPetApiResponse[] {
+    const value = this.tutorPetControl.value;
+    const search = typeof value === 'string' ? value.trim().toLowerCase() : '';
+
+    if (!search) {
+      return this.selectedTutorPets;
+    }
+
+    return this.selectedTutorPets.filter((pet) => {
+      const name = pet.name?.trim().toLowerCase() ?? '';
+      const species = pet.species?.name?.trim().toLowerCase() ?? '';
+      const breed = pet.breed?.name?.trim().toLowerCase() ?? '';
+      return name.includes(search) || species.includes(search) || breed.includes(search);
+    });
   }
 
   protected openOwnersModule(): void {
@@ -237,7 +315,7 @@ export class QueueIntakePageComponent implements OnInit {
     }
 
     if (!this.selectedPet) {
-      this.errorMessage = 'Selecciona un paciente existente para continuar.';
+      this.errorMessage = 'Selecciona un paciente antes de registrar el ingreso.';
       this.cdr.markForCheck();
       return;
     }
@@ -279,8 +357,7 @@ export class QueueIntakePageComponent implements OnInit {
     this.lookupError = null;
 
     if (!term) {
-      this.tutorMatches = [];
-      this.petMatches = [];
+      this.lookupResults = [];
       this.isSearching = false;
       this.cdr.markForCheck();
       return;
@@ -311,15 +388,13 @@ export class QueueIntakePageComponent implements OnInit {
         return;
       }
 
-      this.tutorMatches = tutorsResponse;
-      this.petMatches = petsResponse.data;
+      this.lookupResults = this.buildLookupResults(petsResponse.data, tutorsResponse);
     } catch {
       if (requestToken !== this.lookupRequestVersion) {
         return;
       }
 
-      this.tutorMatches = [];
-      this.petMatches = [];
+      this.lookupResults = [];
       this.lookupError = 'No se pudo buscar en el sistema.';
     } finally {
       if (requestToken !== this.lookupRequestVersion) {
@@ -334,13 +409,20 @@ export class QueueIntakePageComponent implements OnInit {
   private handleLookupChange(rawValue: string): void {
     const term = rawValue.trim();
 
+    this.lookupRequestVersion++;
     this.lookupError = null;
     this.tutorPetsError = null;
     this.errorMessage = null;
 
+    if (this.selectedTutor) {
+      this.tutorPetsRequestVersion++;
+      this.selectedTutor = null;
+      this.selectedTutorPets = [];
+      this.isLoadingTutorPets = false;
+    }
+
     if (!term) {
-      this.tutorMatches = [];
-      this.petMatches = [];
+      this.lookupResults = [];
       this.isSearching = false;
       this.cdr.markForCheck();
       return;
@@ -348,6 +430,23 @@ export class QueueIntakePageComponent implements OnInit {
 
     this.isSearching = true;
     this.cdr.markForCheck();
+  }
+
+  private selectTutor(tutor: ClientTutorBasicApiResponse): void {
+    this.tutorPetsRequestVersion++;
+    this.lookupControl.setValue('', { emitEvent: false });
+    this.tutorPetControl.setValue('', { emitEvent: false });
+    this.lookupResults = [];
+    this.selectedTutor = tutor;
+    this.selectedTutorPets = [];
+    this.tutorPetsError = null;
+    this.errorMessage = null;
+    void this.loadTutorPets(tutor);
+    this.cdr.markForCheck();
+  }
+
+  private selectGlobalPet(pet: PetListItemApiResponse): void {
+    this.applySelection(this.buildGlobalPetSelection(pet));
   }
 
   private async loadTutorPets(tutor: ClientTutorBasicApiResponse): Promise<void> {
@@ -382,6 +481,48 @@ export class QueueIntakePageComponent implements OnInit {
     }
   }
 
+  private buildLookupResults(
+    pets: readonly PetListItemApiResponse[],
+    tutors: readonly ClientTutorBasicApiResponse[],
+  ): QueueLookupResult[] {
+    const petResults = pets.map((pet) => ({
+      id: `pet-${pet.id}`,
+      type: 'pet' as const,
+      title: pet.name.trim(),
+      subtitle: this.buildPetSubtitle(pet),
+      detail: this.buildPetTutorMeta(pet),
+      pet,
+    }));
+
+    const tutorResults = tutors.map((tutor) => ({
+      id: `tutor-${tutor.id}`,
+      type: 'tutor' as const,
+      title: this.buildTutorLabel(tutor),
+      subtitle: this.buildTutorPhone(tutor),
+      detail: 'Selecciona el tutor para ver y elegir su mascota.',
+      tutor,
+    }));
+
+    return [...petResults, ...tutorResults];
+  }
+
+  private applySelection(selection: QueueSelectedPet): void {
+    this.lookupRequestVersion++;
+    this.tutorPetsRequestVersion++;
+    this.lookupControl.setValue('', { emitEvent: false });
+    this.tutorPetControl.setValue('', { emitEvent: false });
+    this.lookupResults = [];
+    this.selectedTutor = null;
+    this.selectedTutorPets = [];
+    this.selectedPet = selection;
+    this.lookupError = null;
+    this.tutorPetsError = null;
+    this.errorMessage = null;
+    this.isSearching = false;
+    this.isLoadingTutorPets = false;
+    this.cdr.markForCheck();
+  }
+
   private buildGlobalPetSelection(pet: PetListItemApiResponse): QueueSelectedPet {
     return {
       id: pet.id,
@@ -405,19 +546,6 @@ export class QueueIntakePageComponent implements OnInit {
       tutorName: this.buildTutorLabel(tutor),
       tutorPhone: this.buildTutorPhone(tutor),
     };
-  }
-
-  private patchSelectionIntoForm(selection: QueueSelectedPet | null): void {
-    this.form.patchValue(
-      {
-        patientName: selection?.name ?? '',
-        patientSpecies: selection?.species ?? '',
-        patientBreed: selection?.breed ?? '',
-        tutorName: selection?.tutorName ?? '',
-        tutorPhone: selection?.tutorPhone ?? '',
-      },
-      { emitEvent: false },
-    );
   }
 
   private getCurrentTime(): string {

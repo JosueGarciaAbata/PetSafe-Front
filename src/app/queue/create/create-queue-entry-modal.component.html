@@ -1,347 +1,373 @@
-<section class="queue-intake-page">
-  <header class="queue-intake-hero">
-    <button
-      type="button"
-      class="queue-intake-back-button"
-      (click)="close()"
-      aria-label="Volver"
-    >
-      <span class="queue-intake-back-button__icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="m15 18-6-6 6-6"></path>
-        </svg>
-      </span>
-    </button>
+<section class="mx-auto flex max-w-[1400px] flex-col gap-5 pb-12">
+  <button
+    type="button"
+    (click)="close()"
+    class="inline-flex items-center gap-2 self-start text-sm font-medium text-text-secondary transition-colors hover:text-brand"
+  >
+    <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="m15 18-6-6 6-6"></path>
+    </svg>
+    <span>Volver a cola</span>
+  </button>
 
-    <div class="queue-intake-hero__copy">
-      <h1>Nuevo ingreso</h1>
-    </div>
-  </header>
+  <div class="flex flex-col gap-1">
+    <h1 class="text-[28px] font-bold text-text-primary">Registrar ingreso</h1>
+  </div>
 
   @if (errorMessage) {
-    <div class="queue-intake-alert" role="alert">
-      <span>{{ errorMessage }}</span>
+    <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+      {{ errorMessage }}
     </div>
   }
 
-  <div class="queue-intake-layout">
-    @if (!selectedPet) {
-      <section class="queue-intake-card queue-intake-search-card">
-        <div class="queue-intake-card__header">
-          <div>
-            <h2>Paciente</h2>
-          </div>
+  <section class="overflow-hidden rounded-[16px] border border-border bg-card shadow-sm">
+    <div class="grid divide-y divide-border">
+      <section class="grid gap-4 px-6 py-5 sm:px-8">
+        <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Seleccion de paciente</h3>
 
-          @if (selectedTutor || hasLookupTerm()) {
-            <button type="button" (click)="clearSelection()" class="queue-link-button">
-              Limpiar busqueda
+          @if (selectedPet || selectedTutor || hasLookupTerm()) {
+            <button
+              type="button"
+              (click)="clearSelection()"
+              class="inline-flex items-center rounded-xl px-4 py-2 text-sm font-bold text-text-secondary transition-all hover:bg-background hover:text-text-primary"
+            >
+              Limpiar
             </button>
           }
         </div>
 
-        <label class="queue-intake-search">
-          <span class="sr-only">Buscar paciente o tutor</span>
-          <span class="queue-intake-search__field">
-            <svg class="queue-search__icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M10.5 4a6.5 6.5 0 1 1 4.06 11.55l4.44 4.45-1.42 1.41-4.45-4.44A6.5 6.5 0 0 1 10.5 4Zm0 2a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Z"
-                fill="currentColor"
+        @if (!selectedPet && !selectedTutor) {
+          <div class="grid w-full max-w-[720px] gap-2">
+            <label class="text-sm font-semibold text-text-primary">Paciente</label>
+
+            <mat-form-field
+              appearance="outline"
+              subscriptSizing="dynamic"
+              class="appointment-create-field w-full"
+            >
+              <input
+                matInput
+                type="text"
+                [formControl]="lookupControl"
+                [matAutocomplete]="lookupAuto"
+                placeholder="Buscar por mascota, tutor o identificacion"
+                autocomplete="off"
+                class="text-sm text-text-primary placeholder:text-text-secondary/50"
               />
-            </svg>
-            <input
-              [formControl]="lookupControl"
-              type="text"
-              placeholder="Ej. Luna, Maria Garcia, 099..."
-              autocomplete="off"
-              (keydown.enter)="$event.preventDefault()"
-            />
-          </span>
-        </label>
+            </mat-form-field>
 
-        @if (isSearching) {
-          <div class="queue-intake-loading" aria-live="polite">
-            <div class="queue-state__spinner" aria-hidden="true"></div>
-            <p class="queue-intake-loading__title">Buscando coincidencias</p>
+            <mat-autocomplete
+              #lookupAuto="matAutocomplete"
+              autoActiveFirstOption
+              [displayWith]="displayLookupValue"
+            >
+              @if (isSearching) {
+                <mat-option disabled>Buscando coincidencias...</mat-option>
+              } @else {
+                @if (petLookupResults.length > 0) {
+                  <mat-optgroup label="Mascotas">
+                    @for (result of petLookupResults; track result.id) {
+                      <mat-option
+                        [value]="result"
+                        (onSelectionChange)="onLookupOptionSelection($event.isUserInput, result)"
+                      >
+                        <div class="flex flex-col">
+                          <span class="text-sm font-medium text-text-primary">{{ result.title }}</span>
+                          <span class="text-xs text-text-secondary">{{ result.subtitle }}</span>
+                          <span class="text-xs text-text-secondary">{{ result.detail }}</span>
+                        </div>
+                      </mat-option>
+                    }
+                  </mat-optgroup>
+                }
+
+                @if (tutorLookupResults.length > 0) {
+                  <mat-optgroup label="Tutores">
+                    @for (result of tutorLookupResults; track result.id) {
+                      <mat-option
+                        [value]="result"
+                        (onSelectionChange)="onLookupOptionSelection($event.isUserInput, result)"
+                      >
+                        <div class="flex flex-col">
+                          <span class="text-sm font-medium text-text-primary">{{ result.title }}</span>
+                          <span class="text-xs text-text-secondary">{{ result.subtitle }}</span>
+                          <span class="text-xs text-text-secondary">{{ result.detail }}</span>
+                        </div>
+                      </mat-option>
+                    }
+                  </mat-optgroup>
+                }
+
+                @if (hasLookupTerm() && !hasLookupResults) {
+                  <mat-option disabled>No se encontraron resultados</mat-option>
+                }
+              }
+            </mat-autocomplete>
           </div>
-        } @else if (lookupError) {
-          <div class="queue-intake-empty queue-intake-empty--error" role="alert">
-            <p class="queue-intake-empty__title">No se pudo completar la busqueda.</p>
-            <p>{{ lookupError }}</p>
-          </div>
-        } @else if (
-          hasLookupTerm() &&
-          !isSearching &&
-          tutorMatches.length === 0 &&
-          petMatches.length === 0 &&
-          !selectedTutor
-        ) {
-          <div class="queue-intake-empty">
-            <p class="queue-intake-empty__title">No encontramos coincidencias.</p>
 
-            <div class="queue-intake-empty__actions">
-              <button
-                type="button"
-                (click)="openOwnersModule()"
-                class="queue-button queue-button--primary"
-              >
-                Registrar tutor
-              </button>
-
-              <button
-                type="button"
-                (click)="openPetsModule()"
-                class="queue-button queue-button--ghost"
-              >
-                Registrar mascota
-              </button>
+          @if (lookupError) {
+            <div
+              class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+              role="alert"
+            >
+              {{ lookupError }}
             </div>
-          </div>
-        } @else if (selectedTutor || tutorMatches.length > 0 || petMatches.length > 0) {
-          <div class="queue-intake-results-stack">
-            @if (selectedTutor) {
-              <section class="queue-intake-list-card queue-intake-list-card--selected">
-                <div class="queue-intake-list-card__header">
-                  <div>
-                    <h3>Tutor</h3>
-                  </div>
+          } @else if (hasLookupTerm() && !isSearching && !hasLookupResults) {
+            <div class="flex flex-col gap-3">
+              <div class="flex flex-col gap-1">
+                <p class="text-sm font-semibold text-text-primary">No encontramos coincidencias.</p>
+                <p class="text-sm text-text-secondary">
+                  Prueba otro termino o registra primero el tutor o la mascota.
+                </p>
+              </div>
 
+              <div class="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  (click)="openOwnersModule()"
+                  class="inline-flex items-center rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90"
+                >
+                  Registrar tutor
+                </button>
+
+                <button
+                  type="button"
+                  (click)="openPetsModule()"
+                  class="inline-flex items-center rounded-xl px-4 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-background hover:text-text-primary"
+                >
+                  Registrar mascota
+                </button>
+              </div>
+            </div>
+          }
+        } @else if (!selectedPet && selectedTutor) {
+          <div class="grid gap-4">
+            <div class="flex items-start gap-3">
+              <div
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-white bg-active-soft text-sm font-bold text-brand shadow-sm"
+              >
+                {{ getInitials(buildTutorLabel(selectedTutor)) }}
+              </div>
+
+              <div class="flex min-w-0 flex-1 flex-col gap-1">
+                <p class="text-base font-semibold text-text-primary">{{ buildTutorLabel(selectedTutor) }}</p>
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-text-secondary">
+                  <span>
+                    <span class="mr-1 text-[11px] font-bold uppercase tracking-wide text-text-secondary/70">
+                      Tutor
+                    </span>
+                    Seleccionado
+                  </span>
+                  <span>
+                    <span class="mr-1 text-[11px] font-bold uppercase tracking-wide text-text-secondary/70">
+                      Telefono
+                    </span>
+                    {{ buildTutorPhone(selectedTutor) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            @if (isLoadingTutorPets) {
+              <div class="flex items-center gap-3 text-sm text-text-secondary">
+                <svg
+                  viewBox="0 0 24 24"
+                  class="h-4 w-4 animate-spin"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M12 3a9 9 0 1 0 9 9"></path>
+                </svg>
+                <span>Cargando mascotas del tutor...</span>
+              </div>
+            } @else if (tutorPetsError) {
+              <div class="flex flex-col gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <p>{{ tutorPetsError }}</p>
+
+                <div>
                   <button
                     type="button"
-                    (click)="clearSelection()"
-                    class="queue-button queue-button--ghost queue-intake-selected__button"
+                    (click)="retrySelectedTutorPets()"
+                    class="inline-flex items-center rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90"
                   >
-                    Cambiar
+                    Reintentar
                   </button>
                 </div>
+              </div>
+            } @else if (selectedTutorPets.length > 0) {
+              <div class="grid w-full max-w-[720px] gap-2">
+                <label class="text-sm font-semibold text-text-primary">Mascota</label>
 
-                @if (isLoadingTutorPets) {
-                  <div class="queue-intake-list__empty">Cargando mascotas...</div>
-                } @else if (tutorPetsError) {
-                  <div class="queue-intake-empty queue-intake-empty--error">
-                    <p class="queue-intake-empty__title">No pudimos cargar las mascotas.</p>
-                    <p>{{ tutorPetsError }}</p>
-                  </div>
-                } @else if (selectedTutorPets.length > 0) {
-                  <div class="queue-intake-list">
-                    @for (pet of selectedTutorPets; track pet.id) {
-                      <button
-                        type="button"
-                        (click)="selectTutorPet(pet)"
-                        class="queue-intake-result queue-intake-result--pet"
-                      >
-                        <div class="queue-intake-result__copy">
-                          <p class="queue-intake-result__title">{{ pet.name }}</p>
-                          <p class="queue-intake-result__meta">{{ buildPetSubtitle(pet) }}</p>
-                        </div>
+                <mat-form-field
+                  appearance="outline"
+                  subscriptSizing="dynamic"
+                  class="appointment-create-field w-full"
+                >
+                  <input
+                    matInput
+                    type="text"
+                    [formControl]="tutorPetControl"
+                    [matAutocomplete]="tutorPetAuto"
+                    placeholder="Seleccionar mascota"
+                    autocomplete="off"
+                    class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                  />
+                </mat-form-field>
 
-                        <span class="queue-intake-result__icon" aria-hidden="true">
-                          <svg
-                            viewBox="0 0 24 24"
-                            class="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <path d="m9 6 6 6-6 6"></path>
-                          </svg>
-                        </span>
-                      </button>
-                    }
-                  </div>
-                } @else {
-                  <div class="queue-intake-empty">
-                    <p class="queue-intake-empty__title">Este tutor no tiene mascotas.</p>
-
-                    <button
-                      type="button"
-                      (click)="openPetsModuleForTutor(selectedTutor)"
-                      class="queue-button queue-button--primary"
+                <mat-autocomplete
+                  #tutorPetAuto="matAutocomplete"
+                  autoActiveFirstOption
+                  [displayWith]="displayTutorPetValue"
+                >
+                  @for (pet of filteredTutorPets(); track pet.id) {
+                    <mat-option
+                      [value]="pet"
+                      (onSelectionChange)="onTutorPetOptionSelection($event.isUserInput, pet)"
                     >
-                      Registrar mascota
-                    </button>
-                  </div>
-                }
-              </section>
-            }
-
-            @if (tutorMatches.length > 0) {
-              <section class="queue-intake-list-card">
-                <div class="queue-intake-list-card__header">
-                  <h3>Tutores</h3>
-                  <span class="queue-intake-count">{{ tutorMatches.length }}</span>
-                </div>
-
-                <div class="queue-intake-list">
-                  @for (tutor of tutorMatches; track tutor.id) {
-                    <button type="button" (click)="selectTutor(tutor)" class="queue-intake-result">
-                      <div class="queue-intake-result__copy">
-                        <p class="queue-intake-result__title">{{ buildTutorLabel(tutor) }}</p>
-                        <p class="queue-intake-result__meta">{{ buildTutorPhone(tutor) }}</p>
+                      <div class="flex flex-col">
+                        <span class="text-sm font-medium text-text-primary">{{ pet.name }}</span>
+                        <span class="text-xs text-text-secondary">{{ buildPetSubtitle(pet) }}</span>
                       </div>
-
-                      <span class="queue-intake-result__icon" aria-hidden="true">
-                        <svg
-                          viewBox="0 0 24 24"
-                          class="h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path d="m9 6 6 6-6 6"></path>
-                        </svg>
-                      </span>
-                    </button>
+                    </mat-option>
                   }
-                </div>
-              </section>
-            }
 
-            @if (petMatches.length > 0) {
-              <section class="queue-intake-list-card">
-                <div class="queue-intake-list-card__header">
-                  <h3>Mascotas</h3>
-                  <span class="queue-intake-count">{{ petMatches.length }}</span>
-                </div>
-
-                <div class="queue-intake-list">
-                  @for (pet of petMatches; track pet.id) {
-                    <button
-                      type="button"
-                      (click)="selectGlobalPet(pet)"
-                      class="queue-intake-result queue-intake-result--pet"
-                    >
-                      <div class="queue-intake-result__copy">
-                        <p class="queue-intake-result__title">{{ pet.name }}</p>
-                        <p class="queue-intake-result__meta">{{ buildPetSubtitle(pet) }}</p>
-                        <p class="queue-intake-result__meta queue-intake-result__meta--muted">
-                          {{ pet.tutorName }} &middot; {{ pet.tutorContact }}
-                        </p>
-                      </div>
-
-                      <span class="queue-intake-result__icon" aria-hidden="true">
-                        <svg
-                          viewBox="0 0 24 24"
-                          class="h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path d="m9 6 6 6-6 6"></path>
-                        </svg>
-                      </span>
-                    </button>
+                  @if (hasTutorPetTerm() && filteredTutorPets().length === 0) {
+                    <mat-option disabled>No se encontraron resultados</mat-option>
                   }
+                </mat-autocomplete>
+              </div>
+            } @else {
+              <div class="flex flex-col gap-3">
+                <div class="flex flex-col gap-1">
+                  <p class="text-sm font-semibold text-text-primary">
+                    Este tutor no tiene mascotas registradas.
+                  </p>
+                  <p class="text-sm text-text-secondary">
+                    Registra una mascota para continuar con el ingreso desde este mismo flujo.
+                  </p>
                 </div>
-              </section>
+
+                <div>
+                  <button
+                    type="button"
+                    (click)="openPetsModuleForTutor(selectedTutor)"
+                    class="inline-flex items-center rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90"
+                  >
+                    Registrar mascota
+                  </button>
+                </div>
+              </div>
             }
+          </div>
+        } @else if (selectedPet; as patient) {
+          <div class="grid gap-3">
+            <div class="flex items-start gap-3">
+              <div
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-white bg-active-soft text-sm font-bold text-brand shadow-sm"
+              >
+                {{ getInitials(patient.name) }}
+              </div>
+
+              <div class="flex min-w-0 flex-1 flex-col gap-1.5">
+                <p class="text-[22px] font-bold leading-tight text-text-primary">{{ patient.name }}</p>
+                <p class="text-sm font-medium text-text-secondary">{{ patient.species }} | {{ patient.breed }}</p>
+              </div>
+            </div>
+
+            <div class="grid gap-2 border-t border-border/80 pt-3 sm:grid-cols-3">
+              <div class="flex flex-col gap-0.5">
+                <span class="text-[11px] font-bold uppercase tracking-wide text-text-secondary/70">Tutor</span>
+                <p class="text-sm font-medium text-text-primary">{{ patient.tutorName }}</p>
+              </div>
+
+              <div class="flex flex-col gap-0.5">
+                <span class="text-[11px] font-bold uppercase tracking-wide text-text-secondary/70">Telefono</span>
+                <p class="text-sm font-medium text-text-primary">{{ patient.tutorPhone }}</p>
+              </div>
+
+              <div class="flex flex-col gap-0.5">
+                <span class="text-[11px] font-bold uppercase tracking-wide text-text-secondary/70">Tipo de ingreso</span>
+                <p class="text-sm font-medium text-text-primary">{{ entryModeLabel }}</p>
+              </div>
+            </div>
           </div>
         }
       </section>
-    } @else {
-      <section class="queue-intake-card queue-intake-selected-card">
-        <div class="queue-intake-card__header">
-          <div>
-            <h2>Paciente</h2>
-          </div>
 
-          <button type="button" (click)="clearSelection()" class="queue-button queue-button--ghost">
-            Cambiar
-          </button>
-        </div>
+      @if (selectedPet) {
+        <section class="px-6 py-4 sm:px-8">
+          <form [formGroup]="form" (ngSubmit)="save()" novalidate class="grid w-full gap-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Detalles del ingreso</h3>
 
-        <div class="queue-intake-selected-card__body">
-          <div class="queue-intake-selected-card__identity">
-            <p class="queue-intake-selected-card__title">{{ selectedPet.name }}</p>
-            <p class="queue-intake-selected-card__meta">
-              {{ selectedPet.species }} &middot; {{ selectedPet.breed }}
-            </p>
-          </div>
+            <div class="grid gap-3">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-semibold text-text-primary">Hora programada</label>
+                <mat-form-field
+                  appearance="outline"
+                  subscriptSizing="dynamic"
+                  class="appointment-create-field w-full"
+                >
+                  <input
+                    matInput
+                    type="time"
+                    formControlName="scheduledTime"
+                    class="text-sm text-text-primary"
+                  />
+                </mat-form-field>
+              </div>
 
-          <div class="queue-intake-selected-card__details">
-            <div>
-              <span>Tutor</span>
-              <strong>{{ selectedPet.tutorName }}</strong>
+              <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-semibold text-text-primary">Motivo de atencion</label>
+                <mat-form-field
+                  appearance="outline"
+                  subscriptSizing="dynamic"
+                  class="appointment-create-field w-full"
+                >
+                  <textarea
+                    matInput
+                    formControlName="notes"
+                    rows="3"
+                    placeholder="Ej. control anual, vacunacion, urgencia..."
+                    class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                  ></textarea>
+                </mat-form-field>
+              </div>
             </div>
 
-            <div>
-              <span>Telefono</span>
-              <strong>{{ selectedPet.tutorPhone }}</strong>
+            <div class="mt-2 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+              <label class="inline-flex items-center gap-3 text-sm font-medium text-text-secondary">
+                <input
+                  type="checkbox"
+                  formControlName="isEmergency"
+                  class="h-4 w-4 shrink-0 accent-[var(--ps-brand)]"
+                />
+                <span>Marcar como emergencia</span>
+              </label>
+
+              <div class="flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  (click)="close()"
+                  [disabled]="isSaving"
+                  class="inline-flex items-center rounded-xl px-5 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-background disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="submit"
+                  [disabled]="isSaving"
+                  class="inline-flex items-center rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {{ isSaving ? 'Registrando...' : 'Registrar en cola' }}
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
-    }
-
-    <form [formGroup]="form" (ngSubmit)="save()" novalidate class="queue-intake-sidebar">
-      <section
-        class="queue-intake-card queue-intake-ops"
-        [class.opacity-60]="!selectedPet"
-        [class.pointer-events-none]="!selectedPet"
-      >
-        <div class="queue-intake-card__header">
-          <div>
-            <h2>Ingreso</h2>
-          </div>
-        </div>
-
-        <label class="queue-intake-check">
-          <input
-            type="checkbox"
-            formControlName="isEmergency"
-            class="queue-intake-check__input"
-          />
-
-          <span class="queue-intake-check__copy">
-            <strong>Marcar como emergencia</strong>
-          </span>
-        </label>
-
-        <div class="queue-intake-grid">
-          <label class="queue-intake-field">
-            <span>Hora programada</span>
-            <input
-              type="time"
-              formControlName="scheduledTime"
-              class="queue-intake-field__input"
-            />
-          </label>
-
-          <label class="queue-intake-field queue-intake-grid__full">
-            <span>Motivo de atencion</span>
-            <textarea
-              formControlName="notes"
-              rows="5"
-              placeholder="Ej. Control anual, vacunacion, urgencia..."
-              class="queue-intake-field__input queue-intake-field__input--textarea"
-            ></textarea>
-          </label>
-        </div>
-      </section>
-
-      <footer class="queue-intake-actions">
-        <button
-          type="button"
-          (click)="close()"
-          [disabled]="isSaving"
-          class="queue-button queue-button--ghost"
-        >
-          Cancelar
-        </button>
-
-        <button
-          type="submit"
-          [disabled]="isSaving || !selectedPet || form.invalid"
-          class="queue-button queue-button--primary"
-        >
-          {{ isSaving ? 'Registrando...' : 'Registrar en cola' }}
-        </button>
-      </footer>
-    </form>
-  </div>
+          </form>
+        </section>
+      }
+    </div>
+  </section>
 </section>

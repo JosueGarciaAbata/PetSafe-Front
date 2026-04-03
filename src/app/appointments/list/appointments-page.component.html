@@ -1,14 +1,17 @@
-<div class="mx-auto flex max-w-[1400px] flex-col gap-6 pb-12">
-  <section class="flex flex-col gap-4">
-    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+<div class="mx-auto flex max-w-[1400px] flex-col gap-8 pb-12">
+  <section class="flex flex-col gap-6">
+    <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
       <header class="flex flex-col gap-1">
-        <h1 class="text-[28px] font-bold text-text-primary md:text-[32px]">Citas</h1>
+        <h1 class="text-[28px] font-bold text-text-primary">Citas</h1>
+        <p class="text-base text-text-secondary">
+          Gestiona tus citas programadas y el seguimiento diario de atencion
+        </p>
       </header>
 
       <button
         type="button"
         (click)="openCreateAppointmentModal()"
-        class="inline-flex h-11 cursor-pointer items-center gap-2 self-start rounded-xl bg-primary px-5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 md:self-auto"
+        class="inline-flex cursor-pointer items-center gap-2 self-start rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 md:self-auto"
       >
         <svg
           viewBox="0 0 24 24"
@@ -85,7 +88,7 @@
       <span class="text-xs font-bold uppercase tracking-[0.14em] text-text-secondary">
         Programadas
       </span>
-      <strong class="mt-2 block text-[32px] leading-none font-bold text-blue-700">
+      <strong class="mt-2 block text-[32px] leading-none font-bold text-[#365E9D]">
         {{ summary.scheduledAppointments }}
       </strong>
       <p class="mt-1 text-xs text-text-secondary">Pendientes de confirmacion o atencion.</p>
@@ -95,7 +98,7 @@
       <span class="text-xs font-bold uppercase tracking-[0.14em] text-text-secondary">
         Confirmadas
       </span>
-      <strong class="mt-2 block text-[32px] leading-none font-bold text-green-700">
+      <strong class="mt-2 block text-[32px] leading-none font-bold text-[#2F6A57]">
         {{ summary.confirmedAppointments }}
       </strong>
       <p class="mt-1 text-xs text-text-secondary">Listas para atenderse en calendario.</p>
@@ -105,7 +108,7 @@
       <span class="text-xs font-bold uppercase tracking-[0.14em] text-text-secondary">
         Canceladas
       </span>
-      <strong class="mt-2 block text-[32px] leading-none font-bold text-rose-600">
+      <strong class="mt-2 block text-[32px] leading-none font-bold text-[#A35454]">
         {{ summary.cancelledAppointments }}
       </strong>
       <p class="mt-1 text-xs text-text-secondary">Citas anuladas dentro del periodo visible.</p>

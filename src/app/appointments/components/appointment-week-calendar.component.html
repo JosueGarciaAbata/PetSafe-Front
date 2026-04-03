@@ -42,47 +42,40 @@
             } @else {
               @for (appointment of day.appointments; track trackByAppointment($index, appointment)) {
                 <article
-                  class="cursor-pointer rounded-[18px] border border-border bg-white p-3 shadow-sm transition-all hover:ring-2 hover:ring-primary/20"
+                  class="appointment-week-card cursor-pointer rounded-[18px] border border-border bg-white p-3 shadow-sm transition-all hover:ring-2 hover:ring-primary/20"
                   (click)="appointmentClick.emit(appointment)"
                   [class.opacity-70]="appointment.status === 'CANCELADA' || !appointment.isActive"
                 >
-                  <div class="flex items-start gap-2.5">
-                    <div
-                      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                      [class]="buildAvatarClasses()"
-                    >
-                      {{ buildPatientInitials(appointment.patientName, appointment.patientId) }}
-                    </div>
+                  <div class="appointment-week-card-content min-w-0">
+                    <p class="appointment-week-time" [title]="buildTimeRange(appointment)">
+                      {{ buildTimeRange(appointment) }}
+                    </p>
 
-                    <div class="min-w-0 flex-1">
-                      <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-text-secondary">
-                        {{ buildTimeRange(appointment) }}
-                      </p>
-                      <h3 class="truncate text-[13px] font-bold text-text-primary">
+                    <div class="appointment-week-heading">
+                      <h3 class="appointment-week-patient" [title]="buildPatientLabel(appointment)">
                         {{ buildPatientLabel(appointment) }}
                       </h3>
 
-                      <div class="mt-1 flex flex-wrap items-center gap-1.5">
-                        <span
-                          class="shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] whitespace-nowrap"
-                          [class]="buildStatusClasses(appointment.status)"
-                        >
-                          {{ buildStatusLabel(appointment.status) }}
-                        </span>
+                      <span
+                        class="appointment-week-status-chip shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em]"
+                        [class]="buildStatusClasses(appointment.status)"
+                        [title]="buildStatusLabel(appointment.status)"
+                      >
+                        {{ buildStatusLabel(appointment.status) }}
+                      </span>
+                    </div>
 
-                        @if (hasOwnerName(appointment.ownerName)) {
-                          <span class="min-w-0 truncate text-[10px] text-text-secondary">
-                            {{ appointment.ownerName }}
-                          </span>
-                        }
-                      </div>
-
-                      <p class="mt-1 text-[11px] text-text-secondary">
+                    <div class="appointment-week-details">
+                      @if (hasOwnerName(appointment.ownerName)) {
+                        <p class="appointment-week-detail" [title]="appointment.ownerName ?? ''">
+                          {{ appointment.ownerName }}
+                        </p>
+                      }
+                      <p class="appointment-week-detail" [title]="buildReasonLabel(appointment.reason)">
                         {{ buildReasonLabel(appointment.reason) }}
                       </p>
-
                       @if (hasNotes(appointment.notes)) {
-                        <p class="mt-1 text-[10px] text-text-secondary">
+                        <p class="appointment-week-detail appointment-week-detail--notes" [title]="appointment.notes ?? ''">
                           {{ appointment.notes }}
                         </p>
                       }

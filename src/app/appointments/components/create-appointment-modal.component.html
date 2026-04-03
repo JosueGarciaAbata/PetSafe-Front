@@ -179,6 +179,7 @@
                   [ngModel]="reason"
                   (ngModelChange)="reason = $event"
                   [errorStateMatcher]="reasonErrorStateMatcher"
+                  panelClass="appointment-reason-panel"
                   placeholder="Selecciona un motivo"
                   class="text-sm text-text-primary"
                 >
@@ -193,7 +194,10 @@
             </div>
 
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Notas (opcional)</label>
+              <label class="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                <span>Notas</span>
+                <span class="text-xs font-medium text-text-secondary">Opcional</span>
+              </label>
               <mat-form-field
                 appearance="outline"
                 subscriptSizing="dynamic"
@@ -207,7 +211,6 @@
                   placeholder="Informacion adicional para la cita."
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 ></textarea>
-                <mat-hint>Opcional.</mat-hint>
               </mat-form-field>
             </div>
           </div>

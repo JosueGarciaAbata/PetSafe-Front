@@ -32,19 +32,6 @@ export class AppointmentMonthCalendarComponent {
     return appointment.id;
   }
 
-  protected buildPatientInitials(name: string | null, patientId: number): string {
-    const normalizedName = name?.trim() ?? '';
-
-    if (!normalizedName) {
-      return `P${String(patientId).slice(-1)}`;
-    }
-
-    const parts = normalizedName.split(/\s+/).filter(Boolean);
-    const firstInitial = parts[0]?.charAt(0) ?? '';
-    const secondInitial = parts[1]?.charAt(0) ?? parts[0]?.charAt(1) ?? '';
-    return `${firstInitial}${secondInitial}`.toUpperCase() || `P${String(patientId).slice(-1)}`;
-  }
-
   protected buildPatientLabel(appointment: AppointmentRecord): string {
     const patientName = appointment.patientName?.trim();
     return patientName || `Paciente #${appointment.patientId}`;
@@ -89,9 +76,5 @@ export class AppointmentMonthCalendarComponent {
       case 'NO_ASISTIO':
         return 'appointment-card-status appointment-card-status--no-show';
     }
-  }
-
-  protected buildAvatarClasses(): string {
-    return 'appointment-card-avatar appointment-card-avatar--default';
   }
 }

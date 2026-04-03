@@ -13,7 +13,15 @@ import { firstValueFrom } from 'rxjs';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
 import { AppointmentsApiService } from '../api/appointments-api.service';
 import { QueueApiService } from '@app/queue/api/queue-api.service';
-import { AppointmentRecord, buildAppointmentReasonLabel, buildAppointmentStatusLabel } from '../models/appointment.model';
+import {
+  AppointmentRecord,
+  AppointmentStatus,
+  buildAppointmentReasonLabel,
+  buildAppointmentStatusLabel,
+} from '../models/appointment.model';
+import { parseDateKey } from '../utils/appointment-date.util';
+
+type AppointmentAction = 'confirm' | 'cancel' | 'arrival' | 'noShow' | null;
 
 @Component({
   selector: 'app-appointment-detail-modal',
@@ -35,9 +43,13 @@ export class AppointmentDetailModalComponent {
 
   protected isSaving = false;
   protected submitError: string | null = null;
+  protected activeAction: AppointmentAction = null;
 
   protected close(): void {
-    if (this.isSaving) return;
+    if (this.isSaving) {
+      return;
+    }
+
     this.closed.emit();
   }
 
@@ -69,25 +81,107 @@ export class AppointmentDetailModalComponent {
     return !Number.isNaN(appointmentEnd.getTime()) && appointmentEnd <= now;
   }
 
-  protected buildReasonLabel(reason: string | null): string {
-    return buildAppointmentReasonLabel(reason);
+  protected get registerArrivalIsPrimary(): boolean {
+    return this.canRegisterArrival && !this.canConfirm;
   }
 
-  protected buildStatusLabel(status: string): string {
-    return buildAppointmentStatusLabel(status as any);
+  protected get hasActions(): boolean {
+    return this.canConfirm || this.canRegisterArrival || this.canCancel || this.canMarkNoShow;
   }
 
-  protected get initals(): string {
+  protected get patientNameLabel(): string {
+    return this.appointment.patientName?.trim() || `Paciente #${this.appointment.patientId}`;
+  }
+
+  protected get ownerNameLabel(): string {
+    return this.appointment.ownerName?.trim() || 'Tutor no registrado';
+  }
+
+  protected get initials(): string {
     const name = this.appointment.patientName?.trim() || '';
-    if (!name) return `P${String(this.appointment.patientId).slice(-1)}`;
+
+    if (!name) {
+      return `P${String(this.appointment.patientId).slice(-1)}`;
+    }
+
     const parts = name.split(/\s+/).filter(Boolean);
     const first = parts[0]?.charAt(0) ?? '';
     const second = parts[1]?.charAt(0) ?? parts[0]?.charAt(1) ?? '';
     return `${first}${second}`.toUpperCase() || `P${String(this.appointment.patientId).slice(-1)}`;
   }
 
+  protected buildReasonLabel(reason: string | null): string {
+    return buildAppointmentReasonLabel(reason);
+  }
+
+  protected buildStatusLabel(status: AppointmentStatus): string {
+    return buildAppointmentStatusLabel(status);
+  }
+
+  protected buildStatusClasses(status: AppointmentStatus): string {
+    switch (status) {
+      case 'PROGRAMADA':
+        return 'appointment-detail-status appointment-detail-status--scheduled';
+      case 'CONFIRMADA':
+        return 'appointment-detail-status appointment-detail-status--confirmed';
+      case 'EN_PROCESO':
+        return 'appointment-detail-status appointment-detail-status--in-process';
+      case 'FINALIZADA':
+        return 'appointment-detail-status appointment-detail-status--finished';
+      case 'CANCELADA':
+        return 'appointment-detail-status appointment-detail-status--cancelled';
+      case 'NO_ASISTIO':
+        return 'appointment-detail-status appointment-detail-status--no-show';
+    }
+  }
+
+  protected buildDateLabel(dateKey: string): string {
+    const date = parseDateKey(dateKey);
+
+    return new Intl.DateTimeFormat('es-EC', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(date);
+  }
+
+  protected buildWeekdayLabel(dateKey: string): string {
+    const date = parseDateKey(dateKey);
+
+    return new Intl.DateTimeFormat('es-EC', {
+      weekday: 'long',
+    }).format(date);
+  }
+
+  protected buildTimeRangeLabel(): string {
+    return this.appointment.endsAt
+      ? `${this.appointment.startsAt} - ${this.appointment.endsAt}`
+      : this.appointment.startsAt;
+  }
+
+  protected buildStatusHelpText(status: AppointmentStatus): string {
+    switch (status) {
+      case 'PROGRAMADA':
+        return 'Pendiente de confirmacion.';
+      case 'CONFIRMADA':
+        return 'Lista para registrar llegada.';
+      case 'EN_PROCESO':
+        return 'Ya se encuentra en atencion.';
+      case 'FINALIZADA':
+        return 'La cita ya fue atendida.';
+      case 'CANCELADA':
+        return 'La cita fue cancelada.';
+      case 'NO_ASISTIO':
+        return 'Se registro que el paciente no asistio.';
+    }
+  }
+
   protected async confirmAppointment(): Promise<void> {
-    if (this.isSaving) return;
+    if (this.isSaving) {
+      return;
+    }
+
+    this.activeAction = 'confirm';
     this.isSaving = true;
     this.submitError = null;
     this.cdr.markForCheck();
@@ -100,13 +194,18 @@ export class AppointmentDetailModalComponent {
       this.submitError = resolveApiErrorMessage(error, {
         defaultMessage: 'No se pudo confirmar la cita.',
       });
+      this.activeAction = null;
       this.isSaving = false;
       this.cdr.markForCheck();
     }
   }
 
   protected async cancelAppointment(): Promise<void> {
-    if (this.isSaving) return;
+    if (this.isSaving) {
+      return;
+    }
+
+    this.activeAction = 'cancel';
     this.isSaving = true;
     this.submitError = null;
     this.cdr.markForCheck();
@@ -119,14 +218,18 @@ export class AppointmentDetailModalComponent {
       this.submitError = resolveApiErrorMessage(error, {
         defaultMessage: 'No se pudo cancelar la cita.',
       });
+      this.activeAction = null;
       this.isSaving = false;
       this.cdr.markForCheck();
     }
   }
 
   protected async registerArrival(): Promise<void> {
-    if (this.isSaving) return;
+    if (this.isSaving) {
+      return;
+    }
 
+    this.activeAction = 'arrival';
     this.isSaving = true;
     this.submitError = null;
     this.cdr.markForCheck();
@@ -147,16 +250,20 @@ export class AppointmentDetailModalComponent {
       await this.router.navigate(['/queue'], { state: { entryId: entry.id } });
     } catch (error) {
       this.submitError = resolveApiErrorMessage(error, {
-        defaultMessage: 'No se pudo registrar la llegada en la cola de atención.',
+        defaultMessage: 'No se pudo registrar la llegada en la cola de atencion.',
       });
+      this.activeAction = null;
       this.isSaving = false;
       this.cdr.markForCheck();
     }
   }
 
   protected async markNoShow(): Promise<void> {
-    if (this.isSaving) return;
+    if (this.isSaving) {
+      return;
+    }
 
+    this.activeAction = 'noShow';
     this.isSaving = true;
     this.submitError = null;
     this.cdr.markForCheck();
@@ -167,8 +274,9 @@ export class AppointmentDetailModalComponent {
       this.close();
     } catch (error) {
       this.submitError = resolveApiErrorMessage(error, {
-        defaultMessage: 'No se pudo marcar la cita como no asistió.',
+        defaultMessage: 'No se pudo marcar la cita como no asistio.',
       });
+      this.activeAction = null;
       this.isSaving = false;
       this.cdr.markForCheck();
     }

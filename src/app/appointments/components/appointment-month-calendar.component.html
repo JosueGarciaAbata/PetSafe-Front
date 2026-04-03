@@ -44,29 +44,44 @@
             <div class="appointment-day-scroll flex max-h-[168px] flex-col gap-2 overflow-y-auto pr-1">
               @for (appointment of cell.appointments; track trackByAppointment($index, appointment)) {
                 <article
-                  class="cursor-pointer rounded-[16px] border border-border bg-white px-3 py-2.5 shadow-sm transition-all hover:-translate-y-[1px] hover:ring-2 hover:ring-primary/20"
+                  class="appointment-month-card cursor-pointer rounded-[16px] border border-border bg-white px-3 py-3 shadow-sm transition-all hover:-translate-y-[1px] hover:ring-2 hover:ring-primary/20"
                   (click)="appointmentClick.emit(appointment)"
                   [class.opacity-70]="appointment.status === 'CANCELADA' || !appointment.isActive"
                 >
-                  <div class="flex items-start justify-between gap-2">
-                    <div class="min-w-0 flex-1">
-                      <p class="text-[11px] font-semibold text-text-secondary">
-                        {{ buildTimeRange(appointment) }}
-                      </p>
-                      <h3 class="mt-1 truncate text-[13px] font-bold text-text-primary">
+                  <div class="appointment-card-content min-w-0">
+                    <p class="appointment-card-time" [title]="buildTimeRange(appointment)">
+                      {{ buildTimeRange(appointment) }}
+                    </p>
+
+                    <div class="appointment-card-heading">
+                      <h3 class="appointment-card-patient" [title]="buildPatientLabel(appointment)">
                         {{ buildPatientLabel(appointment) }}
                       </h3>
-                      <p class="mt-1 truncate text-[11px] text-text-secondary">
-                        {{ buildReasonLabel(appointment.reason) }}
-                      </p>
+
+                      <span
+                        class="month-status-chip shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em]"
+                        [class]="buildStatusClasses(appointment.status)"
+                        [title]="buildStatusLabel(appointment.status)"
+                      >
+                        {{ buildStatusLabel(appointment.status) }}
+                      </span>
                     </div>
 
-                    <span
-                      class="month-status-chip shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] whitespace-nowrap"
-                      [class]="buildStatusClasses(appointment.status)"
-                    >
-                      {{ buildStatusLabel(appointment.status) }}
-                    </span>
+                    <div class="appointment-card-details">
+                      @if (hasOwnerName(appointment.ownerName)) {
+                        <p class="appointment-card-detail" [title]="appointment.ownerName ?? ''">
+                          {{ appointment.ownerName }}
+                        </p>
+                      }
+                      <p class="appointment-card-detail" [title]="buildReasonLabel(appointment.reason)">
+                        {{ buildReasonLabel(appointment.reason) }}
+                      </p>
+                      @if (hasNotes(appointment.notes)) {
+                        <p class="appointment-card-detail appointment-card-detail--notes" [title]="appointment.notes ?? ''">
+                          {{ appointment.notes }}
+                        </p>
+                      }
+                    </div>
                   </div>
                 </article>
               }

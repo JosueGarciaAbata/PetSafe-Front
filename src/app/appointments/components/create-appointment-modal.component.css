@@ -55,3 +55,7 @@
   outline: 2px solid rgba(47, 96, 94, 0.2);
   outline-offset: 2px;
 }
+
+::ng-deep .appointment-reason-panel {
+  max-height: 112px !important;
+}
