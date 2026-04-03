@@ -12,19 +12,27 @@
       <div class="appointment-month-grid grid grid-cols-7">
         @for (cell of cells; track trackByDate($index, cell)) {
           <section
-            class="border-b border-r border-border/80 p-3"
+            class="appointment-day-cell border-b border-r border-border/80 p-3"
             [class.bg-background/40]="!cell.isCurrentMonth"
+            [class.appointment-day-cell--today]="cell.isToday"
           >
             <div class="mb-3 flex items-center justify-between gap-2">
-              <span
-                class="inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold"
-                [class.bg-active-soft]="cell.isToday"
-                [class.text-brand]="cell.isToday"
-                [class.text-text-primary]="!cell.isToday && cell.isCurrentMonth"
-                [class.text-text-secondary]="!cell.isCurrentMonth"
-              >
-                {{ cell.dayNumber }}
-              </span>
+              <div class="flex items-center gap-2">
+                <span
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold"
+                  [class.bg-active-soft]="cell.isToday"
+                  [class.text-brand]="cell.isToday"
+                  [class.appointment-day-number--today]="cell.isToday"
+                  [class.text-text-primary]="!cell.isToday && cell.isCurrentMonth"
+                  [class.text-text-secondary]="!cell.isCurrentMonth"
+                >
+                  {{ cell.dayNumber }}
+                </span>
+
+                @if (cell.isToday) {
+                  <span class="appointment-today-chip">Hoy</span>
+                }
+              </div>
 
               @if (cell.appointments.length > 0) {
                 <span class="text-[11px] font-semibold text-text-secondary">

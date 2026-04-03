@@ -2,20 +2,32 @@
   <div class="calendar-scroll-area overflow-x-auto">
     <div class="grid min-w-[1100px] grid-cols-7">
       @for (day of days; track trackByDate($index, day)) {
-        <section class="border-r border-border/80 p-3 last:border-r-0">
-          <div class="mb-3 border-b border-border/70 pb-3">
+        <section
+          class="appointment-week-day overflow-hidden border-r border-border/80 p-3 last:border-r-0"
+          [class.appointment-week-day--today]="day.isToday"
+        >
+          <div
+            class="appointment-week-day-header mb-3 border-b border-border/70 pb-3"
+            [class.appointment-week-day-header--today]="day.isToday"
+          >
             <div class="flex items-center justify-between gap-2">
               <div class="flex flex-col">
-                <span class="text-[11px] font-bold uppercase tracking-[0.14em] text-text-secondary">
+                <span
+                  class="text-[11px] font-bold uppercase tracking-[0.14em] text-text-secondary"
+                  [class.appointment-week-day-weekday--today]="day.isToday"
+                >
                   {{ day.weekdayLabel }}
                 </span>
-                <span class="text-sm font-bold text-text-primary">
+                <span
+                  class="text-sm font-bold text-text-primary"
+                  [class.appointment-week-day-label--today]="day.isToday"
+                >
                   {{ day.dayLabel }}
                 </span>
               </div>
 
               @if (day.isToday) {
-                <span class="rounded-full bg-active-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-brand">
+                <span class="appointment-week-today-chip">
                   Hoy
                 </span>
               }

@@ -17,7 +17,6 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppointmentMonthCalendarComponent {
-  @Input({ required: true }) monthLabel = '';
   @Input({ required: true }) weekdayLabels: readonly string[] = [];
   @Input({ required: true }) cells: readonly AppointmentMonthCell[] = [];
   @Output() readonly appointmentClick = new EventEmitter<AppointmentRecord>();

@@ -2,6 +2,57 @@
   display: block;
 }
 
+.appointment-week-day {
+  position: relative;
+}
+
+.appointment-week-day--today {
+  background: linear-gradient(180deg, rgba(47, 96, 94, 0.16) 0%, rgba(47, 96, 94, 0.06) 100%);
+  box-shadow: inset 0 0 0 2px rgba(47, 96, 94, 0.4);
+}
+
+.appointment-week-day--today::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--ps-brand);
+}
+
+.appointment-week-day-header--today {
+  margin: -0.25rem -0.25rem 0.75rem;
+  border-bottom-color: rgba(47, 96, 94, 0.2);
+  background: rgba(47, 96, 94, 0.12);
+  padding: 0.9rem 0.9rem 0.85rem;
+  border-radius: 0.9rem;
+}
+
+.appointment-week-day-weekday--today {
+  color: var(--ps-brand);
+}
+
+.appointment-week-day-label--today {
+  color: var(--ps-brand);
+  font-size: 1rem;
+}
+
+.appointment-week-today-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--ps-brand);
+  padding: 0.2rem 0.55rem;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffffff;
+  box-shadow: 0 0 0 4px #eaf3f2, 0 6px 18px rgba(47, 96, 94, 0.22);
+}
+
 .calendar-scroll-area,
 .appointment-week-column {
   scrollbar-width: thin;

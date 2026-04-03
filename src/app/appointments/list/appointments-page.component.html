@@ -25,86 +25,32 @@
       </button>
     </div>
 
-    <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-      <p class="text-sm text-text-secondary">{{ todayLabel }}</p>
-
-      <div class="flex flex-wrap items-center gap-2 xl:justify-end">
-        <div class="inline-flex h-11 rounded-xl bg-white/80 p-1 ring-1 ring-border">
-          <button
-            type="button"
-            (click)="switchView('month')"
-            class="rounded-[10px] px-4 text-sm font-semibold transition-colors"
-            [class.bg-background]="currentView !== 'month'"
-            [class.text-text-secondary]="currentView !== 'month'"
-            [class.bg-white]="currentView === 'month'"
-            [class.text-text-primary]="currentView === 'month'"
-            [class.shadow-sm]="currentView === 'month'"
-          >
-            Mensual
-          </button>
-          <button
-            type="button"
-            (click)="switchView('week')"
-            class="rounded-[10px] px-4 text-sm font-semibold transition-colors"
-            [class.bg-background]="currentView !== 'week'"
-            [class.text-text-secondary]="currentView !== 'week'"
-            [class.bg-white]="currentView === 'week'"
-            [class.text-text-primary]="currentView === 'week'"
-            [class.shadow-sm]="currentView === 'week'"
-          >
-            Semanal
-          </button>
-        </div>
-
-        <div class="inline-flex h-11 items-center rounded-xl bg-white/80 p-1 ring-1 ring-border">
-          <button
-            type="button"
-            (click)="goToPreviousRange()"
-            class="rounded-[10px] px-3 text-sm font-semibold text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
-            [attr.aria-label]="currentView === 'week' ? 'Semana anterior' : 'Mes anterior'"
-            [title]="currentView === 'week' ? 'Semana anterior' : 'Mes anterior'"
-          >
-            ‹
-          </button>
-          <button
-            type="button"
-            (click)="goToToday()"
-            class="rounded-[10px] px-3 text-sm font-semibold text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
-          >
-            Hoy
-          </button>
-          <button
-            type="button"
-            (click)="goToNextRange()"
-            class="rounded-[10px] px-3 text-sm font-semibold text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
-            [attr.aria-label]="currentView === 'week' ? 'Semana siguiente' : 'Mes siguiente'"
-            [title]="currentView === 'week' ? 'Semana siguiente' : 'Mes siguiente'"
-          >
-            ›
-          </button>
-        </div>
-
-        <label class="date-field flex h-11 items-center gap-2 rounded-xl bg-white/80 px-3 ring-1 ring-border">
-          <svg
-            viewBox="0 0 24 24"
-            class="h-4 w-4 text-text-secondary"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M8 2v4M16 2v4M3 10h18"></path>
-            <rect x="3" y="4" width="18" height="18" rx="3"></rect>
-          </svg>
-          <input
-            type="date"
-            [value]="selectedDateInput"
-            (change)="onDateSelected($any($event.target).value)"
-            class="border-0 bg-transparent text-sm font-medium text-text-primary focus:outline-none"
-          />
-        </label>
+    <div class="flex flex-wrap items-center gap-2">
+      <div class="inline-flex h-11 rounded-xl bg-white/80 p-1 ring-1 ring-border">
+        <button
+          type="button"
+          (click)="switchView('month')"
+          class="rounded-[10px] px-4 text-sm font-semibold transition-colors"
+          [class.bg-background]="currentView !== 'month'"
+          [class.text-text-secondary]="currentView !== 'month'"
+          [class.bg-white]="currentView === 'month'"
+          [class.text-text-primary]="currentView === 'month'"
+          [class.shadow-sm]="currentView === 'month'"
+        >
+          Mensual
+        </button>
+        <button
+          type="button"
+          (click)="switchView('week')"
+          class="rounded-[10px] px-4 text-sm font-semibold transition-colors"
+          [class.bg-background]="currentView !== 'week'"
+          [class.text-text-secondary]="currentView !== 'week'"
+          [class.bg-white]="currentView === 'week'"
+          [class.text-text-primary]="currentView === 'week'"
+          [class.shadow-sm]="currentView === 'week'"
+        >
+          Semanal
+        </button>
       </div>
     </div>
   </section>
@@ -166,6 +112,74 @@
     </article>
   </section>
 
+  <section class="rounded-[20px] border border-border bg-card px-4 py-3 shadow-sm">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center justify-between gap-2 sm:justify-start">
+        <button
+          type="button"
+          (click)="goToPreviousRange()"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-white text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+          [attr.aria-label]="currentView === 'week' ? 'Semana anterior' : 'Mes anterior'"
+          [title]="currentView === 'week' ? 'Semana anterior' : 'Mes anterior'"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m15 18-6-6 6-6"></path>
+          </svg>
+        </button>
+
+        <div class="min-w-0 flex-1 px-1 text-center sm:min-w-[180px] sm:flex-none">
+          <p
+            class="calendar-range-label text-sm font-semibold text-text-primary md:text-base"
+            [class.capitalize]="currentView === 'month'"
+          >
+            {{ currentRangeLabel }}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          (click)="goToNextRange()"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-white text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+          [attr.aria-label]="currentView === 'week' ? 'Semana siguiente' : 'Mes siguiente'"
+          [title]="currentView === 'week' ? 'Semana siguiente' : 'Mes siguiente'"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m9 6 6 6-6 6"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="flex justify-end">
+        <button
+          type="button"
+          (click)="goToToday()"
+          [disabled]="isCurrentRangeActive()"
+          class="inline-flex h-10 items-center justify-center rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          Hoy
+        </button>
+      </div>
+    </div>
+  </section>
+
   @if (isLoading) {
     <section class="rounded-[24px] border border-border bg-card p-8 shadow-sm">
       <div class="grid gap-4 md:grid-cols-3">
@@ -180,7 +194,6 @@
       <app-appointment-week-calendar [days]="weekDays" (appointmentClick)="openAppointmentDetail($event)" />
     } @else {
       <app-appointment-month-calendar
-        [monthLabel]="monthLabel"
         [weekdayLabels]="weekdayLabels"
         [cells]="monthCells"
         (appointmentClick)="openAppointmentDetail($event)"
