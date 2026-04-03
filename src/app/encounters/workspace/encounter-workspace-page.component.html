@@ -8,7 +8,7 @@
         class="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
         title="Volver a la cola"
       >
-        <span class="material-symbols-rounded text-text-secondary">arrow_back</span>
+        <app-shell-icon name="arrowLeft" [size]="20" className="text-text-secondary"></app-shell-icon>
       </button>
 
       <div>
@@ -17,7 +17,7 @@
         </h1>
         @if (encounter) {
           <p class="text-sm font-medium text-text-secondary">
-            {{ encounter.patient.species }} • {{ encounter.patient.breed }}
+            {{ encounter.patient.species || 'Especie no registrada' }} • {{ encounter.patient.breed || 'Raza no registrada' }}
           </p>
         }
       </div>
@@ -36,7 +36,7 @@
           (click)="finishEncounter()"
           class="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-all hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
         >
-          <span class="material-symbols-rounded text-lg">check_circle</span>
+          <app-shell-icon name="checkCircle" [size]="18"></app-shell-icon>
           Finalizar Atención
         </button>
       </div>
@@ -58,7 +58,7 @@
         [class.text-text-secondary]="activeTab !== 'REASON'"
         class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left font-medium transition-all hover:bg-white/60"
       >
-        <span class="material-symbols-rounded">chat_error</span>
+        <app-shell-icon name="clipboard" [size]="18"></app-shell-icon>
         Motivo
       </button>
 
@@ -71,7 +71,7 @@
         [class.text-text-secondary]="activeTab !== 'ANAMNESIS'"
         class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left font-medium transition-all hover:bg-white/60"
       >
-        <span class="material-symbols-rounded">history_edu</span>
+        <app-shell-icon name="clock" [size]="18"></app-shell-icon>
         Anamnesis
       </button>
 
@@ -84,7 +84,7 @@
         [class.text-text-secondary]="activeTab !== 'EXAM'"
         class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left font-medium transition-all hover:bg-white/60"
       >
-        <span class="material-symbols-rounded">medical_information</span>
+        <app-shell-icon name="heart" [size]="18"></app-shell-icon>
         Examen Físico
       </button>
 
@@ -97,7 +97,7 @@
         [class.text-text-secondary]="activeTab !== 'IMPRESSION'"
         class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left font-medium transition-all hover:bg-white/60"
       >
-        <span class="material-symbols-rounded">psychiatry</span>
+        <app-shell-icon name="search" [size]="18"></app-shell-icon>
         Pre-diagnóstico
       </button>
 
@@ -110,13 +110,19 @@
         [class.text-text-secondary]="activeTab !== 'PLAN'"
         class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left font-medium transition-all hover:bg-white/60"
       >
-        <span class="material-symbols-rounded">description</span>
+        <app-shell-icon name="clipboard" [size]="18"></app-shell-icon>
         Plan y Recetas
       </button>
     </aside>
 
     <!-- Área de trabajo central -->
     <div class="flex-1 overflow-y-auto bg-white p-8">
+      @if (actionError) {
+        <div class="mx-auto mb-6 max-w-4xl rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700 shadow-sm">
+          {{ actionError }}
+        </div>
+      }
+
       <div class="mx-auto max-w-4xl rounded-xl border border-border bg-white shadow-sm overflow-hidden">
         
         <!-- MOTIVO -->
@@ -313,10 +319,21 @@
         <div class="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
         <p class="mt-4 font-medium">Abriendo historia clínica...</p>
       } @else if (loadError) {
-        <span class="material-symbols-rounded mb-2 text-4xl text-red-500">error</span>
+        <app-shell-icon name="alertCircle" [size]="40" className="mb-2 text-red-500"></app-shell-icon>
         <p class="font-medium text-red-700">{{ loadError }}</p>
         <button type="button" (click)="goBack()" class="mt-4 rounded bg-primary px-4 py-2 text-white">Volver a cola</button>
       }
     </div>
   </ng-template>
+
+  <app-confirm-dialog
+    [open]="isFinishConfirmOpen"
+    title="Finalizar atención"
+    message="Se cerrará la consulta médica actual y el paciente saldrá del flujo activo de atención. ¿Deseas continuar?"
+    confirmLabel="Sí, finalizar"
+    cancelLabel="Seguir atendiendo"
+    busyLabel="Finalizando..."
+    (closed)="closeFinishConfirmDialog()"
+    (confirmed)="confirmFinishEncounter()"
+  ></app-confirm-dialog>
 </div>

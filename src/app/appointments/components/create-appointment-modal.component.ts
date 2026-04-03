@@ -16,6 +16,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { firstValueFrom } from 'rxjs';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
 import { MetadataStore } from '@app/core/metadata/metadata-store.service';
+import { ShellIconComponent } from '@app/shell/shell-icon.component';
 import { AppointmentsApiService } from '../api/appointments-api.service';
 import { CreateAppointmentRequest } from '../models/appointment-create.model';
 import {
@@ -51,7 +52,14 @@ class ManualFieldErrorStateMatcher implements ErrorStateMatcher {
 @Component({
   selector: 'app-create-appointment-modal',
   standalone: true,
-  imports: [FormsModule, MatAutocompleteModule, MatFormFieldModule, MatInputModule, MatSelectModule],
+  imports: [
+    FormsModule,
+    MatAutocompleteModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    ShellIconComponent,
+  ],
   templateUrl: './create-appointment-modal.component.html',
   styleUrl: './create-appointment-modal.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -220,6 +228,22 @@ export class CreateAppointmentModalComponent implements OnDestroy {
   protected onEndTimeChanged(value: string): void {
     this.endTime = value;
     this.submitError = null;
+  }
+
+  protected openDatePicker(input: HTMLInputElement): void {
+    this.submitError = null;
+
+    const pickerInput = input as HTMLInputElement & {
+      showPicker?: () => void;
+    };
+
+    if (typeof pickerInput.showPicker === 'function') {
+      pickerInput.showPicker();
+      return;
+    }
+
+    input.focus();
+    input.click();
   }
 
   protected save(): void {

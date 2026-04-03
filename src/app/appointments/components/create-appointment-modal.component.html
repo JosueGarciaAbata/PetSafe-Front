@@ -97,6 +97,7 @@
                 class="appointment-create-field w-full"
               >
                 <input
+                  #scheduledDateInput
                   matInput
                   type="date"
                   [ngModel]="scheduledDate"
@@ -104,6 +105,15 @@
                   [errorStateMatcher]="scheduledDateErrorStateMatcher"
                   class="text-sm text-text-primary"
                 />
+                <button
+                  type="button"
+                  matSuffix
+                  class="appointment-create-date-trigger"
+                  (click)="openDatePicker(scheduledDateInput)"
+                  aria-label="Abrir calendario"
+                >
+                  <app-shell-icon name="calendar" [size]="18"></app-shell-icon>
+                </button>
                 @if (isScheduledDateInvalid()) {
                   <mat-error>Selecciona una fecha programada.</mat-error>
                 }

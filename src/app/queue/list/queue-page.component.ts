@@ -11,6 +11,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged, firstValueFrom } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
 import { PaginationComponent } from '@app/shared/pagination/pagination.component';
 import { EMPTY_PAGINATION_META, PaginationMeta } from '@app/shared/pagination/pagination.model';
 import { QueueApiService } from '../api/queue-api.service';
@@ -221,18 +222,37 @@ export class QueuePageComponent implements OnInit {
       return;
     }
 
+    this.loadError = null;
+    this.cdr.detectChanges();
+
+    const encounterPayload = {
+      queueEntryId: entry.id,
+      generalNotes: entry.notes ?? undefined,
+    };
+
+    let queueWasStarted = false;
+
     try {
       if (entry.queueStatus === 'EN_ATENCION') {
-        const encounter = await firstValueFrom(this.encountersApi.create({ queueEntryId: entry.id }));
+        const encounter = await firstValueFrom(this.encountersApi.create(encounterPayload));
         void this.router.navigate(['/encounters', encounter.id]);
         return;
       }
 
       await firstValueFrom(this.queueApi.startAttention(entry.id));
-      const encounter = await firstValueFrom(this.encountersApi.create({ queueEntryId: entry.id }));
+      queueWasStarted = true;
+      const encounter = await firstValueFrom(this.encountersApi.create(encounterPayload));
       void this.router.navigate(['/encounters', encounter.id]);
-    } catch {
-      this.loadError = 'No se pudo iniciar la consulta médica para este paciente.';
+    } catch (error) {
+      if (queueWasStarted || entry.queueStatus === 'EN_ATENCION') {
+        this.pendingEntryIdToReveal = entry.id;
+        this.activeStatusFilter = 'TODOS';
+        await this.loadQueue(this.paginationMeta.currentPage || 1);
+      }
+
+      this.loadError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo iniciar la consulta médica para este paciente.',
+      });
       this.cdr.detectChanges();
     }
   }
@@ -246,8 +266,10 @@ export class QueuePageComponent implements OnInit {
       await firstValueFrom(this.queueApi.finishAttention(entry.id));
       await this.loadQueue(this.paginationMeta.currentPage);
       this.selectedEntryId = entry.id;
-    } catch {
-      this.loadError = 'No se pudo finalizar la atención de este paciente.';
+    } catch (error) {
+      this.loadError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo finalizar la atención de este paciente.',
+      });
       this.cdr.detectChanges();
     }
   }
@@ -279,8 +301,10 @@ export class QueuePageComponent implements OnInit {
       await this.loadQueue(this.paginationMeta.currentPage);
       this.selectedEntryId = entry.id;
       this.closeCancelModal();
-    } catch {
-      this.loadError = 'No se pudo cancelar el ingreso de este paciente.';
+    } catch (error) {
+      this.loadError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo cancelar el ingreso de este paciente.',
+      });
       this.cdr.detectChanges();
     }
   }
@@ -323,7 +347,8 @@ export class QueuePageComponent implements OnInit {
           this.isDetailPanelOpen = true;
           this.pendingEntryIdToReveal = null;
         } else if (!selectedVisibleEntry) {
-          this.selectedEntryId = this.entries[0]?.id ?? null;
+          this.selectedEntryId = null;
+          this.isDetailPanelOpen = false;
         }
       }
     } catch {

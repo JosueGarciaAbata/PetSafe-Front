@@ -12,15 +12,18 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, firstValueFrom } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
+import { ConfirmDialogComponent } from '@app/shared/confirm-dialog/confirm-dialog.component';
 import { EncountersApiService } from '../api/encounters-api.service';
 import { EncounterDetail } from '../models/encounter.model';
+import { ShellIconComponent } from '../../shell/shell-icon.component';
 
 type TabView = 'REASON' | 'ANAMNESIS' | 'EXAM' | 'ENVIRONMENT' | 'IMPRESSION' | 'PLAN';
 
 @Component({
   selector: 'app-encounter-workspace-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ShellIconComponent, ConfirmDialogComponent],
   templateUrl: './encounter-workspace-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -36,6 +39,8 @@ export class EncounterWorkspacePageComponent implements OnInit {
   protected isSaving = false;
   protected activeTab: TabView = 'REASON';
   protected loadError: string | null = null;
+  protected actionError: string | null = null;
+  protected isFinishConfirmOpen = false;
 
   // Forms for each tab
   protected reasonForm = new FormGroup({
@@ -178,13 +183,36 @@ export class EncounterWorkspacePageComponent implements OnInit {
 
   protected async finishEncounter(): Promise<void> {
     if (!this.encounter) return;
-    if (!confirm('¿Seguro que deseas finalizar esta consulta médica?')) return;
-    
-    this.isSaving = true;
+
+    this.actionError = null;
+    this.isFinishConfirmOpen = true;
     this.cdr.detectChanges();
+  }
+
+  protected closeFinishConfirmDialog(): void {
+    if (this.isSaving) {
+      return;
+    }
+
+    this.isFinishConfirmOpen = false;
+    this.cdr.detectChanges();
+  }
+
+  protected async confirmFinishEncounter(): Promise<void> {
+    if (!this.encounter) return;
+
+    this.isSaving = true;
+    this.isFinishConfirmOpen = false;
+    this.actionError = null;
+    this.cdr.detectChanges();
+
     try {
       await firstValueFrom(this.encountersApi.finish(this.encounter.id));
       void this.router.navigate(['/queue']);
+    } catch (error) {
+      this.actionError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo finalizar la atención médica.',
+      });
     } finally {
       this.isSaving = false;
       this.cdr.detectChanges();

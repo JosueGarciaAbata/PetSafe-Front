@@ -106,6 +106,9 @@ export interface EncounterDetail {
 
 export interface CreateEncounterRequest {
   patientId?: number;
+  vetId?: number;
+  appointmentId?: number | null;
   queueEntryId?: number;
+  startTime?: string;
   generalNotes?: string;
 }

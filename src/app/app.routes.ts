@@ -4,6 +4,8 @@ import { ErrorPageComponent } from '@app/error-page/error-page';
 import { LoginPageComponent } from '@app/login/login-page.component';
 
 const adminRoles = ['ADMIN'] as const;
+const staffRoles = ['ADMIN', 'MVZ', 'RECEPCIONISTA'] as const;
+const clinicalRoles = ['ADMIN', 'MVZ'] as const;
 
 export const routes: Routes = [
   {
@@ -38,7 +40,7 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () =>
           import('@app/dashboard/dashboard-page.component').then(
             (m) => m.DashboardPageComponent,
@@ -48,14 +50,14 @@ export const routes: Routes = [
       {
         path: 'owners',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () =>
           import('@app/owners/list/owners-page.component').then((m) => m.OwnersPageComponent),
       },
       {
         path: 'owners/new',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () =>
           import('@app/owners/create/owner-create-page.component').then(
             (m) => m.OwnerCreatePageComponent,
@@ -64,7 +66,7 @@ export const routes: Routes = [
       {
         path: 'owners/:id/next-steps',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () =>
           import('@app/owners/create/owner-create-next-steps-page.component').then(
             (m) => m.OwnerCreateNextStepsPageComponent,
@@ -73,14 +75,14 @@ export const routes: Routes = [
       {
         path: 'owners/:id',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () =>
           import('@app/owners/detail/owner-detail.component').then((m) => m.OwnerDetailComponent),
       },
       {
         path: 'owners/:id/edit',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () =>
           import('@app/owners/edit/owner-edit-page.component').then(
             (m) => m.OwnerEditPageComponent,
@@ -89,33 +91,33 @@ export const routes: Routes = [
       {
         path: 'pets',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () => import('@app/pets/list/pets-page.component').then((m) => m.PetsPageComponent),
       },
       {
         path: 'pets/new',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () =>
           import('@app/pets/create/pet-create-page.component').then((m) => m.PetCreatePageComponent),
       },
       {
         path: 'pets/:id',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () => import('@app/pets/detail/pet-detail.component').then((m) => m.PetDetailComponent),
       },
       {
         path: 'pets/:id/edit',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () =>
           import('@app/pets/edit/pet-edit-page.component').then((m) => m.PetEditPageComponent),
       },
       {
         path: 'appointments',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () =>
           import('@app/appointments/list/appointments-page.component').then(
             (m) => m.AppointmentsPageComponent,
@@ -124,7 +126,7 @@ export const routes: Routes = [
       {
         path: 'queue/new',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () =>
           import('@app/queue/create/create-queue-entry-modal.component').then(
             (m) => m.QueueIntakePageComponent,
@@ -133,14 +135,14 @@ export const routes: Routes = [
       {
         path: 'queue',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () =>
           import('@app/queue/list/queue-page.component').then((m) => m.QueuePageComponent),
       },
       {
         path: 'history',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () =>
           import('@app/internal-section-page/internal-section-page.component').then(
             (m) => m.InternalSectionPageComponent,
@@ -149,7 +151,7 @@ export const routes: Routes = [
       {
         path: 'encounters/:id',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: clinicalRoles },
         loadComponent: () =>
           import('@app/encounters/workspace/encounter-workspace-page.component').then(
             (m) => m.EncounterWorkspacePageComponent,
@@ -158,7 +160,7 @@ export const routes: Routes = [
       {
         path: 'treatments',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () =>
           import('@app/internal-section-page/internal-section-page.component').then(
             (m) => m.InternalSectionPageComponent,
@@ -167,7 +169,7 @@ export const routes: Routes = [
       {
         path: 'adoption',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () =>
           import('@app/internal-section-page/internal-section-page.component').then(
             (m) => m.InternalSectionPageComponent,
@@ -176,7 +178,7 @@ export const routes: Routes = [
       {
         path: 'reports',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () =>
           import('@app/reports/list/reports-page.component').then(
             (m) => m.ReportsPageComponent,

@@ -32,12 +32,14 @@ export class EncountersApiService {
 
   // FINALIZAR
   finish(id: number): Observable<EncounterDetail> {
-    return this.http.patch<EncounterDetail>(`${this.baseUrl}/${id}/finish`, {});
+    return this.http.patch<EncounterDetail>(`${this.baseUrl}/${id}/finish`, {
+      endTime: new Date().toISOString(),
+    });
   }
 
   // PESTAÑAS (TABS) ACTUALIZAR
   updateReason(id: number, payload: EncounterReason): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/${id}/reason`, payload);
+    return this.http.put<void>(`${this.baseUrl}/${id}/consultation-reason`, payload);
   }
 
   updateAnamnesis(id: number, payload: EncounterAnamnesis): Observable<void> {
@@ -53,7 +55,7 @@ export class EncountersApiService {
   }
 
   updateImpression(id: number, payload: EncounterClinicalImpression): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/${id}/impression`, payload);
+    return this.http.put<void>(`${this.baseUrl}/${id}/clinical-impression`, payload);
   }
 
   updatePlan(id: number, payload: EncounterPlan): Observable<void> {
