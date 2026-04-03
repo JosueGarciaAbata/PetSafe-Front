@@ -16,6 +16,12 @@ import { PetsApiService } from '../services/pets-api.service';
 @Component({
   selector: 'app-pet-detail',
   standalone: true,
+  imports: [
+    FormsModule,
+    MatAutocompleteModule,
+    MatFormFieldModule,
+    MatInputModule,
+  ],
   templateUrl: './pet-detail.component.html',
   styleUrl: './pet-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,6 +34,8 @@ export class PetDetailComponent implements OnInit {
   private requestVersion = 0;
   private backTarget: readonly (string | number)[] = ['/pets'];
   protected backLabel = 'Volver a mascotas';
+  // El control de relaciones tutor-mascota ya existe y quedó desacoplado
+  // en `detail/components/pet-tutors-relations.component` para futuro uso.
 
   ngOnInit(): void {
     const navigationState = history.state as {
@@ -118,7 +126,7 @@ export class PetDetailComponent implements OnInit {
       return 'Edad no registrada';
     }
 
-    return `${this.pet.ageYears} ${this.pet.ageYears === 1 ? 'ano' : 'anos'}`;
+    return `${this.pet.ageYears} ${this.pet.ageYears === 1 ? 'año' : 'años'}`;
   }
 
   protected buildBirthDateLabel(): string {

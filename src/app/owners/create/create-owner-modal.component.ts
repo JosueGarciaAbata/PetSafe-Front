@@ -59,7 +59,7 @@ export class CreateOwnerModalComponent {
   protected readonly form = this.fb.nonNullable.group({
     firstName: ['', [Validators.required, Validators.maxLength(CLIENT_NAME_MAX_LENGTH)]],
     lastName: ['', [Validators.required, Validators.maxLength(CLIENT_NAME_MAX_LENGTH)]],
-    documentId: ['', [Validators.maxLength(CLIENT_DOCUMENT_ID_MAX_LENGTH), ecuadorCedulaValidator()]],
+    documentId: ['', [Validators.required, Validators.maxLength(CLIENT_DOCUMENT_ID_MAX_LENGTH), ecuadorCedulaValidator()]],
     gender: ['F' as ClientGenderCode],
     birthDate: ['', [clientMinDateValidator(CLIENT_MIN_BIRTH_DATE)]],
     phone: ['', [Validators.pattern(CLIENT_PHONE_PATTERN)]],
@@ -117,19 +117,15 @@ export class CreateOwnerModalComponent {
     const payload: CreateClientRequest = {
       firstName: value.firstName.trim(),
       lastName: value.lastName.trim(),
+      documentId: value.documentId.trim(),
       gender: value.gender,
     };
 
-    const documentId = value.documentId.trim();
     const phone = value.phone.trim();
     const address = value.address.trim();
     const birthDate = value.birthDate.trim();
     const notes = value.notes.trim();
     const email = value.email.trim();
-
-    if (documentId) {
-      payload.documentId = documentId;
-    }
 
     if (phone) {
       payload.phone = phone;

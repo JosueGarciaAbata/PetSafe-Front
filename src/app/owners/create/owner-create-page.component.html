@@ -77,16 +77,19 @@
             </div>
 
             <div class="flex flex-col gap-2 md:col-span-2 xl:col-span-1">
-              <label class="text-sm font-semibold text-text-primary">Cédula <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span></label>
+              <label class="text-sm font-semibold text-text-primary">Cédula</label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="owner-field w-full">
                 <input matInput formControlName="documentId" type="text" inputmode="numeric" [attr.maxlength]="documentIdMaxLength" placeholder="Ej. 1234567890" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                @if (form.controls.documentId.touched && (form.controls.documentId.hasError('required') || form.controls.documentId.hasError('requiredTrimmed'))) {
+                  <mat-error>La cédula es obligatoria.</mat-error>
+                }
                 @if (form.controls.documentId.touched && form.controls.documentId.hasError('maxlength')) {
                   <mat-error>La cédula no puede superar los {{ documentIdMaxLength }} caracteres.</mat-error>
                 }
                 @if (form.controls.documentId.touched && form.controls.documentId.hasError('invalidCedulaFormat')) {
                   <mat-error>La cédula debe tener exactamente 10 dígitos.</mat-error>
                 }
-                @if (form.controls.documentId.touched && form.controls.documentId.hasError('invalidCedula')) {
+                @if (form.controls.documentId.touched && !form.controls.documentId.hasError('required') && !form.controls.documentId.hasError('requiredTrimmed') && form.controls.documentId.hasError('invalidCedula')) {
                   <mat-error>Ingresa una cédula ecuatoriana válida.</mat-error>
                 }
               </mat-form-field>

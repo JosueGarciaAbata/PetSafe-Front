@@ -64,7 +64,7 @@ export class OwnerCreatePageComponent {
   protected readonly form = this.fb.nonNullable.group({
     firstName: ['', [trimmedRequiredValidator(), trimmedMinLengthValidator(2), Validators.maxLength(CLIENT_NAME_MAX_LENGTH), optionalPatternValidator(CLIENT_NAME_PATTERN, 'invalidNamePattern')]],
     lastName: ['', [trimmedRequiredValidator(), trimmedMinLengthValidator(2), Validators.maxLength(CLIENT_NAME_MAX_LENGTH), optionalPatternValidator(CLIENT_NAME_PATTERN, 'invalidNamePattern')]],
-    documentId: ['', [Validators.maxLength(CLIENT_DOCUMENT_ID_MAX_LENGTH), ecuadorCedulaValidator()]],
+    documentId: ['', [trimmedRequiredValidator(), Validators.maxLength(CLIENT_DOCUMENT_ID_MAX_LENGTH), ecuadorCedulaValidator()]],
     gender: ['F' as ClientGenderCode],
     birthDate: ['', [clientDateRangeValidator(CLIENT_MIN_BIRTH_DATE, CLIENT_MAX_BIRTH_DATE)]],
     phone: ['', [Validators.pattern(CLIENT_PHONE_PATTERN)]],
@@ -125,19 +125,15 @@ export class OwnerCreatePageComponent {
     const payload: CreateClientRequest = {
       firstName: normalizeWhitespace(value.firstName),
       lastName: normalizeWhitespace(value.lastName),
+      documentId: value.documentId.trim(),
       gender: value.gender,
     };
 
-    const documentId = value.documentId.trim();
     const phone = value.phone.trim();
     const address = normalizeWhitespace(value.address);
     const birthDate = value.birthDate.trim();
     const notes = normalizeWhitespace(value.notes);
     const email = value.email.trim().toLowerCase();
-
-    if (documentId) {
-      payload.documentId = documentId;
-    }
 
     if (phone) {
       payload.phone = phone;
