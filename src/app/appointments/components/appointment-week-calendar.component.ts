@@ -7,6 +7,7 @@ import {
   buildAppointmentReasonLabel,
   buildAppointmentStatusLabel,
 } from '../models/appointment.model';
+import { formatAppointmentTime } from '../utils/appointment-date.util';
 
 @Component({
   selector: 'app-appointment-week-calendar',
@@ -45,12 +46,28 @@ export class AppointmentWeekCalendarComponent {
     return buildAppointmentStatusLabel(status);
   }
 
+  protected shouldShowQueueBadge(appointment: AppointmentRecord): boolean {
+    return appointment.status === 'PROGRAMADA';
+  }
+
+  protected buildQueueBadgeLabel(appointment: AppointmentRecord): string {
+    return appointment.hasQueueEntry || appointment.queueEntryId ? 'En cola' : 'Sin ingreso';
+  }
+
+  protected buildQueueBadgeClasses(appointment: AppointmentRecord): string {
+    return appointment.hasQueueEntry || appointment.queueEntryId
+      ? 'border-[#BDE8B4] bg-[#E5F5E0] text-[#1D7A04]'
+      : 'border-border bg-background text-text-secondary';
+  }
+
   protected buildTimeRange(appointment: AppointmentRecord): string {
+    const startsAt = formatAppointmentTime(appointment.startsAt);
+
     if (!appointment.endsAt) {
-      return appointment.startsAt;
+      return startsAt;
     }
 
-    return `${appointment.startsAt} - ${appointment.endsAt}`;
+    return `${startsAt} - ${formatAppointmentTime(appointment.endsAt)}`;
   }
 
   protected hasNotes(notes: string | null): boolean {

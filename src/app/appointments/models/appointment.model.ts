@@ -6,6 +6,12 @@ export type AppointmentStatus =
   | 'CANCELADA'
   | 'NO_ASISTIO';
 
+export type AppointmentQueueStatus =
+  | 'EN_ESPERA'
+  | 'EN_ATENCION'
+  | 'FINALIZADA'
+  | 'CANCELADA';
+
 export const APPOINTMENT_REASON_VALUES = [
   'CONSULTA_GENERAL',
   'VACUNACION',
@@ -31,6 +37,9 @@ export interface AppointmentRecord {
   notes: string | null;
   status: AppointmentStatus;
   isActive: boolean;
+  queueEntryId?: number | null;
+  hasQueueEntry?: boolean;
+  queueStatus?: AppointmentQueueStatus | null;
 }
 
 export function buildAppointmentReasonLabel(reason: AppointmentReason | string | null): string {

@@ -51,34 +51,48 @@
                       {{ buildTimeRange(appointment) }}
                     </p>
 
-                    <div class="appointment-week-heading">
-                      <h3 class="appointment-week-patient" [title]="buildPatientLabel(appointment)">
-                        {{ buildPatientLabel(appointment) }}
-                      </h3>
+                    <div class="appointment-week-heading items-start">
+                      <div class="min-w-0">
+                        <h3
+                          class="truncate appointment-week-patient"
+                          [title]="
+                            hasOwnerName(appointment.ownerName)
+                              ? buildPatientLabel(appointment) + ' (' + appointment.ownerName + ')'
+                              : buildPatientLabel(appointment)
+                          "
+                        >
+                          {{ buildPatientLabel(appointment) }}
+                          @if (hasOwnerName(appointment.ownerName)) {
+                            <span class="text-[11px] font-medium text-text-secondary"> ({{ appointment.ownerName }})</span>
+                          }
+                        </h3>
+                      </div>
+                    </div>
 
+                    <div class="flex flex-col items-start gap-1">
                       <span
-                        class="appointment-week-status-chip shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em]"
+                        class="appointment-week-status-chip rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em]"
                         [class]="buildStatusClasses(appointment.status)"
                         [title]="buildStatusLabel(appointment.status)"
                       >
                         {{ buildStatusLabel(appointment.status) }}
                       </span>
+
+                      @if (shouldShowQueueBadge(appointment)) {
+                        <span
+                          class="rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.08em]"
+                          [class]="buildQueueBadgeClasses(appointment)"
+                          [title]="buildQueueBadgeLabel(appointment)"
+                        >
+                          {{ buildQueueBadgeLabel(appointment) }}
+                        </span>
+                      }
                     </div>
 
                     <div class="appointment-week-details">
-                      @if (hasOwnerName(appointment.ownerName)) {
-                        <p class="appointment-week-detail" [title]="appointment.ownerName ?? ''">
-                          {{ appointment.ownerName }}
-                        </p>
-                      }
                       <p class="appointment-week-detail" [title]="buildReasonLabel(appointment.reason)">
                         {{ buildReasonLabel(appointment.reason) }}
                       </p>
-                      @if (hasNotes(appointment.notes)) {
-                        <p class="appointment-week-detail appointment-week-detail--notes" [title]="appointment.notes ?? ''">
-                          {{ appointment.notes }}
-                        </p>
-                      }
                     </div>
                   </div>
                 </article>

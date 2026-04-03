@@ -19,7 +19,7 @@ import {
   buildAppointmentReasonLabel,
   buildAppointmentStatusLabel,
 } from '../models/appointment.model';
-import { parseDateKey } from '../utils/appointment-date.util';
+import { formatAppointmentTime, parseDateKey } from '../utils/appointment-date.util';
 
 type AppointmentAction = 'confirm' | 'cancel' | 'arrival' | 'noShow' | null;
 
@@ -86,7 +86,7 @@ export class AppointmentDetailModalComponent {
   }
 
   protected get hasActions(): boolean {
-    return this.canConfirm || this.canRegisterArrival || this.canCancel || this.canMarkNoShow;
+    return this.canRegisterArrival || this.canCancel || this.canMarkNoShow;
   }
 
   protected get patientNameLabel(): string {
@@ -154,15 +154,19 @@ export class AppointmentDetailModalComponent {
   }
 
   protected buildTimeRangeLabel(): string {
-    return this.appointment.endsAt
-      ? `${this.appointment.startsAt} - ${this.appointment.endsAt}`
-      : this.appointment.startsAt;
+    const startsAt = formatAppointmentTime(this.appointment.startsAt);
+
+    if (!this.appointment.endsAt) {
+      return startsAt;
+    }
+
+    return `${startsAt} - ${formatAppointmentTime(this.appointment.endsAt)}`;
   }
 
   protected buildStatusHelpText(status: AppointmentStatus): string {
     switch (status) {
       case 'PROGRAMADA':
-        return 'Pendiente de confirmacion.';
+        return 'Pendiente de ser atendido.';
       case 'CONFIRMADA':
         return 'Lista para registrar llegada.';
       case 'EN_PROCESO':

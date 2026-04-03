@@ -33,7 +33,7 @@
         <button
           type="button"
           (click)="switchView('month')"
-          class="rounded-[10px] px-4 text-sm font-semibold transition-colors"
+          class="cursor-pointer rounded-[10px] px-4 text-sm font-semibold transition-colors"
           [class.bg-background]="currentView !== 'month'"
           [class.text-text-secondary]="currentView !== 'month'"
           [class.bg-white]="currentView === 'month'"
@@ -45,7 +45,7 @@
         <button
           type="button"
           (click)="switchView('week')"
-          class="rounded-[10px] px-4 text-sm font-semibold transition-colors"
+          class="cursor-pointer rounded-[10px] px-4 text-sm font-semibold transition-colors"
           [class.bg-background]="currentView !== 'week'"
           [class.text-text-secondary]="currentView !== 'week'"
           [class.bg-white]="currentView === 'week'"
@@ -59,19 +59,21 @@
   </section>
 
   @if (loadError) {
-    <div class="flex items-center justify-between gap-3 rounded-[18px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+    <div
+      class="flex items-center justify-between gap-3 rounded-[18px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+    >
       <span>{{ loadError }}</span>
       <button
         type="button"
         (click)="retryLoadAppointments()"
-        class="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.1em] transition-colors hover:bg-red-50"
+        class="cursor-pointer rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.1em] transition-colors hover:bg-red-50"
       >
         Reintentar
       </button>
     </div>
   }
 
-  <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+  <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
     <article class="summary-card rounded-[18px] border border-border/70 bg-card px-5 py-4">
       <span class="text-xs font-bold uppercase tracking-[0.14em] text-text-secondary">
         {{ currentView === 'week' ? 'Total de la semana' : 'Total del mes' }}
@@ -96,16 +98,6 @@
 
     <article class="summary-card rounded-[18px] border border-border/70 bg-card px-5 py-4">
       <span class="text-xs font-bold uppercase tracking-[0.14em] text-text-secondary">
-        Confirmadas
-      </span>
-      <strong class="mt-2 block text-[32px] leading-none font-bold text-[#2F6A57]">
-        {{ summary.confirmedAppointments }}
-      </strong>
-      <p class="mt-1 text-xs text-text-secondary">Listas para atenderse en calendario.</p>
-    </article>
-
-    <article class="summary-card rounded-[18px] border border-border/70 bg-card px-5 py-4">
-      <span class="text-xs font-bold uppercase tracking-[0.14em] text-text-secondary">
         Canceladas
       </span>
       <strong class="mt-2 block text-[32px] leading-none font-bold text-[#A35454]">
@@ -121,7 +113,7 @@
         <button
           type="button"
           (click)="goToPreviousRange()"
-          class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-white text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+          class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-white text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
           [attr.aria-label]="currentView === 'week' ? 'Semana anterior' : 'Mes anterior'"
           [title]="currentView === 'week' ? 'Semana anterior' : 'Mes anterior'"
         >
@@ -151,7 +143,7 @@
         <button
           type="button"
           (click)="goToNextRange()"
-          class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-white text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+          class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-white text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
           [attr.aria-label]="currentView === 'week' ? 'Semana siguiente' : 'Mes siguiente'"
           [title]="currentView === 'week' ? 'Semana siguiente' : 'Mes siguiente'"
         >
@@ -175,7 +167,7 @@
           type="button"
           (click)="goToToday()"
           [disabled]="isCurrentRangeActive()"
-          class="inline-flex h-10 items-center justify-center rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-60"
+          class="inline-flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-60"
         >
           Hoy
         </button>
@@ -194,7 +186,10 @@
     </section>
   } @else {
     @if (currentView === 'week') {
-      <app-appointment-week-calendar [days]="weekDays" (appointmentClick)="openAppointmentDetail($event)" />
+      <app-appointment-week-calendar
+        [days]="weekDays"
+        (appointmentClick)="openAppointmentDetail($event)"
+      />
     } @else {
       <app-appointment-month-calendar
         [weekdayLabels]="weekdayLabels"
