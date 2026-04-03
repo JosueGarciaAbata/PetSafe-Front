@@ -23,7 +23,7 @@ export class QueueApiService {
       .set('limit', query.limit);
 
     if (query.searchTerm?.trim()) {
-      params = params.set('search', query.searchTerm.trim());
+      params = params.set('searchTerm', query.searchTerm.trim());
     }
     if (query.status && query.status !== 'TODOS') {
       params = params.set('status', query.status);
