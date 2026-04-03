@@ -16,12 +16,6 @@ import { PetsApiService } from '../services/pets-api.service';
 @Component({
   selector: 'app-pet-detail',
   standalone: true,
-  imports: [
-    FormsModule,
-    MatAutocompleteModule,
-    MatFormFieldModule,
-    MatInputModule,
-  ],
   templateUrl: './pet-detail.component.html',
   styleUrl: './pet-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
