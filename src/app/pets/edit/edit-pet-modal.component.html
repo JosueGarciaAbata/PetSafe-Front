@@ -161,6 +161,49 @@
                 </mat-autocomplete>
               </div>
             </div>
+
+            <div class="h-px bg-border"></div>
+
+            <div class="flex flex-col gap-2">
+              <div class="flex flex-col gap-1">
+                <span class="text-sm font-bold uppercase tracking-wider text-brand">Esquema de vacunación</span>
+                <p class="text-xs leading-5 text-text-secondary">
+                  Cambiar el esquema genera un nuevo plan vacunal y conserva las aplicaciones históricas que el sistema pueda reconciliar.
+                </p>
+              </div>
+
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
+                <input matInput type="text" [ngModel]="vaccinationSchemeValue" (ngModelChange)="onVaccinationSchemeChanged($event)" [errorStateMatcher]="vaccinationSchemeErrorStateMatcher" [matAutocomplete]="schemeAuto" [placeholder]="vaccinationSchemePlaceholder()" [disabled]="isVaccinationSchemeDisabled()" autocomplete="off" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                @if (isVaccinationSchemeInvalid()) {
+                  <mat-error>Selecciona un esquema vacunal valido.</mat-error>
+                } @else if (selectedVaccinationSchemeSupportText(); as schemeSupportText) {
+                  <mat-hint>{{ schemeSupportText }}</mat-hint>
+                } @else if (!hasSelectedSpecies()) {
+                  <mat-hint>El esquema se habilita cuando selecciones una especie.</mat-hint>
+                } @else if (vaccinationPlanLoadError) {
+                  <mat-hint>{{ vaccinationPlanLoadError }}</mat-hint>
+                } @else if (isVaccinationSchemesLoading) {
+                  <mat-hint>Buscando esquemas utilizables para la especie...</mat-hint>
+                } @else if (vaccinationSchemes.length === 0) {
+                  <mat-hint>No hay esquemas utilizables para esta especie.</mat-hint>
+                }
+              </mat-form-field>
+              <mat-autocomplete #schemeAuto="matAutocomplete" autoActiveFirstOption>
+                @for (option of vaccinationSchemeOptions(); track option.id) {
+                  <mat-option [value]="buildVaccinationSchemeLabel(option)" (onSelectionChange)="onVaccinationSchemeOptionSelection($event.isUserInput, option)">
+                    <div class="flex flex-col">
+                      <span class="text-sm font-medium text-text-primary">{{ buildVaccinationSchemeLabel(option) }}</span>
+                      <span class="text-xs text-text-secondary">{{ buildVaccinationSchemeSupportText(option) }}</span>
+                    </div>
+                  </mat-option>
+                }
+                @if (isVaccinationSchemesLoading) {
+                  <mat-option disabled>Buscando esquemas...</mat-option>
+                } @else if (hasSelectedSpecies() && vaccinationSchemeOptions().length === 0) {
+                  <mat-option disabled>No hay esquemas utilizables</mat-option>
+                }
+              </mat-autocomplete>
+            </div>
           </div>
         </section>
 
@@ -269,18 +312,33 @@
           </section>
         </div>
       </div>
-    </div>
+      @if (pageMode) {
+        <div class="flex items-center justify-end gap-3 border-t border-border bg-white/95 px-8 py-5 backdrop-blur">
+          @if (submitError) {
+            <p class="mr-auto whitespace-pre-line text-xs font-medium text-red-600">{{ submitError }}</p>
+          }
 
-    <div [class]="pageMode ? 'flex items-center justify-end gap-3 border-t border-border bg-white/95 px-8 py-5' : 'flex items-center justify-end gap-3 border-t border-border bg-white px-6 py-5'">
-      @if (submitError) {
-        <p class="mr-auto whitespace-pre-line text-xs font-medium text-red-600">{{ submitError }}</p>
+          <button type="button" (click)="close()" [disabled]="isSaving" class="cursor-pointer rounded-xl px-6 py-3 text-sm font-bold text-text-secondary transition-all hover:bg-background disabled:cursor-not-allowed disabled:opacity-70">Cancelar</button>
+
+          <button type="button" (click)="save()" [disabled]="isSaving" class="cursor-pointer rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70">
+            {{ isSaving ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+        </div>
       }
-
-      <button type="button" (click)="close()" [disabled]="isSaving" class="cursor-pointer rounded-xl px-6 py-3 text-sm font-bold text-text-secondary transition-all hover:bg-background disabled:cursor-not-allowed disabled:opacity-70">Cancelar</button>
-
-      <button type="button" (click)="save()" [disabled]="isSaving" class="cursor-pointer rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70">
-        {{ isSaving ? 'Guardando...' : 'Guardar cambios' }}
-      </button>
     </div>
+
+    @if (!pageMode) {
+      <div class="flex items-center justify-end gap-3 border-t border-border bg-white px-6 py-5">
+        @if (submitError) {
+          <p class="mr-auto whitespace-pre-line text-xs font-medium text-red-600">{{ submitError }}</p>
+        }
+
+        <button type="button" (click)="close()" [disabled]="isSaving" class="cursor-pointer rounded-xl px-6 py-3 text-sm font-bold text-text-secondary transition-all hover:bg-background disabled:cursor-not-allowed disabled:opacity-70">Cancelar</button>
+
+        <button type="button" (click)="save()" [disabled]="isSaving" class="cursor-pointer rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70">
+          {{ isSaving ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+      </div>
+    }
   </div>
 </div>

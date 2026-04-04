@@ -7,6 +7,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { firstValueFrom } from 'rxjs';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
+import { AppToastService } from '@app/core/ui/app-toast.service';
 import { OwnersApiService } from '../api/owners-api.service';
 import { ClientTutorBasicApiResponse } from '../models/client-tutor-basic.model';
 import {
@@ -46,6 +47,7 @@ export class OwnerCreatePageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly ownersApi = inject(OwnersApiService);
   private readonly router = inject(Router);
+  private readonly toast = inject(AppToastService);
 
   protected readonly addressMaxLength = CLIENT_ADDRESS_MAX_LENGTH;
   protected readonly documentIdMaxLength = CLIENT_DOCUMENT_ID_MAX_LENGTH;
@@ -85,6 +87,7 @@ export class OwnerCreatePageComponent {
     if (this.form.invalid) {
       this.errorMessage = null;
       this.form.markAllAsTouched();
+      this.toast.info('Revisa los campos obligatorios del propietario.');
       this.cdr.markForCheck();
       return;
     }
@@ -97,6 +100,7 @@ export class OwnerCreatePageComponent {
       const payload = this.buildPayload(this.form.getRawValue() as CreateClientFormValue);
       const owner = await firstValueFrom(this.ownersApi.createClient(payload));
       if (this.continueWithPetCreation) {
+        this.toast.success('Propietario creado. Continúa con el registro de la mascota.');
         void this.router.navigate(['/pets/new'], {
           state: {
             initialTutor: this.mapOwnerToTutor(owner),
@@ -106,8 +110,12 @@ export class OwnerCreatePageComponent {
           },
         });
       } else {
-        void this.router.navigate(['/owners', owner.id, 'next-steps'], {
-          state: { owner },
+        this.toast.success('Propietario creado correctamente.');
+        void this.router.navigate(['/owners', owner.id], {
+          state: {
+            backTarget: ['/owners'],
+            backLabel: 'Volver a propietarios',
+          },
         });
       }
     } catch (error: unknown) {
@@ -115,6 +123,7 @@ export class OwnerCreatePageComponent {
         defaultMessage: 'No se pudo crear el cliente. Intenta nuevamente.',
         clientErrorMessage: 'Revisa los datos ingresados.',
       });
+      this.toast.error(this.errorMessage);
     } finally {
       this.isSaving = false;
       this.cdr.markForCheck();

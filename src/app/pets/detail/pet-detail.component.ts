@@ -7,11 +7,14 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
 import {
   PetBasicDetailApiResponse,
   PetClinicalObservationApiResponse,
 } from '../models/pet-detail.model';
 import { PetsApiService } from '../services/pets-api.service';
+import { PatientVaccinationPlan } from '../vaccination/models/patient-vaccination-plan.model';
+import { PatientVaccinationApiService } from '../vaccination/services/patient-vaccination-api.service';
 
 @Component({
   selector: 'app-pet-detail',
@@ -22,6 +25,7 @@ import { PetsApiService } from '../services/pets-api.service';
 })
 export class PetDetailComponent implements OnInit {
   private readonly petsApi = inject(PetsApiService);
+  private readonly vaccinationApi = inject(PatientVaccinationApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -50,14 +54,21 @@ export class PetDetailComponent implements OnInit {
       this.isLoading = true;
       this.loadError = null;
       this.pet = null;
+      this.isVaccinationLoading = true;
+      this.vaccinationLoadError = null;
+      this.vaccinationPlan = null;
       this.cdr.detectChanges();
       void this.loadPet(petId, requestToken);
+      void this.loadVaccinationPlan(petId, requestToken);
     });
   }
 
   protected isLoading = false;
   protected loadError: string | null = null;
   protected pet: PetBasicDetailApiResponse | null = null;
+  protected isVaccinationLoading = false;
+  protected vaccinationLoadError: string | null = null;
+  protected vaccinationPlan: PatientVaccinationPlan | null = null;
 
   protected goBack(): void {
     void this.router.navigate(this.backTarget, { replaceUrl: true });
@@ -72,6 +83,19 @@ export class PetDetailComponent implements OnInit {
       state: {
         detailBackTarget: this.backTarget,
         detailBackLabel: this.backLabel,
+      },
+    });
+  }
+
+  protected openVaccinationPage(): void {
+    if (!this.pet) {
+      return;
+    }
+
+    void this.router.navigate(['/pets', this.pet.id, 'vaccination'], {
+      state: {
+        backTarget: ['/pets', this.pet.id],
+        backLabel: 'Volver al detalle',
       },
     });
   }
@@ -172,6 +196,14 @@ export class PetDetailComponent implements OnInit {
     );
   }
 
+  protected vaccinationCoveragePercent(): number {
+    return Math.round(this.vaccinationPlan?.coverage.coveragePercent ?? 0);
+  }
+
+  protected vaccinationAlerts(): string[] {
+    return this.vaccinationPlan?.alerts ?? [];
+  }
+
   protected buildObservationMeta(
     observation: PetClinicalObservationApiResponse,
   ): string {
@@ -209,6 +241,42 @@ export class PetDetailComponent implements OnInit {
       }
 
       this.isLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  private async loadVaccinationPlan(
+    petId: string,
+    requestToken: number,
+  ): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.vaccinationApi.getPatientPlan(petId));
+
+      if (requestToken !== this.requestVersion) {
+        return;
+      }
+
+      this.vaccinationPlan = {
+        ...response,
+        doses: [...response.doses].sort((left, right) => left.doseOrder - right.doseOrder),
+        applications: [...response.applications].sort((left, right) =>
+          right.applicationDate.localeCompare(left.applicationDate),
+        ),
+      };
+    } catch (error: unknown) {
+      if (requestToken !== this.requestVersion) {
+        return;
+      }
+
+      this.vaccinationLoadError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo cargar el plan vacunal.',
+      });
+    } finally {
+      if (requestToken !== this.requestVersion) {
+        return;
+      }
+
+      this.isVaccinationLoading = false;
       this.cdr.detectChanges();
     }
   }

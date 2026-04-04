@@ -17,6 +17,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { firstValueFrom } from 'rxjs';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
+import { AppToastService } from '@app/core/ui/app-toast.service';
+import { VaccinationAdminApiService } from '@app/vaccination/admin/api/vaccination-admin-api.service';
+import {
+  VaccinationScheme,
+  VaccinationSchemeVersion,
+} from '@app/vaccination/admin/models/vaccination-admin.model';
 import { OwnersApiService } from '../../owners/api/owners-api.service';
 import { ClientTutorBasicApiResponse } from '../../owners/models/client-tutor-basic.model';
 import { ColorApiResponse } from '../models/color.model';
@@ -80,12 +86,15 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
   private readonly petsApi = inject(PetsApiService);
   private readonly petImageUploadService = inject(PetImageUploadService);
   private readonly speciesApi = inject(SpeciesApiService);
+  private readonly vaccinationAdminApi = inject(VaccinationAdminApiService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly toast = inject(AppToastService);
   private readonly tutorsPageSize = 10;
   private readonly speciesPageSize = 20;
   private readonly colorsPageSize = 20;
   private tutorRequestVersion = 0;
   private speciesRequestVersion = 0;
+  private vaccinationSchemeRequestVersion = 0;
   private colorRequestVersion = 0;
   private colorCreateVersion = 0;
   private tutorSearchTimer?: ReturnType<typeof setTimeout>;
@@ -110,6 +119,9 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
   );
   protected readonly speciesErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
     this.isSpeciesInvalid(),
+  );
+  protected readonly vaccinationSchemeErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
+    this.isVaccinationSchemeInvalid(),
   );
   protected readonly breedErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
     this.isBreedInvalid(),
@@ -136,6 +148,7 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
   protected tutorValue = '';
   protected petName = '';
   protected speciesValue = '';
+  protected vaccinationSchemeValue = '';
   protected breedValue = '';
   protected birthDate = '';
   protected weightKg = '';
@@ -151,6 +164,9 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
   protected isTutorsLoading = false;
   protected species: SpeciesApiResponse[] = [];
   protected isSpeciesLoading = false;
+  protected vaccinationSchemes: VaccinationScheme[] = [];
+  protected selectedVaccinationScheme: VaccinationScheme | null = null;
+  protected isVaccinationSchemesLoading = false;
   protected selectedColor: ColorApiResponse | null = null;
   protected colors: ColorApiResponse[] = [];
   protected isColorsLoading = false;
@@ -204,6 +220,7 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
 
     const payload = this.buildPayload();
     if (!payload) {
+      this.toast.info('Revisa los datos obligatorios de la mascota.');
       this.cdr.detectChanges();
       return;
     }
@@ -335,6 +352,24 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
     return this.resolveSpeciesByName(this.speciesValue)?.breeds ?? [];
   }
 
+  protected vaccinationSchemeOptions(): VaccinationScheme[] {
+    const searchTerm = this.vaccinationSchemeValue.trim().toLocaleLowerCase();
+    if (!searchTerm) {
+      return this.vaccinationSchemes;
+    }
+
+    return this.vaccinationSchemes.filter((scheme) => {
+      const description = scheme.description?.toLocaleLowerCase() ?? '';
+      const version = this.resolveUsableSchemeVersion(scheme);
+
+      return (
+        scheme.name.toLocaleLowerCase().includes(searchTerm)
+        || description.includes(searchTerm)
+        || String(version?.version ?? '').includes(searchTerm)
+      );
+    });
+  }
+
   protected isBreedDisabled(): boolean {
     return this.breedOptions().length === 0;
   }
@@ -347,6 +382,34 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
     return this.breedOptions().length > 0
       ? 'Selecciona una raza'
       : 'Sin razas disponibles';
+  }
+
+  protected vaccinationSchemePlaceholder(): string {
+    if (!this.resolveSpeciesByName(this.speciesValue)) {
+      return 'Selecciona una especie primero';
+    }
+
+    if (this.isVaccinationSchemesLoading) {
+      return 'Buscando esquemas...';
+    }
+
+    if (this.vaccinationSchemes.length === 0) {
+      return 'No hay esquemas utilizables para esta especie';
+    }
+
+    return 'Buscar esquema vacunal';
+  }
+
+  protected isVaccinationSchemeDisabled(): boolean {
+    return (
+      !this.resolveSpeciesByName(this.speciesValue)
+      || this.isVaccinationSchemesLoading
+      || this.vaccinationSchemes.length === 0
+    );
+  }
+
+  protected hasSelectedSpecies(): boolean {
+    return this.resolveSpeciesByName(this.speciesValue) !== null;
   }
 
   protected colorOptions(): ColorApiResponse[] {
@@ -367,11 +430,14 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
         this.breedValue = '';
       }
 
+      void this.loadVaccinationSchemes(matchedSpecies.id);
       this.clearSpeciesSearchTimer();
       return;
     }
 
     this.breedValue = '';
+    this.cancelVaccinationSchemeRequests();
+    this.resetVaccinationSchemes();
     this.scheduleSpeciesSearch();
   }
 
@@ -379,11 +445,59 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
     const selected = this.species.find((item) => item.name === value) ?? null;
     this.speciesValue = selected?.name ?? value;
     this.breedValue = '';
+
+    if (selected) {
+      void this.loadVaccinationSchemes(selected.id);
+      return;
+    }
+
+    this.cancelVaccinationSchemeRequests();
+    this.resetVaccinationSchemes();
   }
 
   protected onBreedChanged(value: string): void {
     this.breedValue = value;
     this.submitError = null;
+  }
+
+  protected onVaccinationSchemeChanged(value: string): void {
+    this.vaccinationSchemeValue = value;
+    this.submitError = null;
+    this.selectedVaccinationScheme =
+      this.vaccinationSchemes.find((scheme) => this.buildVaccinationSchemeLabel(scheme) === value.trim()) ?? null;
+  }
+
+  protected onVaccinationSchemeOptionSelection(
+    isUserInput: boolean,
+    option: VaccinationScheme,
+  ): void {
+    if (!isUserInput) {
+      return;
+    }
+
+    this.selectVaccinationScheme(option);
+  }
+
+  protected buildVaccinationSchemeLabel(option: VaccinationScheme): string {
+    return option.name;
+  }
+
+  protected buildVaccinationSchemeSupportText(option: VaccinationScheme): string {
+    const usableVersion = this.resolveUsableSchemeVersion(option);
+    const versionLabel = usableVersion
+      ? `Version vigente ${usableVersion.version}`
+      : 'Sin version vigente';
+    const description = option.description?.trim();
+
+    return description ? `${versionLabel} · ${description}` : versionLabel;
+  }
+
+  protected selectedVaccinationSchemeSupportText(): string | null {
+    if (!this.selectedVaccinationScheme) {
+      return null;
+    }
+
+    return this.buildVaccinationSchemeSupportText(this.selectedVaccinationScheme);
   }
 
   protected onPetNameChanged(value: string): void {
@@ -487,6 +601,14 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
       && this.resolveSpeciesByName(this.speciesValue) !== null
       && this.resolveBreedByName(this.resolveSpeciesByName(this.speciesValue), this.breedValue) === null
     );
+  }
+
+  protected isVaccinationSchemeInvalid(): boolean {
+    if (!this.resolveSpeciesByName(this.speciesValue) || this.vaccinationSchemes.length === 0) {
+      return false;
+    }
+
+    return !this.selectedVaccinationScheme;
   }
 
   protected isBirthDateInvalid(): boolean {
@@ -634,12 +756,21 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
       ) {
         this.breedValue = '';
       }
+
+      if (matchedSpecies) {
+        void this.loadVaccinationSchemes(matchedSpecies.id);
+      } else {
+        this.cancelVaccinationSchemeRequests();
+        this.resetVaccinationSchemes();
+      }
     } catch {
       if (requestToken !== this.speciesRequestVersion) {
         return;
       }
 
       this.species = [];
+      this.cancelVaccinationSchemeRequests();
+      this.resetVaccinationSchemes();
     } finally {
       if (requestToken !== this.speciesRequestVersion) {
         return;
@@ -648,6 +779,101 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
       this.isSpeciesLoading = false;
       this.cdr.detectChanges();
     }
+  }
+
+  private async loadVaccinationSchemes(speciesId: number): Promise<void> {
+    const requestToken = ++this.vaccinationSchemeRequestVersion;
+    this.isVaccinationSchemesLoading = true;
+    this.resetVaccinationSchemes();
+    this.cdr.detectChanges();
+
+    try {
+      const response = await firstValueFrom(this.vaccinationAdminApi.listSchemes(speciesId));
+
+      if (requestToken !== this.vaccinationSchemeRequestVersion) {
+        return;
+      }
+
+      this.vaccinationSchemes = response
+        .filter((scheme) => scheme.species.id === speciesId && this.resolveUsableSchemeVersion(scheme) !== null)
+        .sort((left, right) => left.name.localeCompare(right.name));
+
+      if (this.vaccinationSchemes.length > 0) {
+        this.selectVaccinationScheme(this.vaccinationSchemes[0]);
+      }
+    } catch {
+      if (requestToken !== this.vaccinationSchemeRequestVersion) {
+        return;
+      }
+
+      this.resetVaccinationSchemes();
+    } finally {
+      if (requestToken !== this.vaccinationSchemeRequestVersion) {
+        return;
+      }
+
+      this.isVaccinationSchemesLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  private resetVaccinationSchemes(): void {
+    this.vaccinationSchemes = [];
+    this.selectedVaccinationScheme = null;
+    this.vaccinationSchemeValue = '';
+  }
+
+  private cancelVaccinationSchemeRequests(): void {
+    this.vaccinationSchemeRequestVersion += 1;
+  }
+
+  private selectVaccinationScheme(option: VaccinationScheme): void {
+    this.selectedVaccinationScheme = option;
+    this.vaccinationSchemeValue = this.buildVaccinationSchemeLabel(option);
+  }
+
+  private resolveUsableSchemeVersion(
+    scheme: VaccinationScheme,
+  ): VaccinationSchemeVersion | null {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const usableVersions = scheme.versions
+      .filter((version) => version.status === 'VIGENTE')
+      .filter((version) => {
+        const validFrom = this.parseDateOnly(version.validFrom);
+        const validTo = this.parseDateOnly(version.validTo);
+
+        if (!validFrom || validFrom > today) {
+          return false;
+        }
+
+        return !validTo || validTo >= today;
+      })
+      .sort((left, right) => {
+        if (right.version !== left.version) {
+          return right.version - left.version;
+        }
+
+        return (this.parseDateOnly(right.validFrom)?.getTime() ?? 0)
+          - (this.parseDateOnly(left.validFrom)?.getTime() ?? 0);
+      });
+
+    return usableVersions[0] ?? null;
+  }
+
+  private parseDateOnly(value: string | null | undefined): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return null;
+    }
+
+    parsed.setHours(0, 0, 0, 0);
+    return parsed;
   }
 
   private resolveSpeciesByName(name: string): SpeciesApiResponse | null {
@@ -763,11 +989,14 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
     const generalAllergies = normalizePetText(this.generalAllergies);
     const generalHistory = normalizePetText(this.generalHistory);
     const colorValue = normalizePetText(this.colorValue);
+    const hasAvailableVaccinationSchemes = this.vaccinationSchemes.length > 0;
 
     if (
       !this.selectedTutor ||
       !isValidPetName(name) ||
       !selectedSpecies ||
+      this.isVaccinationSchemesLoading ||
+      (hasAvailableVaccinationSchemes && !this.selectedVaccinationScheme) ||
       !isValidPetBirthDate(birthDate) ||
       (rawWeight.length > 0 && currentWeight === null) ||
       microchipCode.length > PET_MICROCHIP_MAX_LENGTH ||
@@ -785,6 +1014,10 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
       speciesId: selectedSpecies.id,
       sex: this.sex === 'Hembra' ? 'HEMBRA' : 'MACHO',
     };
+
+    if (this.selectedVaccinationScheme) {
+      payload.vaccinationSchemeId = this.selectedVaccinationScheme.id;
+    }
 
     if (selectedBreed) {
       payload.breedId = selectedBreed.id;
@@ -839,9 +1072,11 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
 
     try {
       const createdPet = await firstValueFrom(this.petsApi.create(payload));
+      this.toast.success('Mascota registrada correctamente.');
       this.saved.emit(createdPet);
     } catch (error: unknown) {
       this.submitError = this.resolveCreateErrorMessage(error);
+      this.toast.error(this.submitError);
     } finally {
       this.isSaving = false;
       this.cdr.detectChanges();

@@ -1,0 +1,243 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-6 pb-12">
+  <button
+    type="button"
+    (click)="goBack()"
+    class="inline-flex items-center gap-2 self-start text-sm font-medium text-text-secondary transition-colors hover:text-brand"
+  >
+    <app-shell-icon name="arrowLeft" [size]="16"></app-shell-icon>
+    <span>{{ backLabel }}</span>
+  </button>
+
+  @if (petLoadError) {
+    <div class="rounded-[16px] border border-border bg-card p-8 text-sm text-text-secondary shadow-sm">
+      {{ petLoadError }}
+    </div>
+  } @else {
+    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <header class="flex flex-col gap-2">
+        <span class="text-xs font-bold uppercase tracking-[0.24em] text-primary">Vacunación del paciente</span>
+        <h1 class="text-[28px] font-bold text-text-primary">
+          {{ pet?.name || 'Cargando mascota...' }}
+        </h1>
+        <p class="text-sm leading-6 text-text-secondary">
+          @if (pet) {
+            {{ pet.species?.name || 'Especie no registrada' }} · {{ pet.breed?.name || 'Raza no registrada' }}
+          } @else {
+            Cargando información general del paciente...
+          }
+        </p>
+      </header>
+
+      @if (plan && canManageApplications()) {
+        <button
+          type="button"
+          (click)="openApplicationModal()"
+          class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90"
+        >
+          <app-shell-icon name="syringe" [size]="18"></app-shell-icon>
+          <span>Registrar aplicación</span>
+        </button>
+      }
+    </div>
+
+    @if (isLoadingPlan && !plan && !planLoadError) {
+      <div class="grid gap-4 md:grid-cols-3">
+        <div class="h-32 animate-pulse rounded-2xl bg-background"></div>
+        <div class="h-32 animate-pulse rounded-2xl bg-background"></div>
+        <div class="h-32 animate-pulse rounded-2xl bg-background"></div>
+      </div>
+      <div class="h-64 animate-pulse rounded-[24px] bg-background"></div>
+    } @else if (planLoadError) {
+      <div class="rounded-[24px] border border-[#fecaca] bg-[#fff1f2] p-6 text-sm leading-6 text-[#9f1239] shadow-sm">
+        {{ planLoadError }}
+      </div>
+    } @else if (plan) {
+      <div class="grid gap-4 md:grid-cols-3">
+        <div class="rounded-[24px] border border-border bg-card p-6 shadow-sm md:col-span-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-bold uppercase tracking-[0.2em] text-primary">{{ plan.scheme.name }}</span>
+            <span class="rounded-full bg-background px-3 py-1 text-xs font-semibold text-text-secondary">
+              v{{ plan.version.version }}
+            </span>
+            <span class="rounded-full bg-[#ecfdf3] px-3 py-1 text-xs font-semibold text-[#166534]">
+              {{ coveragePercent() }}% cobertura
+            </span>
+          </div>
+
+          <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <div class="rounded-2xl border border-[#dcfce7] bg-[#f0fdf4] p-4">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#166534]">Aplicadas</span>
+              <p class="mt-1 text-2xl font-bold text-[#166534]">{{ plan.coverage.applied }}</p>
+            </div>
+            <div class="rounded-2xl border border-[#dbeafe] bg-[#eff6ff] p-4">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#1d4ed8]">Pendientes</span>
+              <p class="mt-1 text-2xl font-bold text-[#1d4ed8]">{{ plan.coverage.notApplied }}</p>
+            </div>
+            <div class="rounded-2xl border border-[#fef3c7] bg-[#fffbeb] p-4">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#b45309]">Desconocidas</span>
+              <p class="mt-1 text-2xl font-bold text-[#b45309]">{{ plan.coverage.unknown }}</p>
+            </div>
+            <div class="rounded-2xl border border-[#ffedd5] bg-[#fff7ed] p-4">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#c2410c]">Revisión</span>
+              <p class="mt-1 text-2xl font-bold text-[#c2410c]">{{ plan.coverage.requiresReview }}</p>
+            </div>
+            <div class="rounded-2xl border border-slate-200 bg-slate-100 p-4">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-700">Bloqueadas</span>
+              <p class="mt-1 text-2xl font-bold text-slate-700">{{ plan.coverage.blocked }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-[24px] border border-border bg-card p-6 shadow-sm">
+          <div class="flex items-center justify-between gap-3">
+            <span class="text-sm font-bold text-text-primary">Alertas clínicas</span>
+            <span class="rounded-full bg-background px-3 py-1 text-xs font-semibold text-text-secondary">
+              {{ alerts().length }}
+            </span>
+          </div>
+
+          @if (alerts().length > 0) {
+            <div class="mt-4 flex flex-col gap-3">
+              @for (alert of alerts(); track alert) {
+                <div class="rounded-xl border border-[#ffedd5] bg-[#fff7ed] px-3 py-2 text-sm leading-6 text-[#9a3412]">
+                  {{ alert }}
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="mt-4 rounded-xl border border-border bg-background/60 px-4 py-4 text-sm text-text-secondary">
+              No hay alertas vacunales activas.
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+        <section class="rounded-[24px] border border-border bg-card p-6 shadow-sm">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <app-shell-icon name="clipboard" [size]="18" className="text-primary"></app-shell-icon>
+              <h2 class="text-lg font-bold text-text-primary">Dosis del plan</h2>
+            </div>
+            <span class="rounded-full bg-background px-3 py-1 text-xs font-semibold text-text-secondary">
+              {{ doses().length }} dosis
+            </span>
+          </div>
+
+          <div class="mt-5 flex flex-col gap-4">
+            @for (dose of doses(); track dose.id) {
+              <article class="rounded-2xl border border-border bg-white p-4 shadow-sm">
+                <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div class="min-w-0 space-y-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="rounded-full bg-background px-2.5 py-1 text-xs font-semibold text-text-secondary">
+                        Dosis {{ dose.doseOrder }}
+                      </span>
+                      <span class="rounded-full border px-2.5 py-1 text-xs font-semibold" [ngClass]="doseStatusClasses(dose.status)">
+                        {{ doseStatusLabel(dose.status) }}
+                      </span>
+                    </div>
+
+                    <h3 class="text-base font-bold text-text-primary">{{ dose.vaccineName }}</h3>
+
+                    <div class="grid gap-2 text-sm text-text-secondary md:grid-cols-2">
+                      <span>Edad objetivo: {{ formatDoseAgeRange(dose) }}</span>
+                      <span>Fecha esperada: {{ formatDate(dose.expectedDate) }}</span>
+                      <span>Fecha aplicada: {{ formatDate(dose.appliedAt) }}</span>
+                      <span>Intervalo: {{ dose.intervalDays === null ? 'No definido' : (dose.intervalDays + ' días') }}</span>
+                    </div>
+
+                    @if (dose.notes) {
+                      <p class="text-sm leading-6 text-text-secondary">{{ dose.notes }}</p>
+                    }
+                  </div>
+
+                  @if (canQuickApplyDose(dose)) {
+                    <button
+                      type="button"
+                      (click)="quickApplyDose(dose)"
+                      class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-primary/90"
+                    >
+                      <app-shell-icon name="syringe" [size]="15"></app-shell-icon>
+                      <span>Aplicar</span>
+                    </button>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+
+        <section class="rounded-[24px] border border-border bg-card p-6 shadow-sm">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <app-shell-icon name="clock" [size]="18" className="text-primary"></app-shell-icon>
+              <h2 class="text-lg font-bold text-text-primary">Aplicaciones reales</h2>
+            </div>
+            <span class="rounded-full bg-background px-3 py-1 text-xs font-semibold text-text-secondary">
+              {{ applicationsCount() }}
+            </span>
+          </div>
+
+          @if (plan.applications.length > 0) {
+            <div class="mt-5 flex flex-col gap-3">
+              @for (application of plan.applications; track application.id) {
+                <article class="rounded-xl border border-border bg-white px-3 py-3 shadow-sm">
+                  <div class="space-y-1.5">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                      <h3 class="text-sm font-bold text-text-primary">{{ application.vaccineName }}</h3>
+                      <span class="rounded-full bg-background px-2.5 py-1 text-xs font-semibold text-text-secondary">
+                        {{ formatDate(application.applicationDate) }}
+                      </span>
+                    </div>
+
+                    <div class="grid gap-1 text-xs text-text-secondary">
+                      <span>Dr.: {{ application.administeredBy || 'No registrado' }}</span>
+                      <span>{{ application.isExternal ? 'Externa' : 'Interna' }} · {{ application.administeredAt || 'Lugar no registrado' }}</span>
+                      @if (application.nextDoseDate) {
+                        <span>Próxima: {{ formatDate(application.nextDoseDate) }}</span>
+                      }
+                      @if (application.batchNumber) {
+                        <span>Lote: {{ application.batchNumber }}</span>
+                      }
+                    </div>
+
+                    @if (application.notes) {
+                      <p class="text-xs leading-5 text-text-secondary">{{ application.notes }}</p>
+                    }
+                  </div>
+                </article>
+              }
+            </div>
+          } @else {
+            <div class="mt-5 rounded-2xl border border-border bg-background/60 px-4 py-4 text-sm text-text-secondary">
+              Aún no hay aplicaciones reales registradas para este paciente.
+            </div>
+          }
+        </section>
+      </div>
+    }
+  }
+</div>
+
+<app-create-vaccine-application-modal
+  [open]="isApplicationModalOpen"
+  [patientName]="pet?.name || 'Paciente'"
+  [quickContextLabel]="quickApplicationDose ? ('Dosis ' + quickApplicationDose.doseOrder + ' · ' + quickApplicationDose.vaccineName) : null"
+  [doctorOptions]="veterinarianOptions"
+  [initialDoctorSelection]="initialDoctorSelection"
+  [canSelectDoctor]="canSelectDoctor()"
+  [products]="vaccineProducts"
+  [initialProductSelection]="initialApplicationProduct"
+  [initialApplicationDate]="initialApplicationDateValue"
+  [initialNextDoseDate]="initialNextDoseDateValue"
+  [isLoadingProducts]="isLoadingProducts"
+  [isLoadingDoctors]="isLoadingDoctors"
+  [loadError]="productsLoadError"
+  [doctorLoadError]="doctorsLoadError"
+  [submitError]="applicationSubmitError"
+  [isSaving]="isSubmittingApplication"
+  (closed)="closeApplicationModal()"
+  (doctorSearchRequested)="onDoctorSearchRequested($event)"
+  (submitted)="submitApplication($event)"
+/>

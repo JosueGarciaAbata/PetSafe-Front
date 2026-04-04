@@ -110,6 +110,7 @@ export class PetsApiService {
 
     if ('clientId' in payload) {
       this.appendPrimitive(formData, 'clientId', payload.clientId);
+      this.appendPrimitive(formData, 'vaccinationSchemeId', payload.vaccinationSchemeId);
     }
 
     if ('microchipCode' in payload) {

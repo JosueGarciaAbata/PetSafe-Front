@@ -11,21 +11,64 @@
   </div>
 
   <nav class="flex flex-1 flex-col gap-1 overflow-y-auto p-4">
-    @for (item of navItems; track item.path) {
-      <a
-        [routerLink]="item.path"
-        routerLinkActive="bg-active-soft text-brand font-semibold shadow-sm"
-        [routerLinkActiveOptions]="{ exact: true }"
-        #rla="routerLinkActive"
-        class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200"
-      >
-        <app-shell-icon
-          [name]="item.icon"
-          [size]="20"
-          [className]="rla.isActive ? 'text-brand' : 'text-text-secondary group-hover:text-text-primary'"
-        ></app-shell-icon>
-        <span class="text-[15px]">{{ item.label }}</span>
-      </a>
+    @for (item of navItems; track item.id) {
+      @if (isGroup(item)) {
+        <div class="flex flex-col gap-1">
+          <button
+            type="button"
+            (click)="toggleGroup(item)"
+            class="group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition-all duration-200"
+            [ngClass]="isItemActive(item) ? 'bg-active-soft text-brand font-semibold shadow-sm' : 'text-text-primary hover:bg-background/80'"
+          >
+            <app-shell-icon
+              [name]="item.icon"
+              [size]="20"
+              [className]="isItemActive(item) ? 'text-brand' : 'text-text-secondary group-hover:text-text-primary'"
+            ></app-shell-icon>
+            <span class="flex-1 text-[15px]">{{ item.label }}</span>
+            <app-shell-icon
+              name="chevronDown"
+              [size]="18"
+              [className]="'text-text-secondary transition-transform ' + (isExpanded(item) ? 'rotate-180' : '')"
+            ></app-shell-icon>
+          </button>
+
+          @if (isExpanded(item)) {
+            <div class="ml-4 flex flex-col gap-1 border-l border-border pl-3">
+              @for (child of item.children; track child.path) {
+                <a
+                  [routerLink]="child.path"
+                  routerLinkActive="bg-active-soft text-brand font-semibold shadow-sm"
+                  [routerLinkActiveOptions]="{ exact: child.path === '/vaccination' }"
+                  #childRla="routerLinkActive"
+                  class="group flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all duration-200"
+                >
+                  <span
+                    class="h-1.5 w-1.5 rounded-full"
+                    [ngClass]="childRla.isActive ? 'bg-brand' : 'bg-border group-hover:bg-text-secondary'"
+                  ></span>
+                  <span class="text-[14px]">{{ child.label }}</span>
+                </a>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="bg-active-soft text-brand font-semibold shadow-sm"
+          [routerLinkActiveOptions]="{ exact: true }"
+          #rla="routerLinkActive"
+          class="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200"
+        >
+          <app-shell-icon
+            [name]="item.icon"
+            [size]="20"
+            [className]="rla.isActive ? 'text-brand' : 'text-text-secondary group-hover:text-text-primary'"
+          ></app-shell-icon>
+          <span class="text-[15px]">{{ item.label }}</span>
+        </a>
+      }
     }
   </nav>
 

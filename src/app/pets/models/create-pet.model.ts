@@ -2,6 +2,7 @@ export interface CreatePetRequest {
   clientId?: number;
   name: string;
   speciesId: number;
+  vaccinationSchemeId?: number;
   breedId?: number;
   colorId?: number;
   microchipCode?: string;
