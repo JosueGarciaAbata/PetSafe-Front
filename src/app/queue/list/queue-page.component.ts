@@ -396,32 +396,32 @@ export class QueuePageComponent implements OnInit {
 
   protected async confirmPendingAction(): Promise<void> {
     const entry = this.pendingActionEntry;
+    const pendingActionType = this.pendingActionType;
 
-    if (!entry || !this.pendingActionType) {
+    if (!entry || !pendingActionType) {
       this.closeActionModal();
       return;
     }
 
     try {
-      if (this.pendingActionType === 'start') {
-        this.closeActionModal();
+      this.closeActionModal();
+
+      if (pendingActionType === 'start') {
         await this.startAttention(entry);
         return;
       }
 
-      if (this.pendingActionType === 'finish') {
+      if (pendingActionType === 'finish') {
         await this.finishAttention(entry);
-      } else if (this.pendingActionType === 'cancel') {
+      } else if (pendingActionType === 'cancel') {
         await firstValueFrom(this.queueApi.cancelEntry(entry.id));
         await this.loadQueue(this.paginationMeta.currentPage);
         this.selectedEntryId = entry.id;
       }
-
-      this.closeActionModal();
     } catch (error) {
       this.loadError = resolveApiErrorMessage(error, {
         defaultMessage:
-          this.pendingActionType === 'finish'
+          pendingActionType === 'finish'
             ? 'No se pudo finalizar la atenciA3n de este paciente.'
             : 'No se pudo cancelar el ingreso de este paciente.',
       });
