@@ -1,15 +1,32 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { AdoptionCreateRequest, AdoptionRecord, AdoptionUpdateRequest } from '../models/adoption.model';
+import { buildApiUrl } from '@app/core/config/api.config';
+import {
+  AdoptionBasicListApiResponse,
+  AdoptionBasicListQuery,
+  AdoptionCreateRequest,
+  AdoptionRecord,
+  AdoptionUpdateRequest,
+} from '../models/adoption.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AdoptionsApiService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = `${environment.apiUrl}adoptions`;
+  private readonly baseUrl = buildApiUrl('adoptions');
+
+  listBasic(query: AdoptionBasicListQuery): Observable<AdoptionBasicListApiResponse> {
+    let params = new HttpParams().set('page', query.page).set('limit', query.limit);
+
+    const searchTerm = query.search?.trim();
+    if (searchTerm) {
+      params = params.set('search', searchTerm);
+    }
+
+    return this.http.get<AdoptionBasicListApiResponse>(buildApiUrl('adoptions/basic'), { params });
+  }
 
   list(): Observable<AdoptionRecord[]> {
     return this.http.get<AdoptionRecord[]>(this.baseUrl);
