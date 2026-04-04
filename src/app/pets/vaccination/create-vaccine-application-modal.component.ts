@@ -60,6 +60,7 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
   private readonly today = new Date().toISOString().slice(0, 10);
   private isSelectingProduct = false;
   private isSelectingDoctor = false;
+  private lastInternalDoctor: VeterinarianSummaryApiResponse | null = null;
 
   @Input() open = false;
   @Input() patientName = 'Paciente';
@@ -111,7 +112,11 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
     }
 
     if ((changes['initialDoctorSelection'] || changes['canSelectDoctor']) && this.open) {
-      this.syncDoctorSelection(this.initialDoctorSelection);
+      if (!this.requiresDoctorSelection()) {
+        this.syncDoctorSelection(null);
+      } else if (!this.selectedDoctor && !this.doctorSearch.trim()) {
+        this.syncDoctorSelection(this.initialDoctorSelection);
+      }
     }
 
     if (changes['doctorOptions'] && this.open) {
@@ -157,6 +162,7 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
     const payload: CreatePatientVaccineApplicationRequest = {
       vaccineId: this.selectedProduct.id,
       applicationDate: value.applicationDate,
+      isExternal: value.isExternal,
     };
 
     const administeredAt = value.administeredAt.trim();
@@ -164,16 +170,12 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
     const nextDoseDate = value.nextDoseDate.trim();
     const notes = value.notes.trim();
 
-    if (this.selectedDoctor) {
+    if (!value.isExternal && this.selectedDoctor) {
       payload.administeredByEmployeeId = this.selectedDoctor.id;
     }
 
     if (administeredAt) {
       payload.administeredAt = administeredAt;
-    }
-
-    if (value.isExternal) {
-      payload.isExternal = true;
     }
 
     if (batchNumber) {
@@ -265,6 +267,10 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
   }
 
   protected onDoctorChanged(value: string): void {
+    if (!this.requiresDoctorSelection()) {
+      return;
+    }
+
     this.doctorSearch = value;
 
     if (this.isSelectingDoctor) {
@@ -285,7 +291,7 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
   }
 
   protected onDoctorFocus(): void {
-    if (!this.canSelectDoctor) {
+    if (!this.canSelectDoctor || !this.requiresDoctorSelection()) {
       return;
     }
 
@@ -302,6 +308,23 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
 
     this.isSelectingDoctor = true;
     this.syncDoctorSelection(option);
+  }
+
+  protected onExternalChanged(): void {
+    const isExternal = this.form.controls.isExternal.getRawValue();
+
+    if (isExternal) {
+      this.lastInternalDoctor = this.selectedDoctor;
+      this.syncDoctorSelection(null);
+      return;
+    }
+
+    this.syncDoctorSelection(
+      this.lastInternalDoctor
+      ?? this.selectedDoctor
+      ?? this.initialDoctorSelection
+      ?? null,
+    );
   }
 
   protected filteredDoctorOptions(): VeterinarianSummaryApiResponse[] {
@@ -359,6 +382,7 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
     this.showValidationErrors = false;
     this.selectedProduct = null;
     this.selectedDoctor = null;
+    this.lastInternalDoctor = this.initialDoctorSelection;
     this.vaccineSearch = '';
     this.doctorSearch = '';
     this.form.reset({
@@ -380,6 +404,10 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
     this.selectedDoctor = doctor;
     this.doctorSearch = doctor ? this.buildDoctorLabel(doctor) : '';
     this.form.controls.administeredByEmployeeId.setValue(doctor?.id ?? null);
+
+    if (doctor) {
+      this.lastInternalDoctor = doctor;
+    }
   }
 
   private syncDoctorSelectionAgainstOptions(): void {
@@ -389,19 +417,9 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
 
       if (matchedSelectedDoctor) {
         this.syncDoctorSelection(matchedSelectedDoctor);
-        return;
+      } else if (!this.doctorSearch.trim().length) {
+        this.syncDoctorSelection(null);
       }
-
-      if (this.doctorSearch.trim().length > 0) {
-        return;
-      }
-    }
-
-    if (this.initialDoctorSelection) {
-      const matchedInitialDoctor =
-        this.doctorOptions.find((item) => item.id === this.initialDoctorSelection?.id)
-        ?? this.initialDoctorSelection;
-      this.syncDoctorSelection(matchedInitialDoctor);
     }
   }
 

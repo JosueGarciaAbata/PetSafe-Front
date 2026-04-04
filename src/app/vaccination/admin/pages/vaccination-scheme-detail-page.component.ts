@@ -9,6 +9,7 @@ import { AppToastService } from '@app/core/ui/app-toast.service';
 import { ShellIconComponent } from '@app/shell/shell-icon.component';
 import { VaccinationAdminApiService } from '../api/vaccination-admin-api.service';
 import {
+  VaccinationProductItem,
   VaccinationScheme,
   VaccinationSchemeVersion,
   VaccinationSchemeVersionStatus,
@@ -36,6 +37,7 @@ export class VaccinationSchemeDetailPageComponent implements OnInit {
   protected pendingStatusVersion: VaccinationSchemeVersion | null = null;
   protected pendingStatus: VaccinationSchemeVersionStatus | null = null;
   protected pendingStatusValidFrom = new Date().toISOString().slice(0, 10);
+  protected productsById = new Map<number, VaccinationProductItem>();
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
@@ -244,6 +246,33 @@ export class VaccinationSchemeDetailPageComponent implements OnInit {
     }
   }
 
+  protected doseProductStatusLabel(vaccineId: number): string {
+    const product = this.productsById.get(vaccineId) ?? null;
+    if (!product) {
+      return 'No disponible';
+    }
+
+    return product.isActive ? 'Activo' : 'Inactivo';
+  }
+
+  protected doseProductStatusClasses(vaccineId: number): string {
+    const product = this.productsById.get(vaccineId) ?? null;
+    if (!product) {
+      return 'bg-slate-100 text-slate-700';
+    }
+
+    return product.isActive
+      ? 'bg-[#ecfdf3] text-[#166534]'
+      : 'bg-[#fff7ed] text-[#c2410c]';
+  }
+
+  protected versionHasInactiveProducts(version: VaccinationSchemeVersion): boolean {
+    return version.doses.some((dose) => {
+      const product = this.productsById.get(dose.vaccineId) ?? null;
+      return !!product && !product.isActive;
+    });
+  }
+
   private async loadScheme(id: number): Promise<void> {
     this.isLoading = true;
     this.loadError = null;
@@ -252,6 +281,13 @@ export class VaccinationSchemeDetailPageComponent implements OnInit {
     try {
       const scheme = await firstValueFrom(this.vaccinationApi.getScheme(id));
       this.scheme = scheme;
+      const products = await firstValueFrom(
+        this.vaccinationApi.listProducts({
+          speciesId: scheme.species.id,
+          onlyActive: false,
+        }),
+      );
+      this.productsById = new Map(products.map((product) => [product.id, product]));
     } catch (error: unknown) {
       this.loadError = resolveApiErrorMessage(error, {
         defaultMessage: 'No se pudo cargar el detalle del esquema.',

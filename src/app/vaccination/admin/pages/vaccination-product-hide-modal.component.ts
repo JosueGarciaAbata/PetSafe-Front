@@ -11,6 +11,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, HostListener, Input, 
 export class VaccinationProductHideModalComponent {
   @Input() open = false;
   @Input() productName = '';
+  @Input() isActive = true;
   @Input() isSaving = false;
 
   @Output() readonly closed = new EventEmitter<void>();
@@ -37,5 +38,33 @@ export class VaccinationProductHideModalComponent {
     }
 
     this.confirmed.emit();
+  }
+
+  protected actionTitle(): string {
+    return this.isActive ? 'Desactivar producto' : 'Reactivar producto';
+  }
+
+  protected actionDescription(): string {
+    return this.isActive
+      ? 'Este producto dejará de aparecer en nuevos flujos clínicos, pero seguirá visible en historiales y registros previos.'
+      : 'Este producto volverá a estar disponible en nuevos flujos clínicos y de configuración.';
+  }
+
+  protected actionQuestionPrefix(): string {
+    return this.isActive ? '¿Quieres desactivar ' : '¿Quieres reactivar ';
+  }
+
+  protected actionButtonLabel(): string {
+    return this.isActive ? 'Desactivar producto' : 'Reactivar producto';
+  }
+
+  protected actionLoadingLabel(): string {
+    return this.isActive ? 'Desactivando...' : 'Reactivando...';
+  }
+
+  protected actionButtonClasses(): string {
+    return this.isActive
+      ? 'cursor-pointer rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70'
+      : 'cursor-pointer rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70';
   }
 }

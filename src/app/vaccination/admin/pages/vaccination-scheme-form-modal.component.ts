@@ -249,7 +249,9 @@ export class VaccinationSchemeFormModalComponent implements OnChanges {
     this.cdr.markForCheck();
 
     try {
-      const response = await firstValueFrom(this.vaccinationApi.listProducts(speciesId));
+      const response = await firstValueFrom(
+        this.vaccinationApi.listProducts({ speciesId }),
+      );
       this.products = response.filter((product) => product.isActive);
     } catch (error: unknown) {
       this.localError = resolveApiErrorMessage(error, {

@@ -18,10 +18,22 @@ export class VaccinationAdminApiService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = buildApiUrl('vaccinations');
 
-  listProducts(speciesId?: number | null): Observable<VaccinationProductItem[]> {
+  listProducts(options?: {
+    speciesId?: number | null;
+    onlyActive?: boolean | null;
+    search?: string | null;
+  }): Observable<VaccinationProductItem[]> {
     let params = new HttpParams();
-    if (speciesId) {
-      params = params.set('speciesId', String(speciesId));
+    if (options?.speciesId) {
+      params = params.set('speciesId', String(options.speciesId));
+    }
+
+    if (options?.onlyActive !== undefined && options?.onlyActive !== null) {
+      params = params.set('onlyActive', String(options.onlyActive));
+    }
+
+    if (options?.search?.trim()) {
+      params = params.set('search', options.search.trim());
     }
 
     return this.http.get<VaccinationProductItem[]>(`${this.baseUrl}/products`, { params });
@@ -40,6 +52,13 @@ export class VaccinationAdminApiService {
 
   deactivateProduct(productId: number): Observable<{ message?: string }> {
     return this.http.delete<{ message?: string }>(`${this.baseUrl}/products/${productId}`);
+  }
+
+  reactivateProduct(productId: number): Observable<{ message?: string }> {
+    return this.http.patch<{ message?: string }>(
+      `${this.baseUrl}/products/${productId}/reactivate`,
+      {},
+    );
   }
 
   listSchemes(speciesId?: number | null): Observable<VaccinationScheme[]> {

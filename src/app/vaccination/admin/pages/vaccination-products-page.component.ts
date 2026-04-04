@@ -43,6 +43,7 @@ export class VaccinationProductsPageComponent implements OnInit {
   protected readonly products: VaccinationProductItem[] = [];
   protected readonly filter = {
     term: '',
+    status: 'ALL' as 'ALL' | 'ACTIVE' | 'INACTIVE',
   };
   protected readonly paginationMeta: PaginationMeta = { ...EMPTY_PAGINATION_META, itemsPerPage: 8 };
 
@@ -72,16 +73,24 @@ export class VaccinationProductsPageComponent implements OnInit {
 
   protected visibleProducts(): VaccinationProductItem[] {
     const term = this.filter.term.trim().toLowerCase();
-    if (!term) {
-      return this.products;
-    }
+    return this.products.filter((product) => {
+      if (this.filter.status === 'ACTIVE' && !product.isActive) {
+        return false;
+      }
 
-    return this.products.filter((product) =>
-      [product.name, product.species.name, product.isRevaccination ? 'refuerzo' : 'base']
+      if (this.filter.status === 'INACTIVE' && product.isActive) {
+        return false;
+      }
+
+      if (!term) {
+        return true;
+      }
+
+      return [product.name, product.species.name, product.isRevaccination ? 'refuerzo' : 'base']
         .join(' ')
         .toLowerCase()
-        .includes(term),
-    );
+        .includes(term);
+    });
   }
 
   protected pagedProducts(): VaccinationProductItem[] {
@@ -129,6 +138,16 @@ export class VaccinationProductsPageComponent implements OnInit {
       : 'bg-[#F1F5F9] text-text-secondary';
   }
 
+  protected productStatusLabel(product: VaccinationProductItem): string {
+    return product.isActive ? 'Activo' : 'Inactivo';
+  }
+
+  protected productStatusClasses(product: VaccinationProductItem): string {
+    return product.isActive
+      ? 'bg-[#ecfdf3] text-[#166534]'
+      : 'bg-[#fff7ed] text-[#c2410c]';
+  }
+
   protected openCreateModal(): void {
     this.editingProduct = null;
     this.modalError = null;
@@ -173,6 +192,12 @@ export class VaccinationProductsPageComponent implements OnInit {
     this.syncPagination();
   }
 
+  protected setStatusFilter(status: 'ALL' | 'ACTIVE' | 'INACTIVE'): void {
+    this.filter.status = status;
+    this.paginationMeta.currentPage = 1;
+    this.syncPagination();
+  }
+
   protected async saveProduct(payload: CreateVaccinationProductRequest): Promise<void> {
     if (!this.canManageProducts() || this.isSaving) {
       return;
@@ -209,23 +234,31 @@ export class VaccinationProductsPageComponent implements OnInit {
     }
   }
 
-  protected async hideProduct(): Promise<void> {
+  protected async toggleProductStatus(): Promise<void> {
     if (!this.canHideProducts() || this.isHidingId !== null || !this.hideTarget) {
       return;
     }
 
+    const isActive = this.hideTarget.isActive;
     this.isHidingId = this.hideTarget.id;
     this.cdr.detectChanges();
 
     try {
-      await firstValueFrom(this.vaccinationApi.deactivateProduct(this.hideTarget.id));
-      this.toast.success('Producto ocultado del catalogo.');
+      if (isActive) {
+        await firstValueFrom(this.vaccinationApi.deactivateProduct(this.hideTarget.id));
+        this.toast.success('Producto desactivado correctamente.');
+      } else {
+        await firstValueFrom(this.vaccinationApi.reactivateProduct(this.hideTarget.id));
+        this.toast.success('Producto reactivado correctamente.');
+      }
       this.hideTarget = null;
       await this.loadProducts();
     } catch (error: unknown) {
       this.toast.error(
         resolveApiErrorMessage(error, {
-          defaultMessage: 'No se pudo ocultar el producto.',
+          defaultMessage: isActive
+            ? 'No se pudo desactivar el producto.'
+            : 'No se pudo reactivar el producto.',
         }),
       );
     } finally {
@@ -255,7 +288,9 @@ export class VaccinationProductsPageComponent implements OnInit {
     this.cdr.detectChanges();
 
     try {
-      const response = await firstValueFrom(this.vaccinationApi.listProducts());
+      const response = await firstValueFrom(
+        this.vaccinationApi.listProducts({ onlyActive: false }),
+      );
       this.products.splice(0, this.products.length, ...response);
       this.syncPagination();
     } catch (error: unknown) {

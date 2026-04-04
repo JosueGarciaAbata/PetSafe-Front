@@ -4,15 +4,15 @@
   <div class="fixed inset-0 z-[130] flex items-center justify-center p-4">
     <div class="flex w-full max-w-[520px] flex-col overflow-hidden rounded-[16px] border border-border bg-card shadow-2xl">
       <div class="border-b border-border bg-white px-5 py-4">
-        <h2 class="text-lg font-bold text-text-primary">Ocultar producto</h2>
+        <h2 class="text-lg font-bold text-text-primary">{{ actionTitle() }}</h2>
         <p class="mt-1 text-sm text-text-secondary">
-          Este producto dejará de mostrarse en nuevos flujos de vacunación.
+          {{ actionDescription() }}
         </p>
       </div>
 
       <div class="px-5 py-5">
         <p class="text-sm leading-6 text-text-primary">
-          ¿Quieres ocultar <span class="font-bold">{{ productName }}</span>?
+          {{ actionQuestionPrefix() }}<span class="font-bold">{{ productName }}</span>?
         </p>
       </div>
 
@@ -30,9 +30,9 @@
           type="button"
           (click)="confirm()"
           [disabled]="isSaving"
-          class="cursor-pointer rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+          [class]="actionButtonClasses()"
         >
-          {{ isSaving ? 'Ocultando...' : 'Ocultar producto' }}
+          {{ isSaving ? actionLoadingLabel() : actionButtonLabel() }}
         </button>
       </div>
     </div>

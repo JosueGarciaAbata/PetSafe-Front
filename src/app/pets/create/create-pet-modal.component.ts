@@ -494,6 +494,14 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
 
   protected selectedVaccinationSchemeSupportText(): string | null {
     if (!this.selectedVaccinationScheme) {
+      if (
+        this.hasSelectedSpecies()
+        && !this.isVaccinationSchemesLoading
+        && this.vaccinationSchemes.length === 0
+      ) {
+        return 'No hay esquemas utilizables para esta especie. La mascota se guardará sin plan vacunal inicial.';
+      }
+
       return null;
     }
 

@@ -5,6 +5,7 @@ import { buildApiUrl } from '@app/core/config/api.config';
 import {
   ChangePatientVaccinationSchemeRequest,
   CreatePatientVaccineApplicationRequest,
+  InitializePatientVaccinationPlanRequest,
   PatientVaccineRecord,
   PatientVaccinationPlan,
   VaccineCatalogItem,
@@ -23,11 +24,23 @@ export class PatientVaccinationApiService {
     );
   }
 
-  listProducts(speciesId?: number | string | null): Observable<VaccineCatalogItem[]> {
+  listProducts(options?: {
+    speciesId?: number | string | null;
+    onlyActive?: boolean | null;
+    search?: string | null;
+  }): Observable<VaccineCatalogItem[]> {
     let params = new HttpParams();
 
-    if (speciesId !== undefined && speciesId !== null && speciesId !== '') {
-      params = params.set('speciesId', String(speciesId));
+    if (options?.speciesId !== undefined && options?.speciesId !== null && options?.speciesId !== '') {
+      params = params.set('speciesId', String(options.speciesId));
+    }
+
+    if (options?.onlyActive !== undefined && options?.onlyActive !== null) {
+      params = params.set('onlyActive', String(options.onlyActive));
+    }
+
+    if (options?.search?.trim()) {
+      params = params.set('search', options.search.trim());
     }
 
     return this.http.get<VaccineCatalogItem[]>(`${this.baseUrl}/products`, { params });
@@ -50,6 +63,16 @@ export class PatientVaccinationApiService {
     return this.http.patch<PatientVaccinationPlan>(
       buildApiUrl(`patients/${encodeURIComponent(String(patientId))}/vaccination-scheme`),
       payload,
+    );
+  }
+
+  initializePatientVaccinationPlan(
+    patientId: number | string,
+    payload?: InitializePatientVaccinationPlanRequest,
+  ): Observable<PatientVaccinationPlan> {
+    return this.http.post<PatientVaccinationPlan>(
+      buildApiUrl(`patients/${encodeURIComponent(String(patientId))}/vaccination-plan`),
+      payload ?? {},
     );
   }
 }

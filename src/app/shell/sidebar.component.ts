@@ -29,7 +29,7 @@ export class SidebarComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   @Input() isOpen = true;
-  protected readonly expandedItemIds = new Set<string>(['vaccination']);
+  protected readonly expandedItemIds = new Set<string>();
 
   protected readonly navItems: readonly SidebarItem[] = [
     { id: 'dashboard', icon: 'dashboard', label: 'Dashboard', path: '/dashboard' },

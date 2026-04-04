@@ -237,7 +237,9 @@ export class VaccinationSchemeVersionCreatePageComponent implements OnInit {
       this.scheme = scheme;
       this.version = scheme.versions.reduce((max, item) => Math.max(max, item.version), 0) + 1;
       this.baseVersionId = this.availableBaseVersions()[0]?.id ?? null;
-      const response = await firstValueFrom(this.vaccinationApi.listProducts(scheme.species.id));
+      const response = await firstValueFrom(
+        this.vaccinationApi.listProducts({ speciesId: scheme.species.id }),
+      );
       this.products = response.filter((product) => product.isActive);
     } catch (error: unknown) {
       this.errorMessage = resolveApiErrorMessage(error, {

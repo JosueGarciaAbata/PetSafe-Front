@@ -347,8 +347,6 @@
                         <mat-hint>El esquema se habilita cuando selecciones una especie.</mat-hint>
                       } @else if (isVaccinationSchemesLoading) {
                         <mat-hint>Buscando esquemas utilizables para la especie...</mat-hint>
-                      } @else if (vaccinationSchemes.length === 0) {
-                        <mat-hint>No hay esquemas utilizables para esta especie.</mat-hint>
                       }
                     </mat-form-field>
                     <mat-autocomplete #schemeAutoPage="matAutocomplete" autoActiveFirstOption>
@@ -363,7 +361,7 @@
                       @if (isVaccinationSchemesLoading) {
                         <mat-option disabled>Buscando esquemas...</mat-option>
                       } @else if (hasSelectedSpecies() && vaccinationSchemeOptions().length === 0) {
-                        <mat-option disabled>No hay esquemas utilizables</mat-option>
+                        <mat-option disabled>No hay esquemas utilizables. Se podrá generar el plan después.</mat-option>
                       }
                     </mat-autocomplete>
                   </div>

@@ -121,3 +121,7 @@ export interface ChangePatientVaccinationSchemeRequest {
   vaccinationSchemeId?: number;
   notes?: string;
 }
+
+export interface InitializePatientVaccinationPlanRequest {
+  vaccinationSchemeId?: number;
+}

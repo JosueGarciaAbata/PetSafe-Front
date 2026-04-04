@@ -7,7 +7,13 @@
   [attr.inert]="isOpen ? null : ''"
 >
   <div class="flex items-center justify-center border-b border-border p-6">
-    <app-logo [className]="'scale-90'"></app-logo>
+    <a
+      routerLink="/dashboard"
+      class="inline-flex items-center justify-center rounded-xl transition-opacity hover:opacity-90"
+      aria-label="Ir al inicio"
+    >
+      <app-logo [className]="'scale-90'"></app-logo>
+    </a>
   </div>
 
   <nav class="flex flex-1 flex-col gap-1 overflow-y-auto p-4">

@@ -230,7 +230,9 @@ export class VaccinationSchemeCreatePageComponent implements OnInit {
     this.doses = this.doses.map((dose) => ({ ...dose, vaccineId: null, vaccineSearch: '' }));
     this.cdr.markForCheck();
     try {
-      const response = await firstValueFrom(this.vaccinationApi.listProducts(speciesId));
+      const response = await firstValueFrom(
+        this.vaccinationApi.listProducts({ speciesId }),
+      );
       this.products = response.filter((product) => product.isActive);
     } catch (error: unknown) {
       this.errorMessage = resolveApiErrorMessage(error, {

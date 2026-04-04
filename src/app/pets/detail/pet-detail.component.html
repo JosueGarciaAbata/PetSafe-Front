@@ -244,6 +244,34 @@
                 }
               </div>
             </div>
+          } @else if (hasMissingVaccinationPlan) {
+            <div class="rounded-2xl border border-[#fef3c7] bg-[#fffbeb] px-5 py-5">
+              <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div class="flex flex-col gap-1">
+                  <span class="text-sm font-bold text-[#92400e]">Sin plan vacunal generado</span>
+                  <p class="text-sm leading-6 text-[#92400e]">
+                    Esta mascota aún no tiene un plan vacunal asignado. Puedes generarlo ahora si ya existe un esquema utilizable para su especie.
+                  </p>
+                </div>
+
+                @if (canGenerateVaccinationPlan()) {
+                  <button
+                    type="button"
+                    (click)="openInitializeVaccinationPlanModal()"
+                    [disabled]="isGeneratingVaccinationPlan"
+                    class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    <span>{{ isGeneratingVaccinationPlan ? 'Generando...' : 'Generar esquema de vacunación' }}</span>
+                  </button>
+                }
+              </div>
+
+              @if (vaccinationLoadError) {
+                <div class="rounded-xl border border-[#fecaca] bg-[#fff1f2] px-4 py-3 text-sm leading-6 text-[#9f1239]">
+                  {{ vaccinationLoadError }}
+                </div>
+              }
+            </div>
           } @else if (vaccinationLoadError) {
             <div class="rounded-2xl border border-[#fecaca] bg-[#fff1f2] px-5 py-4 text-sm leading-6 text-[#9f1239]">
               {{ vaccinationLoadError }}
@@ -382,3 +410,14 @@
     </section>
   }
 </div>
+
+<app-initialize-vaccination-plan-modal
+  [open]="isInitializePlanModalOpen"
+  [patientName]="pet?.name || 'Paciente'"
+  [speciesId]="pet?.species?.id ?? null"
+  [speciesName]="pet?.species?.name ?? null"
+  [isSaving]="isGeneratingVaccinationPlan"
+  [submitError]="initializePlanSubmitError"
+  (closed)="closeInitializeVaccinationPlanModal()"
+  (submitted)="generateVaccinationPlan($event)"
+/>

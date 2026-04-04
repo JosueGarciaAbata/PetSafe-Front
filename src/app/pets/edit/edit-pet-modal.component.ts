@@ -8,6 +8,7 @@ import {
   Output,
   inject,
 } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule, FormControl, FormGroupDirective, NgForm } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { ErrorStateMatcher } from '@angular/material/core';
@@ -252,10 +253,7 @@ export class EditPetModalComponent implements OnDestroy {
       this.saved.emit();
     } catch (error: unknown) {
       this.submitError = basicUpdateCompleted
-        ? resolveApiErrorMessage(error, {
-            defaultMessage:
-              'Los datos básicos de la mascota se actualizaron, pero no se pudo cambiar el esquema vacunal.',
-          })
+        ? this.resolveVaccinationSchemeOperationError(error)
         : this.resolveErrorMessage(error);
       this.toast.error(this.submitError);
     } finally {
@@ -771,8 +769,8 @@ export class EditPetModalComponent implements OnDestroy {
       if (speciesId) {
         await this.loadVaccinationSchemes(speciesId, plan.scheme.id);
       }
-    } catch {
-      this.vaccinationPlanLoadError = 'No se pudo cargar el plan vacunal actual de la mascota.';
+    } catch (error: unknown) {
+      this.vaccinationPlanLoadError = this.resolveVaccinationPlanLoadMessage(error);
 
       if (speciesId) {
         await this.loadVaccinationSchemes(speciesId);
@@ -1075,6 +1073,34 @@ export class EditPetModalComponent implements OnDestroy {
     return resolveApiErrorMessage(error, {
       defaultMessage: 'No se pudo actualizar la mascota.',
     });
+  }
+
+  private resolveVaccinationPlanLoadMessage(error: unknown): string {
+    if (
+      error instanceof HttpErrorResponse
+      && error.status === 404
+      && resolveApiErrorMessage(error, { defaultMessage: '' })
+        .toLowerCase()
+        .includes('no tiene plan vacunal generado')
+    ) {
+      return 'La mascota aún no tiene plan vacunal generado.';
+    }
+
+    return 'No se pudo cargar el plan vacunal actual de la mascota.';
+  }
+
+  private resolveVaccinationSchemeOperationError(error: unknown): string {
+    const message = resolveApiErrorMessage(error, {
+      defaultMessage:
+        'Los datos básicos de la mascota se actualizaron, pero no se pudo cambiar el esquema vacunal.',
+    });
+    const normalized = message.toLowerCase();
+
+    if (normalized.includes('null value in column "vaccine_id"') || normalized.includes('vaccine_id')) {
+      return 'Los datos básicos de la mascota se actualizaron, pero el esquema seleccionado tiene una o más dosis sin vacuna asociada. Revisa la versión vigente del esquema antes de asignarlo.';
+    }
+
+    return message;
   }
 
   private replaceSelectedImage(imageUpload: PetImageUploadValue): void {

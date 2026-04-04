@@ -11,7 +11,7 @@
     ></div>
 
     <div
-      class="relative flex max-h-[88vh] w-full max-w-[920px] flex-col overflow-hidden rounded-[24px] bg-card shadow-2xl"
+      class="relative flex max-h-[88vh] w-full max-w-[920px] flex-col overflow-visible rounded-[24px] bg-card shadow-2xl"
       (click)="$event.stopPropagation()"
     >
       <div class="flex items-start justify-between border-b border-border px-6 py-5">
@@ -57,7 +57,7 @@
       </div>
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="flex min-h-0 flex-1 flex-col">
-        <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+        <div class="min-h-0 flex-1 overflow-y-auto overflow-x-visible px-6 py-5">
           <div class="flex flex-col gap-5">
         @if (loadError) {
           <div class="rounded-2xl border border-[#fecaca] bg-[#fff1f2] px-4 py-3 text-sm leading-6 text-[#9f1239]">
@@ -83,7 +83,7 @@
           </div>
         }
 
-        @if (!canSelectDoctor && !initialDoctorSelection && !doctorLoadError) {
+        @if (requiresDoctorSelection() && !canSelectDoctor && !initialDoctorSelection && !doctorLoadError) {
           <div class="rounded-2xl border border-[#fef3c7] bg-[#fffbeb] px-4 py-3 text-sm leading-6 text-[#92400e]">
             Debes ingresar con un veterinario asociado para registrar una aplicación.
           </div>
@@ -91,7 +91,28 @@
 
         <div class="grid gap-4 lg:grid-cols-2">
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-semibold text-text-primary">Vacuna</label>
+            <div class="flex items-center gap-2">
+              <label class="text-sm font-semibold text-text-primary">Vacuna</label>
+              <div class="group relative">
+                <button
+                  type="button"
+                  class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#bfdbfe] bg-[#eff6ff] text-primary transition hover:bg-[#dbeafe]"
+                  aria-label="Información sobre la vacuna"
+                >
+                  <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 10v6"></path>
+                    <path d="M12 7.5h.01"></path>
+                  </svg>
+                </button>
+                <div class="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-[280px] -translate-x-1/2 rounded-2xl border border-[#dbeafe] bg-white px-4 py-3 text-left text-xs leading-5 text-[#35507f] shadow-xl group-hover:block">
+                  <p class="font-semibold text-primary">Vacuna aplicada</p>
+                  <p class="mt-1">
+                    Selecciona el producto biológico real que se aplicó al paciente en esta atención.
+                  </p>
+                </div>
+              </div>
+            </div>
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
               <input
                 matInput
@@ -136,7 +157,28 @@
           </div>
 
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-semibold text-text-primary">Fecha de aplicación</label>
+            <div class="flex items-center gap-2">
+              <label class="text-sm font-semibold text-text-primary">Fecha de aplicación</label>
+              <div class="group relative">
+                <button
+                  type="button"
+                  class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#bfdbfe] bg-[#eff6ff] text-primary transition hover:bg-[#dbeafe]"
+                  aria-label="Información sobre la fecha de aplicación"
+                >
+                  <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 10v6"></path>
+                    <path d="M12 7.5h.01"></path>
+                  </svg>
+                </button>
+                <div class="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-[280px] -translate-x-1/2 rounded-2xl border border-[#dbeafe] bg-white px-4 py-3 text-left text-xs leading-5 text-[#35507f] shadow-xl group-hover:block">
+                  <p class="font-semibold text-primary">Fecha real</p>
+                  <p class="mt-1">
+                    Corresponde al día en que realmente se aplicó la vacuna al paciente.
+                  </p>
+                </div>
+              </div>
+            </div>
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
               <input
                 #applicationDateInput
@@ -160,78 +202,127 @@
             </mat-form-field>
           </div>
 
-          <div class="flex flex-col gap-2">
-            <label class="text-sm font-semibold text-text-primary">Doctor asociado</label>
-            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
-              @if (canSelectDoctor) {
-                <input
-                  matInput
-                  type="text"
-                  [ngModel]="doctorSearch"
-                  [ngModelOptions]="{ standalone: true }"
-                  (ngModelChange)="onDoctorChanged($event)"
-                  (focus)="onDoctorFocus()"
-                  [matAutocomplete]="doctorAuto"
-                  [errorStateMatcher]="doctorErrorStateMatcher"
-                  placeholder="Buscar veterinario"
-                  autocomplete="off"
-                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
-                />
-              } @else {
-                <input
-                  matInput
-                  type="text"
-                  [value]="doctorSearch"
-                  readonly
-                  [errorStateMatcher]="doctorErrorStateMatcher"
-                  placeholder="Veterinario responsable"
-                  class="text-sm text-text-primary"
-                />
-              }
-              @if (hasDoctorSelectionError()) {
-                <mat-error>Debes registrar la vacuna con un veterinario asociado.</mat-error>
-              } @else if (selectedDoctorMeta(); as doctorMeta) {
-                <mat-hint>{{ doctorMeta }}</mat-hint>
-              } @else if (canSelectDoctor && !isLoadingDoctors && doctorOptions.length > 0) {
-                <mat-hint>Escribe o selecciona un veterinario de la lista.</mat-hint>
-              }
-            </mat-form-field>
-
-            <mat-autocomplete #doctorAuto="matAutocomplete" autoActiveFirstOption>
-              @if (canSelectDoctor) {
-                @for (doctor of filteredDoctorOptions(); track doctor.id) {
-                  <mat-option
-                    [value]="buildDoctorLabel(doctor)"
-                    (onSelectionChange)="onDoctorOptionSelection($event.isUserInput, doctor)"
+          @if (requiresDoctorSelection()) {
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <label class="text-sm font-semibold text-text-primary">Doctor que aplica la vacuna</label>
+                <div class="group relative">
+                  <button
+                    type="button"
+                    class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#bfdbfe] bg-[#eff6ff] text-primary transition hover:bg-[#dbeafe]"
+                    aria-label="Información sobre el doctor que aplica la vacuna"
                   >
-                    <div class="flex flex-col">
-                      <span class="text-sm font-medium text-text-primary">
-                        {{ buildDoctorLabel(doctor) }}
-                      </span>
-                      <span class="text-xs text-text-secondary">
-                        {{ buildDoctorMeta(doctor) }}
-                      </span>
-                    </div>
-                  </mat-option>
+                    <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="9"></circle>
+                      <path d="M12 10v6"></path>
+                      <path d="M12 7.5h.01"></path>
+                    </svg>
+                  </button>
+                  <div class="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-[320px] -translate-x-1/2 rounded-2xl border border-[#dbeafe] bg-white px-4 py-3 text-left text-xs leading-5 text-[#35507f] shadow-xl group-hover:block">
+                    <p class="font-semibold text-primary">Aplicación interna</p>
+                    <p class="mt-1">
+                      Solo aplica para vacunas internas. Si eres administrador puedes seleccionar otro veterinario; si eres MVZ queda tu perfil cargado.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+                @if (canSelectDoctor) {
+                  <input
+                    matInput
+                    type="text"
+                    [ngModel]="doctorSearch"
+                    [ngModelOptions]="{ standalone: true }"
+                    (ngModelChange)="onDoctorChanged($event)"
+                    (focus)="onDoctorFocus()"
+                    [matAutocomplete]="doctorAuto"
+                    [errorStateMatcher]="doctorErrorStateMatcher"
+                    placeholder="Buscar veterinario"
+                    autocomplete="off"
+                    class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                  />
+                } @else {
+                  <input
+                    matInput
+                    type="text"
+                    [value]="doctorSearch"
+                    readonly
+                    [errorStateMatcher]="doctorErrorStateMatcher"
+                    placeholder="Veterinario responsable"
+                    class="text-sm text-text-primary"
+                  />
                 }
+                @if (hasDoctorSelectionError()) {
+                  <mat-error>Debes registrar la vacuna con un veterinario asociado.</mat-error>
+                } @else if (selectedDoctorMeta(); as doctorMeta) {
+                  <mat-hint>{{ doctorMeta }}</mat-hint>
+                } @else if (canSelectDoctor && !isLoadingDoctors && doctorOptions.length > 0) {
+                  <mat-hint>Escribe o selecciona un veterinario de la lista.</mat-hint>
+                }
+              </mat-form-field>
 
-                @if (isLoadingDoctors) {
-                  <mat-option disabled>Cargando veterinarios...</mat-option>
-                } @else if (doctorSearch.trim() && filteredDoctorOptions().length === 0) {
-                  <mat-option disabled>No se encontraron veterinarios</mat-option>
+              <mat-autocomplete #doctorAuto="matAutocomplete" autoActiveFirstOption>
+                @if (canSelectDoctor) {
+                  @for (doctor of filteredDoctorOptions(); track doctor.id) {
+                    <mat-option
+                      [value]="buildDoctorLabel(doctor)"
+                      (onSelectionChange)="onDoctorOptionSelection($event.isUserInput, doctor)"
+                    >
+                      <div class="flex flex-col">
+                        <span class="text-sm font-medium text-text-primary">
+                          {{ buildDoctorLabel(doctor) }}
+                        </span>
+                        <span class="text-xs text-text-secondary">
+                          {{ buildDoctorMeta(doctor) }}
+                        </span>
+                      </div>
+                    </mat-option>
+                  }
+
+                  @if (isLoadingDoctors) {
+                    <mat-option disabled>Cargando veterinarios...</mat-option>
+                  } @else if (doctorSearch.trim() && filteredDoctorOptions().length === 0) {
+                    <mat-option disabled>No se encontraron veterinarios</mat-option>
+                  }
                 }
-              }
-            </mat-autocomplete>
-          </div>
+              </mat-autocomplete>
+            </div>
+          } @else {
+            <div class="rounded-2xl border border-[#dbeafe] bg-[#eff6ff] px-4 py-3 text-sm leading-6 text-[#1d4ed8]">
+              Al marcar la vacuna como externa, no se registra un doctor de la clínica porque la aplicación proviene de otra veterinaria.
+            </div>
+          }
 
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-semibold text-text-primary">Administrado en</label>
+              <div class="flex items-center gap-2">
+                <label class="text-sm font-semibold text-text-primary">Administrado en</label>
+                <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                <div class="group relative">
+                <button
+                  type="button"
+                  class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#bfdbfe] bg-[#eff6ff] text-primary transition hover:bg-[#dbeafe]"
+                  aria-label="Información sobre el lugar de aplicación"
+                >
+                  <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 10v6"></path>
+                    <path d="M12 7.5h.01"></path>
+                  </svg>
+                </button>
+                <div class="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-[320px] -translate-x-1/2 rounded-2xl border border-[#dbeafe] bg-white px-4 py-3 text-left text-xs leading-5 text-[#35507f] shadow-xl group-hover:block">
+                  <p class="font-semibold text-primary">Lugar de aplicación</p>
+                  <p class="mt-1">
+                    Indica el lugar real donde se aplicó la vacuna. Puede ser la clínica, la casa del paciente o una veterinaria externa.
+                  </p>
+                </div>
+              </div>
+            </div>
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
               <input
                 matInput
                 type="text"
                 formControlName="administeredAt"
-                placeholder="Ej. Clínica SafePet"
+                placeholder="Ej. Clínica SafePet, domicilio del paciente o otra veterinaria"
                 class="text-sm text-text-primary placeholder:text-text-secondary/50"
               />
             </mat-form-field>
@@ -239,8 +330,8 @@
         </div>
 
         <div class="rounded-2xl border border-border bg-background/60 px-4 py-3">
-          <mat-checkbox formControlName="isExternal" class="text-sm text-text-primary">
-            La vacuna fue aplicada fuera de esta clínica
+          <mat-checkbox formControlName="isExternal" class="text-sm text-text-primary" (change)="onExternalChanged()">
+            La vacuna fue aplicada por una veterinaria externa
           </mat-checkbox>
         </div>
 
@@ -250,7 +341,29 @@
           </summary>
           <div class="grid gap-4 border-t border-border px-4 py-4 lg:grid-cols-2">
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Próxima dosis</label>
+              <div class="flex items-center gap-2">
+                <label class="text-sm font-semibold text-text-primary">Próxima dosis</label>
+                <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                <div class="group relative">
+                  <button
+                    type="button"
+                    class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-[#bfdbfe] bg-[#eff6ff] text-primary transition hover:bg-[#dbeafe]"
+                    aria-label="Información sobre la próxima dosis"
+                  >
+                    <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="9"></circle>
+                      <path d="M12 10v6"></path>
+                      <path d="M12 7.5h.01"></path>
+                    </svg>
+                  </button>
+                  <div class="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-[300px] -translate-x-1/2 rounded-2xl border border-[#dbeafe] bg-white px-4 py-3 text-left text-xs leading-5 text-[#35507f] shadow-xl group-hover:block">
+                    <p class="font-semibold text-primary">Seguimiento sugerido</p>
+                    <p class="mt-1">
+                      Es una fecha sugerida de seguimiento. No crea una nueva dosis dentro del esquema vacunal.
+                    </p>
+                  </div>
+                </div>
+              </div>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
                 <input
                   #nextDoseDateInput
@@ -277,7 +390,10 @@
             </div>
 
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-secondary">Lote</label>
+              <label class="flex items-center gap-2 text-sm font-semibold text-text-secondary">
+                <span>Lote</span>
+                <span class="text-xs font-medium text-text-secondary">Opcional</span>
+              </label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
                 <input
                   matInput
@@ -290,7 +406,10 @@
             </div>
 
             <div class="flex flex-col gap-2 lg:col-span-2">
-              <label class="text-sm font-semibold text-text-primary">Notas</label>
+              <label class="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                <span>Notas</span>
+                <span class="text-xs font-medium text-text-secondary">Opcional</span>
+              </label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
                 <textarea
                   matInput

@@ -6,6 +6,7 @@ import {
   OnInit,
   inject,
 } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '@app/core/auth/auth.service';
@@ -20,8 +21,10 @@ import { ShellIconComponent } from '@app/shell/shell-icon.component';
 import { PetBasicDetailApiResponse } from '../models/pet-detail.model';
 import { PetsApiService } from '../services/pets-api.service';
 import { CreateVaccineApplicationModalComponent } from './create-vaccine-application-modal.component';
+import { InitializeVaccinationPlanModalComponent } from './initialize-vaccination-plan-modal.component';
 import {
   CreatePatientVaccineApplicationRequest,
+  InitializePatientVaccinationPlanRequest,
   PatientVaccineRecord,
   PatientVaccinationPlan,
   PatientVaccinationPlanDose,
@@ -37,6 +40,7 @@ import { PatientVaccinationApiService } from './services/patient-vaccination-api
     CommonModule,
     ShellIconComponent,
     CreateVaccineApplicationModalComponent,
+    InitializeVaccinationPlanModalComponent,
   ],
   templateUrl: './pet-vaccination-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -63,6 +67,10 @@ export class PetVaccinationPageComponent implements OnInit {
   protected isLoadingPlan = false;
   protected petLoadError: string | null = null;
   protected planLoadError: string | null = null;
+  protected hasMissingVaccinationPlan = false;
+  protected isGeneratingVaccinationPlan = false;
+  protected isInitializePlanModalOpen = false;
+  protected initializePlanSubmitError: string | null = null;
 
   protected isApplicationModalOpen = false;
   protected isLoadingProducts = false;
@@ -103,6 +111,7 @@ export class PetVaccinationPageComponent implements OnInit {
       this.isLoadingPlan = true;
       this.petLoadError = null;
       this.planLoadError = null;
+      this.hasMissingVaccinationPlan = false;
       this.pet = null;
       this.plan = null;
       this.cdr.detectChanges();
@@ -120,8 +129,64 @@ export class PetVaccinationPageComponent implements OnInit {
     return this.authService.hasAnyRole(['ADMIN']);
   }
 
+  protected canGenerateVaccinationPlan(): boolean {
+    return this.authService.hasAnyRole(['ADMIN', 'MVZ']);
+  }
+
   protected goBack(): void {
     void this.router.navigate(this.backTarget, { replaceUrl: true });
+  }
+
+  protected openInitializeVaccinationPlanModal(): void {
+    if (!this.pet || this.isGeneratingVaccinationPlan) {
+      return;
+    }
+
+    this.isInitializePlanModalOpen = true;
+    this.initializePlanSubmitError = null;
+    this.cdr.detectChanges();
+  }
+
+  protected closeInitializeVaccinationPlanModal(): void {
+    if (this.isGeneratingVaccinationPlan) {
+      return;
+    }
+
+    this.isInitializePlanModalOpen = false;
+    this.initializePlanSubmitError = null;
+    this.cdr.detectChanges();
+  }
+
+  protected async generateVaccinationPlan(
+    payload: InitializePatientVaccinationPlanRequest,
+  ): Promise<void> {
+    if (!this.pet || this.isGeneratingVaccinationPlan) {
+      return;
+    }
+
+    this.isGeneratingVaccinationPlan = true;
+    this.planLoadError = null;
+    this.initializePlanSubmitError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const response = await firstValueFrom(
+        this.vaccinationApi.initializePatientVaccinationPlan(this.pet.id, payload),
+      );
+
+      this.plan = this.normalizePlan(response);
+      this.hasMissingVaccinationPlan = false;
+      this.isInitializePlanModalOpen = false;
+    } catch (error: unknown) {
+      const resolvedMessage = this.resolveVaccinationPlanOperationError(error, {
+        defaultMessage: 'No se pudo generar el plan vacunal.',
+      });
+      this.initializePlanSubmitError = resolvedMessage;
+      this.planLoadError = resolvedMessage;
+    } finally {
+      this.isGeneratingVaccinationPlan = false;
+      this.cdr.detectChanges();
+    }
   }
 
   protected openApplicationModal(dose: PatientVaccinationPlanDose | null = null): void {
@@ -358,14 +423,20 @@ export class PetVaccinationPageComponent implements OnInit {
       }
 
       this.plan = this.normalizePlan(response);
+      this.hasMissingVaccinationPlan = false;
     } catch (error: unknown) {
       if (requestToken !== this.requestVersion) {
         return;
       }
 
-      this.planLoadError = resolveApiErrorMessage(error, {
-        defaultMessage: 'No se pudo cargar el plan vacunal.',
-      });
+      if (this.isMissingVaccinationPlanError(error)) {
+        this.hasMissingVaccinationPlan = true;
+        this.planLoadError = null;
+      } else {
+        this.planLoadError = resolveApiErrorMessage(error, {
+          defaultMessage: 'No se pudo cargar el plan vacunal.',
+        });
+      }
     } finally {
       if (requestToken !== this.requestVersion) {
         return;
@@ -380,7 +451,9 @@ export class PetVaccinationPageComponent implements OnInit {
     const requestToken = ++this.productsRequestVersion;
 
     try {
-      const response = await firstValueFrom(this.vaccinationApi.listProducts(speciesId));
+      const response = await firstValueFrom(
+        this.vaccinationApi.listProducts({ speciesId }),
+      );
 
       if (requestToken !== this.productsRequestVersion) {
         return;
@@ -587,5 +660,29 @@ export class PetVaccinationPageComponent implements OnInit {
 
   private getTodayDateKey(): string {
     return new Date().toISOString().slice(0, 10);
+  }
+
+  private isMissingVaccinationPlanError(error: unknown): boolean {
+    return (
+      error instanceof HttpErrorResponse
+      && error.status === 404
+      && resolveApiErrorMessage(error, { defaultMessage: '' })
+        .toLowerCase()
+        .includes('no tiene plan vacunal generado')
+    );
+  }
+
+  private resolveVaccinationPlanOperationError(
+    error: unknown,
+    options: { defaultMessage: string },
+  ): string {
+    const message = resolveApiErrorMessage(error, options);
+    const normalized = message.toLowerCase();
+
+    if (normalized.includes('null value in column "vaccine_id"') || normalized.includes('vaccine_id')) {
+      return 'El esquema seleccionado tiene una o más dosis sin vacuna asociada. Revisa la versión vigente del esquema antes de generar o cambiar el plan.';
+    }
+
+    return message;
   }
 }

@@ -47,6 +47,35 @@
         <div class="h-32 animate-pulse rounded-2xl bg-background"></div>
       </div>
       <div class="h-64 animate-pulse rounded-[24px] bg-background"></div>
+    } @else if (hasMissingVaccinationPlan) {
+      <div class="rounded-[24px] border border-[#fef3c7] bg-[#fffbeb] p-6 shadow-sm">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div class="flex flex-col gap-1">
+            <span class="text-base font-bold text-[#92400e]">Sin plan vacunal generado</span>
+            <p class="text-sm leading-6 text-[#92400e]">
+              Esta mascota aún no tiene plan vacunal. Puedes generarlo ahora si la especie ya tiene un esquema usable.
+            </p>
+          </div>
+
+          @if (canGenerateVaccinationPlan()) {
+            <button
+              type="button"
+              (click)="openInitializeVaccinationPlanModal()"
+              [disabled]="isGeneratingVaccinationPlan"
+              class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              <app-shell-icon name="syringe" [size]="18"></app-shell-icon>
+              <span>{{ isGeneratingVaccinationPlan ? 'Generando...' : 'Generar esquema de vacunación' }}</span>
+            </button>
+          }
+        </div>
+
+        @if (planLoadError) {
+          <div class="mt-4 rounded-xl border border-[#fecaca] bg-[#fff1f2] px-4 py-3 text-sm leading-6 text-[#9f1239]">
+            {{ planLoadError }}
+          </div>
+        }
+      </div>
     } @else if (planLoadError) {
       <div class="rounded-[24px] border border-[#fecaca] bg-[#fff1f2] p-6 text-sm leading-6 text-[#9f1239] shadow-sm">
         {{ planLoadError }}
@@ -192,8 +221,11 @@
                     </div>
 
                     <div class="grid gap-1 text-xs text-text-secondary">
-                      <span>Dr.: {{ application.administeredBy || 'No registrado' }}</span>
-                      <span>{{ application.isExternal ? 'Externa' : 'Interna' }} · {{ application.administeredAt || 'Lugar no registrado' }}</span>
+                      <span>Origen: {{ application.isExternal ? 'Externa' : 'Interna' }}</span>
+                      @if (!application.isExternal) {
+                        <span>Doctor que aplicó: {{ application.administeredBy || 'No registrado' }}</span>
+                      }
+                      <span>Administrado en: {{ application.administeredAt || 'Lugar no registrado' }}</span>
                       @if (application.nextDoseDate) {
                         <span>Próxima: {{ formatDate(application.nextDoseDate) }}</span>
                       }
@@ -240,4 +272,15 @@
   (closed)="closeApplicationModal()"
   (doctorSearchRequested)="onDoctorSearchRequested($event)"
   (submitted)="submitApplication($event)"
+/>
+
+<app-initialize-vaccination-plan-modal
+  [open]="isInitializePlanModalOpen"
+  [patientName]="pet?.name || 'Paciente'"
+  [speciesId]="pet?.species?.id ?? null"
+  [speciesName]="pet?.species?.name ?? null"
+  [isSaving]="isGeneratingVaccinationPlan"
+  [submitError]="initializePlanSubmitError"
+  (closed)="closeInitializeVaccinationPlanModal()"
+  (submitted)="generateVaccinationPlan($event)"
 />
