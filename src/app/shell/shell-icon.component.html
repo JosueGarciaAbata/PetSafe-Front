@@ -67,6 +67,52 @@
         <path d="M8 3.5v4M16 3.5v4M3.5 9.5h17"></path>
       </svg>
     }
+    @case ('arrowLeft') {
+      <svg
+        [attr.width]="size"
+        [attr.height]="size"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M19 12H5"></path>
+        <path d="m11 18-6-6 6-6"></path>
+      </svg>
+    }
+    @case ('checkCircle') {
+      <svg
+        [attr.width]="size"
+        [attr.height]="size"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="12" cy="12" r="8"></circle>
+        <path d="m8.7 12.2 2.2 2.2 4.5-4.8"></path>
+      </svg>
+    }
+    @case ('alertCircle') {
+      <svg
+        [attr.width]="size"
+        [attr.height]="size"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="12" cy="12" r="8"></circle>
+        <path d="M12 8v5"></path>
+        <path d="M12 16.5h.01"></path>
+      </svg>
+    }
     @case ('menu') {
       <svg
         [attr.width]="size"

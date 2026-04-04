@@ -23,3 +23,16 @@
   padding-top: 11px;
   padding-bottom: 11px;
 }
+
+:host .pet-image-preview {
+  display: flex;
+  height: 5.5rem;
+  width: 5.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid var(--ps-border);
+  background: linear-gradient(135deg, rgba(47, 96, 94, 0.14), rgba(47, 96, 94, 0.04));
+}

@@ -1,6 +1,6 @@
 <header class="sticky top-0 z-20 flex h-[72px] w-full items-center border-b border-border bg-card px-8 shadow-sm">
   <div class="flex w-full items-center justify-between gap-6">
-    <div class="flex min-w-0 flex-1 items-center gap-3">
+    <div class="flex items-center gap-3">
       <button
         type="button"
         (click)="toggleSidebar.emit()"
@@ -10,19 +10,6 @@
       >
         <app-shell-icon name="menu" [size]="20"></app-shell-icon>
       </button>
-
-      <div class="max-w-[520px] flex-1">
-        <div class="group relative">
-          <div class="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary transition-colors group-focus-within:text-brand">
-            <app-shell-icon name="search" [size]="18"></app-shell-icon>
-          </div>
-          <input
-            type="text"
-            placeholder="Buscar mascotas, propietarios, citas..."
-            class="h-11 w-full rounded-xl border border-border bg-white pl-11 pr-4 text-sm text-text-primary transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
-          />
-        </div>
-      </div>
     </div>
 
     <div class="flex items-center gap-6">
@@ -39,25 +26,62 @@
         <span class="absolute right-2 top-2 h-2.5 w-2.5 rounded-full border-2 border-white bg-red-500 ring-2 ring-red-500/20"></span>
       </button>
 
-      <button
-        type="button"
-        class="group flex items-center gap-3 rounded-2xl border border-border bg-white px-4 py-1.5 shadow-sm transition-all hover:border-brand/20 hover:bg-active-soft"
-      >
-        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/10 text-brand">
-          <app-shell-icon name="user" [size]="20"></app-shell-icon>
-        </div>
-        <div class="flex flex-col items-start leading-tight">
-          <span class="text-sm font-bold text-text-primary">{{ userName }}</span>
-          <span class="text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
-            {{ userRole }}
-          </span>
-        </div>
-        <app-shell-icon
-          name="chevronDown"
-          [size]="14"
-          className="text-text-secondary transition-colors group-hover:text-brand"
-        ></app-shell-icon>
-      </button>
+      <div class="relative">
+        <button
+          type="button"
+          (click)="toggleUserMenu($event)"
+          class="group flex items-center gap-3 rounded-2xl border border-border bg-white px-4 py-1.5 shadow-sm transition-all hover:border-brand/20 hover:bg-active-soft"
+          aria-haspopup="menu"
+          [attr.aria-expanded]="isUserMenuOpen"
+        >
+          <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/10 text-brand">
+            <app-shell-icon name="user" [size]="20"></app-shell-icon>
+          </div>
+          <div class="flex flex-col items-start leading-tight">
+            <span class="text-sm font-bold text-text-primary">{{ userName }}</span>
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+              {{ userRole }}
+            </span>
+          </div>
+          <app-shell-icon
+            name="chevronDown"
+            [size]="14"
+            className="text-text-secondary transition-colors group-hover:text-brand"
+          ></app-shell-icon>
+        </button>
+
+        @if (isUserMenuOpen) {
+          <div
+            class="absolute right-0 top-[calc(100%+0.75rem)] z-30 min-w-[220px] overflow-hidden rounded-2xl border border-border bg-white p-2 shadow-xl"
+            role="menu"
+          >
+            <div class="border-b border-border px-3 py-2">
+              <p class="text-sm font-semibold text-text-primary">{{ userName }}</p>
+              <p class="text-xs uppercase tracking-wider text-text-secondary">{{ userRole }}</p>
+            </div>
+
+            <button
+              type="button"
+              (click)="openSettings()"
+              class="mt-2 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-text-primary transition-colors hover:bg-background"
+              role="menuitem"
+            >
+              <app-shell-icon name="settings" [size]="18"></app-shell-icon>
+              <span>Configuracion</span>
+            </button>
+
+            <button
+              type="button"
+              (click)="logout()"
+              class="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+              role="menuitem"
+            >
+              <app-shell-icon name="logout" [size]="18"></app-shell-icon>
+              <span>Cerrar sesion</span>
+            </button>
+          </div>
+        }
+      </div>
     </div>
   </div>
 </header>

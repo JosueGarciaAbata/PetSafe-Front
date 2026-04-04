@@ -1,3 +1,7 @@
 :host {
   display: block;
 }
+
+:host .pet-list-avatar img {
+  display: block;
+}

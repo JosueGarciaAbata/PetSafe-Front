@@ -1,9 +1,9 @@
 <section class="overflow-hidden rounded-[24px] border border-border bg-card shadow-sm">
-  <div class="overflow-x-auto">
-    <div class="min-w-[920px]">
+  <div class="calendar-scroll-area overflow-x-auto">
+    <div class="min-w-[900px]">
       <div class="grid grid-cols-7 border-b border-border bg-background/70">
         @for (weekday of weekdayLabels; track weekday) {
-          <div class="px-3 py-2.5 text-center text-[11px] font-bold uppercase tracking-[0.14em] text-text-secondary">
+          <div class="px-4 py-3 text-center text-[11px] font-bold uppercase tracking-[0.14em] text-text-secondary">
             {{ weekday }}
           </div>
         }
@@ -12,19 +12,27 @@
       <div class="appointment-month-grid grid grid-cols-7">
         @for (cell of cells; track trackByDate($index, cell)) {
           <section
-            class="border-b border-r border-border/80 p-2.5"
+            class="appointment-day-cell border-b border-r border-border/80 p-3"
             [class.bg-background/40]="!cell.isCurrentMonth"
+            [class.appointment-day-cell--today]="cell.isToday"
           >
-            <div class="mb-2 flex items-center justify-between gap-2">
-              <span
-                class="inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold"
-                [class.bg-active-soft]="cell.isToday"
-                [class.text-brand]="cell.isToday"
-                [class.text-text-primary]="!cell.isToday && cell.isCurrentMonth"
-                [class.text-text-secondary]="!cell.isCurrentMonth"
-              >
-                {{ cell.dayNumber }}
-              </span>
+            <div class="mb-3 flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold"
+                  [class.bg-active-soft]="cell.isToday"
+                  [class.text-brand]="cell.isToday"
+                  [class.appointment-day-number--today]="cell.isToday"
+                  [class.text-text-primary]="!cell.isToday && cell.isCurrentMonth"
+                  [class.text-text-secondary]="!cell.isCurrentMonth"
+                >
+                  {{ cell.dayNumber }}
+                </span>
+
+                @if (cell.isToday) {
+                  <span class="appointment-today-chip">Hoy</span>
+                }
+              </div>
 
               @if (cell.appointments.length > 0) {
                 <span class="text-[11px] font-semibold text-text-secondary">
@@ -33,51 +41,60 @@
               }
             </div>
 
-            <div class="flex max-h-[114px] flex-col gap-1.5 overflow-y-auto pr-1">
+            <div class="appointment-day-scroll flex max-h-[168px] flex-col gap-2 overflow-y-auto pr-1">
               @for (appointment of cell.appointments; track trackByAppointment($index, appointment)) {
                 <article
-                  class="rounded-[18px] border border-border bg-white p-2.5 shadow-sm"
+                  class="appointment-month-card cursor-pointer rounded-[16px] border border-border bg-white px-3 py-3 shadow-sm transition-all hover:-translate-y-[1px] hover:ring-2 hover:ring-primary/20"
+                  (click)="appointmentClick.emit(appointment)"
                   [class.opacity-70]="appointment.status === 'CANCELADA' || !appointment.isActive"
                 >
-                  <div class="flex items-start gap-2.5">
-                    <div
-                      class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                      [class]="buildAvatarClasses()"
-                    >
-                      {{ buildPatientInitials(appointment.patientName, appointment.patientId) }}
+                  <div class="appointment-card-content min-w-0">
+                    <p class="appointment-card-time" [title]="buildTimeRange(appointment)">
+                      {{ buildTimeRange(appointment) }}
+                    </p>
+
+                    <div class="appointment-card-heading items-start">
+                      <div class="min-w-0">
+                        <h3
+                          class="truncate appointment-card-patient"
+                          [title]="
+                            hasOwnerName(appointment.ownerName)
+                              ? buildPatientLabel(appointment) + ' (' + appointment.ownerName + ')'
+                              : buildPatientLabel(appointment)
+                          "
+                        >
+                          {{ buildPatientLabel(appointment) }}
+                          @if (hasOwnerName(appointment.ownerName)) {
+                            <span class="text-[11px] font-medium text-text-secondary"> ({{ appointment.ownerName }})</span>
+                          }
+                        </h3>
+                      </div>
                     </div>
 
-                    <div class="min-w-0 flex-1">
-                      <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-text-secondary">
-                        {{ buildTimeRange(appointment) }}
-                      </p>
-                      <h3 class="truncate text-[13px] font-bold text-text-primary">
-                        {{ buildPatientLabel(appointment) }}
-                      </h3>
+                    <div class="flex flex-col items-start gap-1">
+                      <span
+                        class="month-status-chip rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em]"
+                        [class]="buildStatusClasses(appointment.status)"
+                        [title]="buildStatusLabel(appointment.status)"
+                      >
+                        {{ buildStatusLabel(appointment.status) }}
+                      </span>
 
-                      <div class="mt-1 flex flex-wrap items-center gap-1.5">
+                      @if (shouldShowQueueBadge(appointment)) {
                         <span
-                          class="shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] whitespace-nowrap"
-                          [class]="buildStatusClasses(appointment.status)"
+                          class="rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.08em]"
+                          [class]="buildQueueBadgeClasses(appointment)"
+                          [title]="buildQueueBadgeLabel(appointment)"
                         >
-                          {{ buildStatusLabel(appointment.status) }}
+                          {{ buildQueueBadgeLabel(appointment) }}
                         </span>
+                      }
+                    </div>
 
-                        @if (hasOwnerName(appointment.ownerName)) {
-                          <span class="min-w-0 truncate text-[10px] text-text-secondary">
-                            {{ appointment.ownerName }}
-                          </span>
-                        }
-                      </div>
-
-                      <p class="mt-1 truncate text-[11px] text-text-secondary">
+                    <div class="appointment-card-details">
+                      <p class="appointment-card-detail" [title]="buildReasonLabel(appointment.reason)">
                         {{ buildReasonLabel(appointment.reason) }}
                       </p>
-                      @if (hasNotes(appointment.notes)) {
-                        <p class="truncate text-[10px] text-text-secondary">
-                          {{ appointment.notes }}
-                        </p>
-                      }
                     </div>
                   </div>
                 </article>

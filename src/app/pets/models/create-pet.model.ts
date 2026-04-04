@@ -8,6 +8,8 @@ export interface CreatePetRequest {
   sex: 'MACHO' | 'HEMBRA';
   birthDate?: string;
   currentWeight?: number;
+  sterilized?: boolean;
   generalAllergies?: string;
   generalHistory?: string;
+  image?: File;
 }

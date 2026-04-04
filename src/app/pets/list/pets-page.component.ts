@@ -5,6 +5,7 @@ import {
   OnInit,
   inject,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { PaginationComponent } from '@app/shared/pagination/pagination.component';
 import {
@@ -12,21 +13,20 @@ import {
   PaginationMeta,
 } from '@app/shared/pagination/pagination.model';
 import { ClientTutorBasicApiResponse } from '@app/owners/models/client-tutor-basic.model';
-import { CreatePetModalComponent } from '../create/create-pet-modal.component';
-import { PetDetailComponent } from '../detail/pet-detail.component';
 import { PetListItemApiResponse } from '../models/pet-list.model';
 import { PetsApiService } from '../services/pets-api.service';
 
 @Component({
   selector: 'app-pets-page',
   standalone: true,
-  imports: [PaginationComponent, CreatePetModalComponent, PetDetailComponent],
+  imports: [PaginationComponent],
   templateUrl: './pets-page.component.html',
   styleUrl: './pets-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PetsPageComponent implements OnInit {
   private readonly petsApi = inject(PetsApiService);
+  private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly pageSize = 10;
   private requestVersion = 0;
@@ -37,21 +37,8 @@ export class PetsPageComponent implements OnInit {
   protected searchValue = '';
   protected isLoading = false;
   protected loadError: string | null = null;
-  protected isCreateModalOpen = false;
-  protected selectedPetId: string | null = null;
-  protected pendingTutor: ClientTutorBasicApiResponse | null = null;
 
   ngOnInit(): void {
-    const state = history.state as
-      | {
-          petId?: string | number;
-          openCreateModal?: boolean;
-          initialTutor?: ClientTutorBasicApiResponse | null;
-        }
-      | null;
-    this.selectedPetId = state?.petId != null ? String(state.petId) : null;
-    this.pendingTutor = state?.initialTutor ?? null;
-    this.isCreateModalOpen = Boolean(state?.openCreateModal);
     void this.loadPets(1);
   }
 
@@ -69,32 +56,30 @@ export class PetsPageComponent implements OnInit {
     void this.loadPets(this.meta.currentPage);
   }
 
-  protected openCreateModal(): void {
-    this.pendingTutor = null;
-    this.isCreateModalOpen = true;
-  }
-
-  protected closeCreateModal(): void {
-    this.isCreateModalOpen = false;
-    this.pendingTutor = null;
-  }
-
   protected openPetDetail(pet: PetListItemApiResponse): void {
-    this.selectedPetId = String(pet.id);
+    void this.router.navigate(['/pets', pet.id], {
+      state: {
+        backTarget: ['/pets'],
+        backLabel: 'Volver a mascotas',
+      },
+    });
   }
 
-  protected closePetDetail(): void {
-    this.selectedPetId = null;
-  }
-
-  protected onCreateSaved(): void {
-    this.closeCreateModal();
-    this.clearSearchTimer();
-    void this.loadPets(1);
+  protected openCreatePage(): void {
+    const state: { initialTutor?: ClientTutorBasicApiResponse | null } = {};
+    void this.router.navigate(['/pets/new'], { state });
   }
 
   protected getInitials(name: string): string {
     return name.trim().charAt(0).toUpperCase() || 'P';
+  }
+
+  protected petImageUrl(pet: PetListItemApiResponse): string | null {
+    return pet.image?.url?.trim() || null;
+  }
+
+  protected petImageAlt(pet: PetListItemApiResponse): string {
+    return `Foto de ${pet.name}`;
   }
 
   protected buildPetSubtitle(pet: PetListItemApiResponse): string {

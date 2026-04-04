@@ -1,7 +1,4 @@
-@if (selectedPetId) {
-  <app-pet-detail [petId]="selectedPetId" (back)="closePetDetail()" />
-} @else {
-  <div class="mx-auto flex max-w-[1400px] flex-col gap-8 pb-12">
+<div class="mx-auto flex max-w-[1400px] flex-col gap-8 pb-12">
     <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
       <header class="flex flex-col gap-1">
         <h1 class="text-[28px] font-bold text-text-primary">Mascotas</h1>
@@ -12,7 +9,7 @@
 
       <button
         type="button"
-        (click)="openCreateModal()"
+        (click)="openCreatePage()"
         class="inline-flex cursor-pointer items-center gap-2 self-start rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 md:self-auto"
       >
         <svg
@@ -112,9 +109,19 @@
                   <td class="px-8 py-6">
                     <div class="flex items-center gap-4">
                       <div
-                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-white bg-active-soft text-sm font-bold text-brand shadow-sm"
+                        class="pet-list-avatar flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-active-soft text-sm font-bold text-brand shadow-sm"
                       >
-                        {{ getInitials(pet.name) }}
+                        @if (petImageUrl(pet); as imageUrl) {
+                          <img
+                            [src]="imageUrl"
+                            [alt]="petImageAlt(pet)"
+                            class="h-full w-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        } @else {
+                          {{ getInitials(pet.name) }}
+                        }
                       </div>
                       <div class="flex flex-col">
                         <span class="text-[15px] font-bold text-text-primary">
@@ -180,13 +187,4 @@
         <app-pagination [meta]="meta" itemLabel="mascotas" (pageChange)="onPageChange($event)" />
       }
     </section>
-
-    @if (isCreateModalOpen) {
-      <app-create-pet-modal
-        [initialTutor]="pendingTutor"
-        (closed)="closeCreateModal()"
-        (saved)="onCreateSaved()"
-      />
-    }
-  </div>
-}
+</div>

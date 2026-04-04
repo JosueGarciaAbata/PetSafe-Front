@@ -1,0 +1,104 @@
+:host {
+  display: block;
+}
+
+.appointment-detail-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.appointment-detail-section {
+  padding: 1.2rem 0;
+  border-top: 1px solid rgba(213, 217, 225, 0.8);
+}
+
+.appointment-detail-section--patient {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.appointment-detail-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ps-text-secondary);
+}
+
+.appointment-detail-patient-name {
+  margin: 0.6rem 0 0;
+  font-size: 32px;
+  line-height: 1.05;
+  font-weight: 700;
+  color: var(--ps-text-primary);
+  word-break: break-word;
+}
+
+.appointment-detail-value {
+  margin: 0.55rem 0 0;
+  font-size: 16px;
+  line-height: 1.35;
+  font-weight: 700;
+  color: var(--ps-text-primary);
+  word-break: break-word;
+}
+
+.appointment-detail-secondary {
+  margin-top: 0.3rem;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ps-text-secondary);
+  word-break: break-word;
+}
+
+.appointment-detail-note {
+  margin: 0.55rem 0 0;
+  max-height: 112px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ps-text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.appointment-detail-status {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.appointment-detail-status--scheduled {
+  color: #365e9d;
+}
+
+.appointment-detail-status--confirmed {
+  color: #2f6a57;
+}
+
+.appointment-detail-status--in-process {
+  color: var(--ps-brand);
+}
+
+.appointment-detail-status--finished {
+  color: var(--ps-text-secondary);
+}
+
+.appointment-detail-status--cancelled {
+  color: #a35454;
+}
+
+.appointment-detail-status--no-show {
+  color: #9a670d;
+}
+
+@media (max-width: 640px) {
+  .appointment-detail-section {
+    padding: 1rem 0;
+  }
+
+  .appointment-detail-patient-name {
+    font-size: 28px;
+  }
+}

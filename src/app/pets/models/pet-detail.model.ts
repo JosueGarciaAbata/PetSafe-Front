@@ -1,3 +1,5 @@
+import { PetImageApiResponse } from './pet-image.model';
+
 export interface PetBasicDetailApiResponse {
   id: number;
   name: string;
@@ -11,6 +13,7 @@ export interface PetBasicDetailApiResponse {
   sterilized: boolean | null;
   generalAllergies: string | null;
   generalHistory: string | null;
+  image: PetImageApiResponse | null;
   clinicalObservations: PetClinicalObservationApiResponse[];
   recentActivity: unknown | null;
 }

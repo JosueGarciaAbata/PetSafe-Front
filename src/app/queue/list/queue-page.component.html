@@ -1,312 +1,449 @@
-<section class="queue-page">
-  <header class="queue-hero">
-    <div class="queue-hero__copy">
-      <p class="queue-hero__eyebrow">Recepción operativa</p>
-      <h1>Cola de Espera</h1>
-      <p class="queue-lead">
-        Gestión operativa del día.
-      </p>
-    </div>
+<div class="mx-auto flex max-w-[1400px] flex-col gap-8 pb-12">
+  <!-- Header -->
+  <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+    <header class="flex flex-col gap-1">
+      <h1 class="text-[28px] font-bold text-text-primary">Cola de espera</h1>
+      <p class="text-base text-text-secondary">Gestion operativa del dia y atenciones en curso.</p>
+    </header>
 
-    <div class="queue-hero__actions">
-      <button type="button" class="queue-button queue-button--primary" (click)="openIntakePage()">
-        <span class="queue-button__icon" aria-hidden="true">+</span>
-        Registrar ingreso
-      </button>
-    </div>
-  </header>
-
-  <div *ngIf="loadError" class="queue-alert" role="alert">
-    <span>{{ loadError }}</span>
-    <button type="button" class="queue-link-button" (click)="retryLoadQueue()">Reintentar</button>
+    <button
+      type="button"
+      (click)="openIntakePage()"
+      class="inline-flex cursor-pointer items-center gap-2 self-start rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 md:self-auto"
+    >
+      <span class="text-lg leading-none" aria-hidden="true">+</span>
+      <span>Registrar ingreso</span>
+    </button>
   </div>
 
-  <section class="queue-toolbar" aria-label="Búsqueda y filtros de la cola">
-    <label class="queue-search" for="queue-search">
-      <span class="sr-only">Buscar paciente, tutor o motivo</span>
-      <span class="queue-search__field">
-        <svg class="queue-search__icon" viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M10.5 4a6.5 6.5 0 1 1 4.06 11.55l4.44 4.45-1.42 1.41-4.45-4.44A6.5 6.5 0 0 1 10.5 4Zm0 2a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Z"
-            fill="currentColor"
-          />
-        </svg>
-        <input
-          id="queue-search"
-          [formControl]="searchControl"
-          type="search"
-          placeholder="Buscar paciente, tutor o motivo"
-          aria-label="Buscar paciente, tutor o motivo"
-        />
-      </span>
-    </label>
+  @if (loadError) {
+    <div
+      class="flex items-center justify-between rounded-xl border border-[#FFB8B8] bg-[#FFE0E0] p-4 text-[#990000]"
+    >
+      <span class="text-sm font-medium">{{ loadError }}</span>
+      <button
+        type="button"
+        class="cursor-pointer text-sm font-bold underline hover:opacity-80"
+        (click)="retryLoadQueue()"
+      >
+        Reintentar
+      </button>
+    </div>
+  }
 
-    <div class="queue-toolbar__filters">
-      <div class="queue-status-tabs" role="group" aria-label="Filtrar por estado">
-        <button
-          *ngFor="let filter of statusFilters"
-          type="button"
-          class="queue-chip"
-          [class.is-active]="activeStatusFilter === filter.value"
-          (click)="selectStatusFilter(filter.value)"
+  <!-- Toolbar -->
+  <section class="flex flex-col gap-4" aria-label="Busqueda y filtros">
+    <div class="max-w-[540px] w-full">
+      <div class="group relative">
+        <div
+          class="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary transition-colors group-focus-within:text-brand"
         >
-          {{ filter.label }}
-        </button>
+          <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="11" cy="11" r="6"></circle>
+            <path d="m20 20-3.5-3.5"></path>
+          </svg>
+        </div>
+        <input
+          [formControl]="searchControl"
+          type="text"
+          placeholder="Buscar paciente, tutor o motivo"
+          class="h-12 w-full rounded-xl border border-border bg-white pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+        />
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-text-secondary">
+          Estado de la cola
+        </p>
+
+        @if (hasActiveFilters) {
+          <button
+            type="button"
+            class="cursor-pointer text-xs font-semibold text-text-secondary underline decoration-transparent transition-all hover:text-brand hover:decoration-brand"
+            (click)="clearFilters()"
+          >
+            Limpiar filtros
+          </button>
+        }
       </div>
 
-      <button
-        *ngIf="hasActiveFilters"
-        type="button"
-        class="queue-link-button queue-toolbar__reset"
-        (click)="clearFilters()"
-      >
-        Limpiar filtros
-      </button>
+      <div class="flex flex-wrap gap-2" role="group" aria-label="Filtrar pacientes por estado">
+        @for (filter of statusFilters; track filter.value) {
+          <button
+            type="button"
+            class="inline-flex cursor-pointer items-center rounded-full border px-4 py-2 text-xs font-bold transition-all"
+            [ngClass]="
+              activeStatusFilter === filter.value
+                ? 'border-transparent bg-active-soft text-brand shadow-sm'
+                : 'border-border bg-white text-text-secondary hover:border-brand/20 hover:text-text-primary'
+            "
+            (click)="selectStatusFilter(filter.value)"
+          >
+            {{ filter.label }}
+          </button>
+        }
+      </div>
     </div>
   </section>
 
-  <section class="queue-table-card">
-    <div class="queue-table-card__header">
-      <div>
-        <p class="queue-table-card__eyebrow">Lista del día</p>
-        <h2>Pacientes en cola</h2>
-      </div>
-      <span class="queue-count-badge">{{ totalVisibleEntries }} visibles</span>
+  <!-- Table -->
+  <section class="overflow-hidden rounded-[16px] border border-border bg-card shadow-sm">
+    <div class="border-b border-border bg-white px-8 py-5">
+      <p class="text-sm font-semibold text-text-primary">Lista operativa del {{ todayLabel }}</p>
     </div>
 
-    <div *ngIf="isLoading" class="queue-state" aria-live="polite">
-      <div class="queue-state__spinner" aria-hidden="true"></div>
-      <h3>Cargando cola</h3>
-      <p>Estamos actualizando la lista operativa del día.</p>
-    </div>
-
-    <div *ngIf="!isLoading && entries.length === 0" class="queue-state">
-      <h3>No hay pacientes en cola</h3>
-      <p>Cuando llegue un paciente, aparecerá aquí para ser gestionado por recepción.</p>
-      <button type="button" class="queue-button queue-button--primary" (click)="openIntakePage()">
-        Registrar ingreso
-      </button>
-    </div>
-
-    <div *ngIf="!isLoading && entries.length > 0" class="queue-table-wrap">
-      <table class="queue-table">
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[1080px] text-left">
         <thead>
-          <tr>
-            <th>Paciente</th>
-            <th>Llegada</th>
-            <th>Programada</th>
-            <th>Estado</th>
+          <tr class="border-b border-border bg-[#F8FAFC]">
+            <th class="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+              Paciente / Tutor
+            </th>
+            <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+              Motivo
+            </th>
+            <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+              Llegada
+            </th>
+            <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+              Programada
+            </th>
+            <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+              Estado
+            </th>
+            <th
+              class="px-8 py-5 text-right text-xs font-bold uppercase tracking-wider text-text-secondary"
+            ></th>
           </tr>
         </thead>
-        <tbody>
-          <tr
-            *ngFor="let entry of entries"
-            class="queue-table__row"
-            [class.is-selected]="isSelected(entry)"
-            [class.is-emergency]="isEmergency(entry)"
-            tabindex="0"
-            (click)="selectEntry(entry)"
-            (keydown.enter)="selectEntry(entry)"
-            (keydown.space)="$event.preventDefault(); selectEntry(entry)"
-          >
-            <td>
-              <div class="queue-patient">
-                <div class="queue-avatar" aria-hidden="true">
-                  {{ getInitials(entry.patient.name) }}
+        <tbody class="divide-y divide-border">
+          @if (isLoading) {
+            <tr>
+              <td colspan="6" class="px-8 py-16 text-center text-sm font-medium text-text-secondary">
+                Cargando pacientes de la cola...
+              </td>
+            </tr>
+          } @else if (entries.length === 0) {
+            <tr>
+              <td colspan="6" class="px-8 py-16">
+                <div class="flex flex-col items-center gap-3 text-center">
+                  <p class="text-sm font-semibold text-text-primary">No hay pacientes en cola</p>
+                  <p class="mb-4 text-sm text-text-secondary">
+                    Cuando llegue un paciente, aparecera aqui.
+                  </p>
+                  <button
+                    type="button"
+                    class="inline-flex cursor-pointer items-center rounded-xl bg-primary px-6 py-3 text-xs font-bold text-white transition-all hover:opacity-90"
+                    (click)="openIntakePage()"
+                  >
+                    Registrar ingreso
+                  </button>
                 </div>
-                <div class="queue-patient__copy">
-                  <div class="queue-patient__name">
-                    <strong>{{ entry.patient.name }}</strong>
-                    <span
-                      class="queue-badge"
-                      [ngClass]="'queue-badge--' + buildEntryTypeClass(entry.entryType)"
-                    >
-                      {{ buildEntryTypeLabel(entry) }}
-                    </span>
-                  </div>
-                  <p>{{ buildPatientSubtitle(entry) }}</p>
-                  <span class="queue-patient__tutor">{{ entry.patient.tutorName }}</span>
-                </div>
-              </div>
-            </td>
-            <td>
-              <span class="queue-time">{{ buildArrivalLabel(entry) }}</span>
-            </td>
-            <td>
-              <span class="queue-time queue-time--muted">{{ buildScheduledLabel(entry) }}</span>
-            </td>
-            <td>
-              <span
-                class="queue-status-pill"
-                [ngClass]="'queue-status-pill--' + buildStatusClass(entry.queueStatus)"
+              </td>
+            </tr>
+          } @else {
+            @for (entry of entries; track entry.id) {
+              <tr
+                class="cursor-pointer bg-white transition-colors hover:bg-[#F8FAFC]"
+                [class.bg-[#fef2f2]]="isEmergency(entry)"
+                tabindex="0"
+                (click)="selectEntry(entry)"
+                (keydown.enter)="selectEntry(entry)"
               >
-                {{ buildStatusLabel(entry.queueStatus) }}
-              </span>
-            </td>
-          </tr>
+                <td class="px-8 py-6">
+                  <div class="flex items-center gap-4">
+                    <div
+                      class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-white bg-active-soft text-sm font-bold text-brand shadow-sm"
+                    >
+                      {{ getInitials(entry.patient.name) }}
+                    </div>
+                    <div class="flex flex-col gap-1">
+                      <div class="flex items-center gap-2">
+                        <span class="text-[15px] font-bold text-text-primary">{{ entry.patient.name }}</span>
+                        <span
+                          class="inline-flex items-center rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide {{ buildEntryTypeClass(entry.entryType) }}"
+                        >
+                          {{ buildEntryTypeLabel(entry) }}
+                        </span>
+                      </div>
+                      <span class="text-xs font-medium text-text-secondary">
+                        {{ buildPatientSubtitle(entry) }} | Tutor:
+                        <strong class="font-semibold text-text-primary">
+                          {{ entry.patient.tutorName }}
+                        </strong>
+                      </span>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-6">
+                  <div class="max-w-[260px]">
+                    <p
+                      class="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-text-secondary"
+                      [title]="buildNotesPreview(entry)"
+                    >
+                      {{ buildNotesPreview(entry) }}
+                    </p>
+                  </div>
+                </td>
+                <td class="px-6 py-6 text-sm font-semibold text-text-primary">
+                  {{ buildArrivalLabel(entry) }}
+                </td>
+                <td class="px-6 py-6 text-sm font-medium text-text-secondary">
+                  {{ buildScheduledLabel(entry) }}
+                </td>
+                <td class="px-6 py-6">
+                  <span
+                    class="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-bold {{ buildStatusClass(entry.queueStatus) }}"
+                  >
+                    {{ buildStatusLabel(entry.queueStatus) }}
+                  </span>
+                </td>
+                <td class="px-8 py-6 text-right">
+                  <button
+                    type="button"
+                    class="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-[#F1F5F9] text-text-secondary transition-all hover:bg-active-soft hover:text-brand"
+                    aria-label="Ver detalle"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="h-4.5 w-4.5"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="m9 6 6 6-6 6"></path>
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            }
+          }
         </tbody>
       </table>
     </div>
 
-    <app-pagination
-      *ngIf="paginationMeta.totalPages > 1"
-      [meta]="paginationMeta"
-      itemLabel="pacientes"
-      (pageChange)="onPageChange($event)"
-    ></app-pagination>
+    @if (!isLoading && paginationMeta.totalPages > 1) {
+      <app-pagination
+        [meta]="paginationMeta"
+        itemLabel="pacientes"
+        (pageChange)="onPageChange($event)"
+      ></app-pagination>
+    }
   </section>
 
-  <div *ngIf="isDetailPanelOpen" class="queue-drawer-backdrop" (click)="closeDetailPanel()"></div>
+  @if (isDetailPanelOpen && selectedEntry) {
+    <div
+      class="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]"
+      (click)="closeDetailPanel()"
+    >
+      <section
+        class="flex max-h-[90vh] w-full max-w-[680px] flex-col overflow-hidden rounded-[24px] border border-border bg-white shadow-2xl"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="border-b border-border bg-white px-6 py-5 sm:px-8">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex flex-col gap-1">
+              <p class="text-xs font-bold uppercase tracking-wider text-brand">Detalle operativo</p>
+            </div>
 
-  <aside
-    *ngIf="isDetailPanelOpen"
-    class="queue-drawer"
-    role="dialog"
-    aria-modal="true"
-    aria-label="Detalle operativo del paciente"
-  >
-    <ng-container *ngIf="selectedEntry as entry">
-      <header class="queue-drawer__header">
-        <div>
-          <p class="queue-drawer__eyebrow">Detalle operativo</p>
-          <h2>{{ entry.patient.name }}</h2>
-          <p>{{ buildPatientSubtitle(entry) }}</p>
+            <button
+              type="button"
+              class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-text-secondary transition-all hover:bg-background hover:text-text-primary"
+              (click)="closeDetailPanel()"
+            >
+              <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6 6 18M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto px-6 py-5 sm:px-8">
+          <div class="flex flex-col">
+            <section class="pb-5">
+              <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-text-secondary">Paciente</p>
+              <h3 class="mt-2 text-[32px] font-bold leading-none text-text-primary">
+                {{ selectedEntry.patient.name }}
+              </h3>
+              <p class="mt-2 text-[13px] leading-6 text-text-secondary">
+                {{ buildPatientSubtitle(selectedEntry) }}
+              </p>
+              <p class="text-[13px] leading-6 text-text-secondary">
+                <span class="font-medium text-text-primary">Tutor:</span>
+                {{ selectedEntry.patient.tutorName }}
+                <span class="mx-1 text-text-secondary/60">·</span>
+                {{ selectedEntry.patient.tutorPhone }}
+              </p>
+            </section>
+
+            <section class="border-t border-border/80 py-5">
+              <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-text-secondary">Fecha y hora</p>
+              <p class="mt-2 text-base font-bold text-text-primary">{{ buildArrivalLabel(selectedEntry) }}</p>
+              <p class="mt-1 text-[13px] leading-6 text-text-secondary">
+                Programada: {{ buildScheduledLabel(selectedEntry) }}
+              </p>
+            </section>
+
+            <section class="border-t border-border/80 py-5">
+              <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-text-secondary">Estado</p>
+              <div class="mt-2 flex flex-wrap items-center gap-2">
+                <p class="text-[17px] font-bold" [ngClass]="buildStatusValueClass(selectedEntry.queueStatus)">
+                  {{ buildStatusLabel(selectedEntry.queueStatus) }}
+                </p>
+                <span
+                  class="inline-flex items-center rounded-lg px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide {{ buildEntryTypeClass(selectedEntry.entryType) }}"
+                >
+                  {{ buildEntryTypeLabel(selectedEntry) }}
+                </span>
+              </div>
+              <p class="mt-1 text-[13px] leading-6 text-text-secondary">
+                {{ buildQueueStatusHelpText(selectedEntry) }}
+              </p>
+            </section>
+
+            <section class="border-t border-border/80 py-5">
+              <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-text-secondary">Motivo</p>
+              <p
+                class="mt-2 max-h-28 overflow-y-auto pr-2 text-[14px] leading-7 text-text-primary [overflow-wrap:anywhere]"
+              >
+                {{ selectedEntry.notes || 'Sin motivo registrado por recepcion al momento del ingreso.' }}
+              </p>
+            </section>
+          </div>
         </div>
 
-        <button
-          type="button"
-          class="queue-icon-button"
-          aria-label="Cerrar detalle"
-          (click)="closeDetailPanel()"
-        >
-          ×
-        </button>
-      </header>
+        <footer class="border-t border-border bg-white px-6 py-5 sm:px-8">
+          <div class="flex flex-wrap items-center justify-end gap-3">
+            @if (selectedEntry.queueStatus === 'EN_ESPERA') {
+              <button
+                type="button"
+                class="cursor-pointer rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+                (click)="openCancelModal(selectedEntry)"
+              >
+                Cancelar ingreso
+              </button>
+              <button
+                type="button"
+                class="cursor-pointer rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90"
+                (click)="openStartModal(selectedEntry)"
+              >
+                Iniciar atencion
+              </button>
+            }
 
-      <div class="queue-drawer__body">
-        <div class="queue-drawer__badges">
-          <span
-            class="queue-status-pill"
-            [ngClass]="'queue-status-pill--' + buildStatusClass(entry.queueStatus)"
-          >
-            {{ buildStatusLabel(entry.queueStatus) }}
-          </span>
-          <span
-            class="queue-badge"
-            [ngClass]="'queue-badge--' + buildEntryTypeClass(entry.entryType)"
-          >
-            {{ buildEntryTypeLabel(entry) }}
-          </span>
+            @if (selectedEntry.queueStatus === 'EN_ATENCION') {
+              <button
+                type="button"
+                class="cursor-pointer rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+                (click)="startAttention(selectedEntry)"
+              >
+                Continuar consulta
+              </button>
+              <button
+                type="button"
+                class="cursor-pointer rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90"
+                (click)="openFinishModal(selectedEntry)"
+              >
+                Finalizar atencion
+              </button>
+            }
+          </div>
+
+          @if (selectedEntry.queueStatus === 'FINALIZADA' || selectedEntry.queueStatus === 'CANCELADA') {
+            <p class="text-sm text-text-secondary">
+              Esta cita no tiene acciones disponibles en este momento.
+            </p>
+          }
+        </footer>
+      </section>
+    </div>
+  }
+
+  @if (isActionModalOpen && pendingActionEntry) {
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]"
+      (click)="closeActionModal()"
+    >
+      <section
+        class="flex w-full max-w-[520px] flex-col overflow-hidden rounded-[16px] border border-border bg-card shadow-2xl"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="border-b border-border bg-white px-5 py-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="min-w-0">
+              <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-brand">
+                Accion operativa
+              </span>
+              <h2 class="mt-2 text-sm font-semibold text-text-secondary">{{ buildActionModalTitle() }}</h2>
+            </div>
+
+            <button
+              type="button"
+              (click)="closeActionModal()"
+              class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-text-secondary transition-all hover:bg-background hover:text-text-primary"
+              aria-label="Cerrar modal"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                class="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              >
+                <path d="M6 6l12 12M18 6 6 18"></path>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <div class="px-5 py-5">
+          <div class="flex flex-col gap-6">
+            <section class="border-b border-border pb-5">
+              <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-text-secondary">Paciente</p>
+              <p class="mt-2 text-[28px] font-bold leading-none text-text-primary">
+                {{ pendingActionEntry.patient.name }}
+              </p>
+              <p class="mt-2 text-sm leading-6 text-text-secondary">
+                {{ buildActionModalDescription() }}
+              </p>
+            </section>
+
+            <section>
+              <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-text-secondary">Estado actual</p>
+              <p class="mt-2 text-base font-bold" [ngClass]="buildStatusValueClass(pendingActionEntry.queueStatus)">
+                {{ buildStatusLabel(pendingActionEntry.queueStatus) }}
+              </p>
+              <p class="mt-1 text-sm text-text-secondary">
+                {{ buildQueueStatusHelpText(pendingActionEntry) }}
+              </p>
+            </section>
+          </div>
         </div>
 
-        <dl class="queue-detail-grid">
-          <div>
-            <dt>Llegada</dt>
-            <dd>{{ buildArrivalLabel(entry) }}</dd>
+        <footer class="border-t border-border bg-white px-5 py-4">
+          <div class="flex flex-wrap items-center justify-end gap-3">
+            <button
+              type="button"
+              class="cursor-pointer rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+              (click)="closeActionModal()"
+            >
+              Volver
+            </button>
+            <button
+              type="button"
+              class="cursor-pointer rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90"
+              (click)="confirmPendingAction()"
+            >
+              {{ buildActionModalConfirmLabel() }}
+            </button>
           </div>
-          <div>
-            <dt>Programada</dt>
-            <dd>{{ buildScheduledLabel(entry) }}</dd>
-          </div>
-          <div>
-            <dt>Tutor</dt>
-            <dd>{{ entry.patient.tutorName }}</dd>
-          </div>
-          <div>
-            <dt>Teléfono</dt>
-            <dd>{{ entry.patient.tutorPhone }}</dd>
-          </div>
-        </dl>
-
-        <section class="queue-note">
-          <p class="queue-note__label">Motivo de atención</p>
-          <p>{{ entry.notes || 'Sin motivo registrado.' }}</p>
-        </section>
-      </div>
-
-      <footer class="queue-drawer__actions">
-        <button
-          *ngIf="entry.queueStatus === 'EN_ESPERA'"
-          type="button"
-          class="queue-button queue-button--primary"
-          (click)="startAttention(entry)"
-        >
-          Iniciar atención
-        </button>
-
-        <button
-          *ngIf="entry.queueStatus === 'EN_ESPERA'"
-          type="button"
-          class="queue-button queue-button--danger"
-          (click)="openCancelModal(entry)"
-        >
-          Cancelar ingreso
-        </button>
-
-        <button
-          *ngIf="entry.queueStatus === 'EN_ATENCION'"
-          type="button"
-          class="queue-button queue-button--success"
-          (click)="finishAttention(entry)"
-        >
-          Finalizar atención
-        </button>
-
-        <button type="button" class="queue-button queue-button--ghost" (click)="closeDetailPanel()">
-          Cerrar
-        </button>
-      </footer>
-    </ng-container>
-  </aside>
-
-  <div *ngIf="isCancelModalOpen" class="queue-cancel-backdrop" (click)="closeCancelModal()"></div>
-
-  <section
-    *ngIf="isCancelModalOpen"
-    class="queue-cancel-modal"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="queue-cancel-title"
-  >
-    <ng-container *ngIf="entryPendingCancel as cancelEntry">
-      <header class="queue-cancel-modal__header">
-        <div class="queue-cancel-modal__icon" aria-hidden="true">!</div>
-        <div>
-          <p class="queue-cancel-modal__eyebrow">Cancelar ingreso</p>
-          <h2 id="queue-cancel-title">Confirmar cancelacion</h2>
-          <p>
-            {{ cancelEntry.patient.name }} quedara fuera de la cola operativa y podra registrarse
-            otra vez si vuelve a la clinica.
-          </p>
-        </div>
-      </header>
-
-      <div class="queue-cancel-modal__body">
-        <div class="queue-cancel-modal__summary">
-          <span class="queue-cancel-modal__label">Paciente</span>
-          <strong>{{ cancelEntry.patient.name }}</strong>
-          <span>{{ buildPatientSubtitle(cancelEntry) }}</span>
-        </div>
-      </div>
-
-      <footer class="queue-cancel-modal__actions">
-        <button
-          type="button"
-          class="queue-button queue-button--ghost"
-          (click)="closeCancelModal()"
-        >
-          Volver
-        </button>
-
-        <button
-          type="button"
-          class="queue-button queue-button--danger"
-          (click)="confirmCancelEntry()"
-        >
-          Si, cancelar
-        </button>
-      </footer>
-    </ng-container>
-  </section>
-
-</section>
+        </footer>
+      </section>
+    </div>
+  }
+</div>

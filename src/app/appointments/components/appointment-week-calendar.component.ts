@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { AppointmentWeekDay } from '../models/appointment-calendar.model';
 import {
   AppointmentRecord,
@@ -7,6 +7,7 @@ import {
   buildAppointmentReasonLabel,
   buildAppointmentStatusLabel,
 } from '../models/appointment.model';
+import { formatAppointmentTime } from '../utils/appointment-date.util';
 
 @Component({
   selector: 'app-appointment-week-calendar',
@@ -18,6 +19,7 @@ import {
 })
 export class AppointmentWeekCalendarComponent {
   @Input({ required: true }) days: readonly AppointmentWeekDay[] = [];
+  @Output() readonly appointmentClick = new EventEmitter<AppointmentRecord>();
 
   protected trackByDate(_index: number, day: AppointmentWeekDay): string {
     return day.date;
@@ -25,19 +27,6 @@ export class AppointmentWeekCalendarComponent {
 
   protected trackByAppointment(_index: number, appointment: AppointmentRecord): number {
     return appointment.id;
-  }
-
-  protected buildPatientInitials(name: string | null, patientId: number): string {
-    const normalizedName = name?.trim() ?? '';
-
-    if (!normalizedName) {
-      return `P${String(patientId).slice(-1)}`;
-    }
-
-    const parts = normalizedName.split(/\s+/).filter(Boolean);
-    const firstInitial = parts[0]?.charAt(0) ?? '';
-    const secondInitial = parts[1]?.charAt(0) ?? parts[0]?.charAt(1) ?? '';
-    return `${firstInitial}${secondInitial}`.toUpperCase() || `P${String(patientId).slice(-1)}`;
   }
 
   protected buildPatientLabel(appointment: AppointmentRecord): string {
@@ -57,12 +46,28 @@ export class AppointmentWeekCalendarComponent {
     return buildAppointmentStatusLabel(status);
   }
 
+  protected shouldShowQueueBadge(appointment: AppointmentRecord): boolean {
+    return appointment.status === 'PROGRAMADA';
+  }
+
+  protected buildQueueBadgeLabel(appointment: AppointmentRecord): string {
+    return appointment.hasQueueEntry || appointment.queueEntryId ? 'En cola' : 'Sin ingreso';
+  }
+
+  protected buildQueueBadgeClasses(appointment: AppointmentRecord): string {
+    return appointment.hasQueueEntry || appointment.queueEntryId
+      ? 'border-[#BDE8B4] bg-[#E5F5E0] text-[#1D7A04]'
+      : 'border-border bg-background text-text-secondary';
+  }
+
   protected buildTimeRange(appointment: AppointmentRecord): string {
+    const startsAt = formatAppointmentTime(appointment.startsAt);
+
     if (!appointment.endsAt) {
-      return appointment.startsAt;
+      return startsAt;
     }
 
-    return `${appointment.startsAt} - ${appointment.endsAt}`;
+    return `${startsAt} - ${formatAppointmentTime(appointment.endsAt)}`;
   }
 
   protected hasNotes(notes: string | null): boolean {
@@ -81,10 +86,8 @@ export class AppointmentWeekCalendarComponent {
         return 'appointment-week-status appointment-week-status--finished';
       case 'CANCELADA':
         return 'appointment-week-status appointment-week-status--cancelled';
+      case 'NO_ASISTIO':
+        return 'appointment-week-status appointment-week-status--no-show';
     }
-  }
-
-  protected buildAvatarClasses(): string {
-    return 'appointment-week-avatar appointment-week-avatar--default';
   }
 }

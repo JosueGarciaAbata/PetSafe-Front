@@ -1,28 +1,40 @@
 <section class="overflow-hidden rounded-[24px] border border-border bg-card shadow-sm">
-  <div class="overflow-x-auto">
+  <div class="calendar-scroll-area overflow-x-auto">
     <div class="grid min-w-[1100px] grid-cols-7">
       @for (day of days; track trackByDate($index, day)) {
-        <section class="border-r border-border/80 p-3 last:border-r-0">
-          <div class="mb-3 border-b border-border/70 pb-3">
+        <section
+          class="appointment-week-day overflow-hidden border-r border-border/80 p-3 last:border-r-0"
+          [class.appointment-week-day--today]="day.isToday"
+        >
+          <div
+            class="appointment-week-day-header mb-3 border-b border-border/70 pb-3"
+            [class.appointment-week-day-header--today]="day.isToday"
+          >
             <div class="flex items-center justify-between gap-2">
               <div class="flex flex-col">
-                <span class="text-[11px] font-bold uppercase tracking-[0.14em] text-text-secondary">
+                <span
+                  class="text-[11px] font-bold uppercase tracking-[0.14em] text-text-secondary"
+                  [class.appointment-week-day-weekday--today]="day.isToday"
+                >
                   {{ day.weekdayLabel }}
                 </span>
-                <span class="text-sm font-bold text-text-primary">
+                <span
+                  class="text-sm font-bold text-text-primary"
+                  [class.appointment-week-day-label--today]="day.isToday"
+                >
                   {{ day.dayLabel }}
                 </span>
               </div>
 
               @if (day.isToday) {
-                <span class="rounded-full bg-active-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-brand">
+                <span class="appointment-week-today-chip">
                   Hoy
                 </span>
               }
             </div>
           </div>
 
-          <div class="flex min-h-[460px] flex-col gap-2">
+          <div class="appointment-week-column flex min-h-[520px] flex-col gap-2">
             @if (day.appointments.length === 0) {
               <div class="rounded-[18px] border border-dashed border-border bg-background/60 px-3 py-6 text-center text-xs text-text-secondary">
                 Sin citas
@@ -30,49 +42,57 @@
             } @else {
               @for (appointment of day.appointments; track trackByAppointment($index, appointment)) {
                 <article
-                  class="rounded-[18px] border border-border bg-white p-3 shadow-sm"
+                  class="appointment-week-card cursor-pointer rounded-[18px] border border-border bg-white p-3 shadow-sm transition-all hover:ring-2 hover:ring-primary/20"
+                  (click)="appointmentClick.emit(appointment)"
                   [class.opacity-70]="appointment.status === 'CANCELADA' || !appointment.isActive"
                 >
-                  <div class="flex items-start gap-2.5">
-                    <div
-                      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                      [class]="buildAvatarClasses()"
-                    >
-                      {{ buildPatientInitials(appointment.patientName, appointment.patientId) }}
+                  <div class="appointment-week-card-content min-w-0">
+                    <p class="appointment-week-time" [title]="buildTimeRange(appointment)">
+                      {{ buildTimeRange(appointment) }}
+                    </p>
+
+                    <div class="appointment-week-heading items-start">
+                      <div class="min-w-0">
+                        <h3
+                          class="truncate appointment-week-patient"
+                          [title]="
+                            hasOwnerName(appointment.ownerName)
+                              ? buildPatientLabel(appointment) + ' (' + appointment.ownerName + ')'
+                              : buildPatientLabel(appointment)
+                          "
+                        >
+                          {{ buildPatientLabel(appointment) }}
+                          @if (hasOwnerName(appointment.ownerName)) {
+                            <span class="text-[11px] font-medium text-text-secondary"> ({{ appointment.ownerName }})</span>
+                          }
+                        </h3>
+                      </div>
                     </div>
 
-                    <div class="min-w-0 flex-1">
-                      <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-text-secondary">
-                        {{ buildTimeRange(appointment) }}
-                      </p>
-                      <h3 class="truncate text-[13px] font-bold text-text-primary">
-                        {{ buildPatientLabel(appointment) }}
-                      </h3>
+                    <div class="flex flex-col items-start gap-1">
+                      <span
+                        class="appointment-week-status-chip rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em]"
+                        [class]="buildStatusClasses(appointment.status)"
+                        [title]="buildStatusLabel(appointment.status)"
+                      >
+                        {{ buildStatusLabel(appointment.status) }}
+                      </span>
 
-                      <div class="mt-1 flex flex-wrap items-center gap-1.5">
+                      @if (shouldShowQueueBadge(appointment)) {
                         <span
-                          class="shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] whitespace-nowrap"
-                          [class]="buildStatusClasses(appointment.status)"
+                          class="rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.08em]"
+                          [class]="buildQueueBadgeClasses(appointment)"
+                          [title]="buildQueueBadgeLabel(appointment)"
                         >
-                          {{ buildStatusLabel(appointment.status) }}
+                          {{ buildQueueBadgeLabel(appointment) }}
                         </span>
+                      }
+                    </div>
 
-                        @if (hasOwnerName(appointment.ownerName)) {
-                          <span class="min-w-0 truncate text-[10px] text-text-secondary">
-                            {{ appointment.ownerName }}
-                          </span>
-                        }
-                      </div>
-
-                      <p class="mt-1 text-[11px] text-text-secondary">
+                    <div class="appointment-week-details">
+                      <p class="appointment-week-detail" [title]="buildReasonLabel(appointment.reason)">
                         {{ buildReasonLabel(appointment.reason) }}
                       </p>
-
-                      @if (hasNotes(appointment.notes)) {
-                        <p class="mt-1 text-[10px] text-text-secondary">
-                          {{ appointment.notes }}
-                        </p>
-                      }
                     </div>
                   </div>
                 </article>

@@ -1,9 +1,8 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged, firstValueFrom } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CreateOwnerModalComponent } from '../create/create-owner-modal.component';
-import { OwnerDetailComponent } from '../detail/owner-detail.component';
 import { OwnersApiService } from '../api/owners-api.service';
 import { PaginationComponent } from '@app/shared/pagination/pagination.component';
 import { EMPTY_PAGINATION_META, PaginationMeta } from '@app/shared/pagination/pagination.model';
@@ -17,18 +16,14 @@ import {
 @Component({
   selector: 'app-owners-page',
   standalone: true,
-  imports: [
-    CreateOwnerModalComponent,
-    OwnerDetailComponent,
-    PaginationComponent,
-    ReactiveFormsModule,
-  ],
+  imports: [PaginationComponent, ReactiveFormsModule],
   templateUrl: './owners-page.component.html',
   styleUrl: './owners-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OwnersPageComponent implements OnInit {
   private readonly ownersApi = inject(OwnersApiService);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -39,16 +34,10 @@ export class OwnersPageComponent implements OnInit {
   protected paginationMeta: PaginationMeta = EMPTY_PAGINATION_META;
   protected isLoading = false;
   protected loadError: string | null = null;
-  protected isCreateOwnerModalOpen = false;
-  protected selectedOwnerId: string | null = null;
 
   private requestVersion = 0;
 
   ngOnInit(): void {
-    const state = history.state as { ownerId?: string; openCreateModal?: boolean } | null;
-    this.selectedOwnerId = state?.ownerId != null ? String(state.ownerId) : null;
-    this.isCreateOwnerModalOpen = Boolean(state?.openCreateModal);
-
     this.searchControl.valueChanges
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
@@ -56,14 +45,6 @@ export class OwnersPageComponent implements OnInit {
       });
 
     void this.loadOwners(1);
-  }
-
-  protected get selectedOwner(): ClientSummaryItemApiResponse | null {
-    if (!this.selectedOwnerId) {
-      return null;
-    }
-
-    return this.owners.find((owner) => String(owner.id) === this.selectedOwnerId) ?? null;
   }
 
   protected buildFullName(owner: ClientSummaryItemApiResponse): string {
@@ -86,25 +67,17 @@ export class OwnersPageComponent implements OnInit {
     return getExtraClientPetsCount(owner);
   }
 
-  protected openCreateOwnerModal(): void {
-    this.isCreateOwnerModalOpen = true;
-  }
-
-  protected closeCreateOwnerModal(): void {
-    this.isCreateOwnerModalOpen = false;
-  }
-
-  protected saveCreateOwnerDraft(): void {
-    this.closeCreateOwnerModal();
-    void this.loadOwners(1);
+  protected openCreateOwnerPage(): void {
+    void this.router.navigate(['/owners/new']);
   }
 
   protected openOwnerDetail(owner: ClientSummaryItemApiResponse): void {
-    this.selectedOwnerId = String(owner.id);
-  }
-
-  protected closeOwnerDetail(): void {
-    this.selectedOwnerId = null;
+    void this.router.navigate(['/owners', owner.id], {
+      state: {
+        backTarget: ['/owners'],
+        backLabel: 'Volver a propietarios',
+      },
+    });
   }
 
   protected onPageChange(page: number): void {
@@ -145,16 +118,6 @@ export class OwnersPageComponent implements OnInit {
         itemCount: owners.length,
         totalItems: owners.length,
       };
-
-      if (this.selectedOwnerId && !owners.some((owner) => String(owner.id) === this.selectedOwnerId)) {
-        await this.searchOwnerAcrossPages(
-          this.selectedOwnerId,
-          this.paginationMeta.totalPages,
-          requestToken,
-          searchTerm,
-        );
-        return;
-      }
     } catch {
       if (requestToken !== this.requestVersion) {
         return;
@@ -170,52 +133,6 @@ export class OwnersPageComponent implements OnInit {
       this.isLoading = false;
       this.cdr.markForCheck();
     }
-  }
-
-  private async searchOwnerAcrossPages(
-    ownerId: string,
-    totalPages: number,
-    requestToken: number,
-    searchTerm?: string,
-  ): Promise<void> {
-    for (let page = 2; page <= totalPages; page += 1) {
-      if (requestToken !== this.requestVersion) {
-        return;
-      }
-
-      const response = await firstValueFrom(
-        this.ownersApi.listSummary({
-          page,
-          limit: this.pageSize,
-          searchTerm: searchTerm || undefined,
-        }),
-      );
-
-      console.log("Response for page", page, response);
-
-      if (requestToken !== this.requestVersion) {
-        return;
-      }
-
-      const owners = this.normalizeOwners(response?.data);
-      const foundOwner = owners.find((owner) => String(owner.id) === ownerId);
-
-      if (foundOwner) {
-        this.owners = owners;
-        this.paginationMeta = response?.meta ?? {
-          ...EMPTY_PAGINATION_META,
-          currentPage: page,
-          itemCount: owners.length,
-          totalItems: owners.length,
-        };
-        this.selectedOwnerId = ownerId;
-        this.cdr.markForCheck();
-        return;
-      }
-    }
-
-    this.selectedOwnerId = null;
-    this.cdr.markForCheck();
   }
 
   private normalizeOwners(items: ClientSummaryItemApiResponse[] | undefined): ClientSummaryItemApiResponse[] {

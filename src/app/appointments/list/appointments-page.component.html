@@ -1,34 +1,12 @@
 <div class="mx-auto flex max-w-[1400px] flex-col gap-8 pb-12">
-  <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-    <header class="flex flex-col gap-1">
-      <h1 class="text-[28px] font-bold text-text-primary">Citas</h1>
-      <p class="text-base capitalize text-text-secondary">{{ monthLabel }}</p>
-      <p class="text-sm text-text-secondary">{{ todayLabel }}</p>
-    </header>
-
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-      <div class="inline-flex rounded-xl border border-border bg-card p-1 shadow-sm">
-        <button
-          type="button"
-          (click)="switchView('month')"
-          class="rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
-          [class.bg-primary]="currentView === 'month'"
-          [class.text-white]="currentView === 'month'"
-          [class.text-text-secondary]="currentView !== 'month'"
-        >
-          Mensual
-        </button>
-        <button
-          type="button"
-          (click)="switchView('week')"
-          class="rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
-          [class.bg-primary]="currentView === 'week'"
-          [class.text-white]="currentView === 'week'"
-          [class.text-text-secondary]="currentView !== 'week'"
-        >
-          Semanal
-        </button>
-      </div>
+  <section class="flex flex-col gap-6">
+    <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+      <header class="flex flex-col gap-1">
+        <h1 class="text-[28px] font-bold text-text-primary">Citas</h1>
+        <p class="text-base text-text-secondary">
+          Gestiona tus citas programadas y el seguimiento diario de atencion
+        </p>
+      </header>
 
       <button
         type="button"
@@ -49,54 +27,152 @@
         <span>Nuevo turno</span>
       </button>
     </div>
-  </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <div class="inline-flex h-11 rounded-xl bg-white/80 p-1 ring-1 ring-border">
+        <button
+          type="button"
+          (click)="switchView('month')"
+          class="cursor-pointer rounded-[10px] px-4 text-sm font-semibold transition-colors"
+          [class.bg-background]="currentView !== 'month'"
+          [class.text-text-secondary]="currentView !== 'month'"
+          [class.bg-white]="currentView === 'month'"
+          [class.text-text-primary]="currentView === 'month'"
+          [class.shadow-sm]="currentView === 'month'"
+        >
+          Mensual
+        </button>
+        <button
+          type="button"
+          (click)="switchView('week')"
+          class="cursor-pointer rounded-[10px] px-4 text-sm font-semibold transition-colors"
+          [class.bg-background]="currentView !== 'week'"
+          [class.text-text-secondary]="currentView !== 'week'"
+          [class.bg-white]="currentView === 'week'"
+          [class.text-text-primary]="currentView === 'week'"
+          [class.shadow-sm]="currentView === 'week'"
+        >
+          Semanal
+        </button>
+      </div>
+    </div>
+  </section>
 
   @if (loadError) {
-    <div class="flex items-center justify-between gap-3 rounded-[18px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+    <div
+      class="flex items-center justify-between gap-3 rounded-[18px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+    >
       <span>{{ loadError }}</span>
       <button
         type="button"
         (click)="retryLoadAppointments()"
-        class="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.1em] transition-colors hover:bg-red-50"
+        class="cursor-pointer rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.1em] transition-colors hover:bg-red-50"
       >
         Reintentar
       </button>
     </div>
   }
 
-  <section class="grid gap-4 md:grid-cols-3">
-    <article class="rounded-[20px] border border-border bg-card p-5 shadow-sm">
+  <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <article class="summary-card rounded-[18px] border border-border/70 bg-card px-5 py-4">
       <span class="text-xs font-bold uppercase tracking-[0.14em] text-text-secondary">
         {{ currentView === 'week' ? 'Total de la semana' : 'Total del mes' }}
       </span>
-      <strong class="mt-3 block text-3xl font-bold text-text-primary">
+      <strong class="mt-2 block text-[32px] leading-none font-bold text-text-primary">
         {{ summary.totalAppointments }}
       </strong>
-      <p class="mt-1 text-sm text-text-secondary">
+      <p class="mt-1 text-xs text-text-secondary">
         Citas visibles en la agenda {{ currentView === 'week' ? 'semanal' : 'mensual' }}.
       </p>
     </article>
 
-    <article class="rounded-[20px] border border-border bg-card p-5 shadow-sm">
+    <article class="summary-card rounded-[18px] border border-border/70 bg-card px-5 py-4">
       <span class="text-xs font-bold uppercase tracking-[0.14em] text-text-secondary">
         Programadas
       </span>
-      <strong class="mt-3 block text-3xl font-bold text-blue-700">
+      <strong class="mt-2 block text-[32px] leading-none font-bold text-[#365E9D]">
         {{ summary.scheduledAppointments }}
       </strong>
-      <p class="mt-1 text-sm text-text-secondary">Pendientes de confirmacion o atencion.</p>
+      <p class="mt-1 text-xs text-text-secondary">Pendientes de confirmacion o atencion.</p>
     </article>
 
-    <article class="rounded-[20px] border border-border bg-card p-5 shadow-sm">
+    <article class="summary-card rounded-[18px] border border-border/70 bg-card px-5 py-4">
       <span class="text-xs font-bold uppercase tracking-[0.14em] text-text-secondary">
-        Confirmadas
+        Canceladas
       </span>
-      <strong class="mt-3 block text-3xl font-bold text-green-700">
-        {{ summary.confirmedAppointments }}
+      <strong class="mt-2 block text-[32px] leading-none font-bold text-[#A35454]">
+        {{ summary.cancelledAppointments }}
       </strong>
-      <p class="mt-1 text-sm text-text-secondary">Listas para atenderse en calendario.</p>
+      <p class="mt-1 text-xs text-text-secondary">Citas anuladas dentro del periodo visible.</p>
     </article>
+  </section>
 
+  <section class="rounded-[20px] border border-border bg-card px-4 py-3 shadow-sm">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center justify-between gap-2 sm:justify-start">
+        <button
+          type="button"
+          (click)="goToPreviousRange()"
+          class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-white text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+          [attr.aria-label]="currentView === 'week' ? 'Semana anterior' : 'Mes anterior'"
+          [title]="currentView === 'week' ? 'Semana anterior' : 'Mes anterior'"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m15 18-6-6 6-6"></path>
+          </svg>
+        </button>
+
+        <div class="min-w-0 flex-1 px-1 text-center sm:min-w-[180px] sm:flex-none">
+          <p
+            class="calendar-range-label text-sm font-semibold text-text-primary md:text-base"
+            [class.capitalize]="currentView === 'month'"
+          >
+            {{ currentRangeLabel }}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          (click)="goToNextRange()"
+          class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-white text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+          [attr.aria-label]="currentView === 'week' ? 'Semana siguiente' : 'Mes siguiente'"
+          [title]="currentView === 'week' ? 'Semana siguiente' : 'Mes siguiente'"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m9 6 6 6-6 6"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="flex justify-end">
+        <button
+          type="button"
+          (click)="goToToday()"
+          [disabled]="isCurrentRangeActive()"
+          class="inline-flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          Hoy
+        </button>
+      </div>
+    </div>
   </section>
 
   @if (isLoading) {
@@ -110,12 +186,15 @@
     </section>
   } @else {
     @if (currentView === 'week') {
-      <app-appointment-week-calendar [days]="weekDays" />
+      <app-appointment-week-calendar
+        [days]="weekDays"
+        (appointmentClick)="openAppointmentDetail($event)"
+      />
     } @else {
       <app-appointment-month-calendar
-        [monthLabel]="monthLabel"
         [weekdayLabels]="weekdayLabels"
         [cells]="monthCells"
+        (appointmentClick)="openAppointmentDetail($event)"
       />
     }
   }
@@ -124,6 +203,14 @@
     <app-create-appointment-modal
       (closed)="closeCreateAppointmentModal()"
       (saved)="onCreateAppointmentSaved()"
+    />
+  }
+
+  @if (selectedAppointment) {
+    <app-appointment-detail-modal
+      [appointment]="selectedAppointment"
+      (closed)="closeAppointmentDetail()"
+      (updated)="onAppointmentDetailUpdated()"
     />
   }
 </div>
