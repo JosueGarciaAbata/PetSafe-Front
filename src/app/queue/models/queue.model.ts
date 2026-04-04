@@ -1,3 +1,4 @@
+import { PetImageApiResponse } from '@app/pets/models/pet-image.model';
 import { PaginationMeta } from '@app/shared/pagination/pagination.model';
 
 export type QueueEntryType = 'CON_CITA' | 'SIN_CITA' | 'EMERGENCIA';
@@ -18,6 +19,7 @@ export interface QueuePatientSummary {
   breed: string;
   tutorName: string;
   tutorPhone: string;
+  image: PetImageApiResponse | null;
 }
 
 export interface QueueEntryRecord {
@@ -208,11 +210,12 @@ export function formatQueueTime(value: string | null | undefined): string {
     return normalizedValue;
   }
 
-  const amPm = hours >= 12 ? 'PM' : 'AM';
+  const meridiem = hours >= 12 ? 'PM' : 'AM';
   const normalizedHours = hours % 12 || 12;
+
   return `${normalizedHours.toString().padStart(2, '0')}:${minutes
     .toString()
-    .padStart(2, '0')} ${amPm}`;
+    .padStart(2, '0')} ${meridiem}`;
 }
 
 export function buildQueuePatientSubtitle(entry: Pick<QueueEntryRecord, 'patient'>): string {

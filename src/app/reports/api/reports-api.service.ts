@@ -10,7 +10,7 @@ export class ReportsApiService {
   /** Descarga el PDF como Blob para abrir/descargar en el navegador */
   downloadAppointmentsPdf(from: string, to: string): Observable<Blob> {
     const params = new HttpParams().set('from', from).set('to', to);
-    return this.http.get(buildApiUrl('reports/appointments/pdf'), {
+    return this.http.get(buildApiUrl('reports/schedule/pdf'), {
       params,
       responseType: 'blob',
     });
@@ -28,6 +28,12 @@ export class ReportsApiService {
     const params = new HttpParams().set('from', from).set('to', to);
     return this.http.get(buildApiUrl('reports/summary/pdf'), {
       params,
+      responseType: 'blob',
+    });
+  }
+
+  downloadClinicalHistoryPdf(patientId: number | string): Observable<Blob> {
+    return this.http.get(buildApiUrl(`reports/patients/${patientId}/clinical-history/pdf`), {
       responseType: 'blob',
     });
   }

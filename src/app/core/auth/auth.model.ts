@@ -23,6 +23,7 @@ export interface AuthLoginUserResponse {
   roles: readonly string[];
   firstName: string;
   lastName: string;
+  phone?: string | null;
   isVet: boolean;
 }
 
@@ -31,8 +32,26 @@ export interface AuthStoredUser {
   correo: string;
   nombres: string;
   apellidos: string;
+  telefono: string;
   roles: readonly string[];
   isVet: boolean;
+}
+
+export interface AuthUpdateProfileRequest {
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+}
+
+export interface AuthUserProfileResponse {
+  id?: string | number;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string | null;
+  roles?: readonly string[];
+  isVet?: boolean;
 }
 
 export interface AuthApiErrorResponse {

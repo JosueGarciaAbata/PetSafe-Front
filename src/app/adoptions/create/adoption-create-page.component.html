@@ -1,0 +1,453 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-6 pb-12">
+  <button
+    type="button"
+    routerLink="/adoption"
+    class="inline-flex cursor-pointer items-center gap-2 self-start text-sm font-medium text-text-secondary transition-colors hover:text-brand"
+  >
+    <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="m15 18-6-6 6-6"></path>
+    </svg>
+    <span>Volver a adopciones</span>
+  </button>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="save()"
+    novalidate
+    class="overflow-hidden rounded-[24px] border border-border bg-card shadow-sm"
+  >
+    <div class="flex flex-col gap-8 p-6">
+      <section class="grid gap-4">
+        <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div class="flex items-start gap-4">
+            <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand text-white shadow-sm">
+              <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 5v14M5 12h14"></path>
+              </svg>
+            </div>
+            <div class="flex flex-col gap-1">
+              <h1 class="text-[28px] font-bold text-text-primary">Nueva adopcion</h1>
+              <p class="text-sm leading-6 text-text-secondary">
+                Primero selecciona la mascota y luego completa la informacion del proceso de adopcion.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            (click)="openCreatePetPage()"
+            class="inline-flex cursor-pointer items-center gap-2 self-start rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-bold text-text-primary shadow-sm transition-all hover:border-brand/20 hover:bg-background md:self-auto"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              class="h-[16px] w-[16px]"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <path d="M12 5v14M5 12h14"></path>
+            </svg>
+            <span>Crear mascota nueva</span>
+          </button>
+        </div>
+      </section>
+
+      @if (activeStep === 'select-patient') {
+        <section class="grid gap-5">
+          <div class="flex flex-col gap-1">
+            <span class="text-xs font-bold uppercase tracking-[0.18em] text-brand">Paso 1</span>
+            <h2 class="text-lg font-bold text-text-primary">Seleccionar mascota</h2>
+          </div>
+
+          <div class="max-w-[540px]">
+            <div class="group relative">
+              <div
+                class="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary transition-colors group-focus-within:text-brand"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  class="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                >
+                  <circle cx="11" cy="11" r="6"></circle>
+                  <path d="m20 20-3.5-3.5"></path>
+                </svg>
+              </div>
+              <input
+                type="text"
+                [value]="patientSearchValue"
+                (input)="onSearchInput($any($event.target).value)"
+                placeholder="Buscar por nombre, tutor o especie"
+                class="h-12 w-full rounded-xl border border-border bg-white pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+              />
+            </div>
+          </div>
+
+          <div class="-mx-6 border-y border-border/80 sm:-mx-6">
+            <div class="overflow-x-auto bg-white">
+              <table class="w-full min-w-[920px] text-left">
+                <thead>
+                  <tr class="border-b border-border bg-[#F8FAFC]">
+                    <th class="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+                      Mascota
+                    </th>
+                    <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+                      Tutor
+                    </th>
+                    <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+                      Informacion basica
+                    </th>
+                    <th class="px-8 py-5 text-right text-xs font-bold uppercase tracking-wider text-text-secondary"></th>
+                  </tr>
+                </thead>
+
+                <tbody class="divide-y divide-border">
+                  @if (isLoadingPatients && patients.length === 0) {
+                    <tr>
+                      <td colspan="4" class="px-8 py-16 text-center text-sm text-text-secondary">
+                        Cargando mascotas...
+                      </td>
+                    </tr>
+                  } @else if (loadError) {
+                    <tr>
+                      <td colspan="4" class="px-8 py-16">
+                        <div class="flex flex-col items-center gap-3 text-center">
+                          <p class="text-sm font-semibold text-text-primary">{{ loadError }}</p>
+                          <button
+                            type="button"
+                            (click)="retryLoadPatients()"
+                            class="inline-flex items-center rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:opacity-90"
+                          >
+                            Reintentar
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  } @else if (patients.length === 0) {
+                    <tr>
+                      <td colspan="4" class="px-8 py-16 text-center text-sm text-text-secondary">
+                        No se encontraron mascotas.
+                      </td>
+                    </tr>
+                  } @else {
+                    @for (patient of patients; track patient.id) {
+                      <tr
+                        class="bg-white transition-colors hover:bg-[#F8FAFC]"
+                        [class.bg-[#F8FAFC]]="selectedPatient?.id === patient.id"
+                      >
+                        <td class="px-8 py-6">
+                          <button
+                            type="button"
+                            class="flex w-full cursor-pointer items-center gap-4 text-left"
+                            (click)="selectPatient(patient)"
+                          >
+                            <div
+                              class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-white bg-active-soft text-sm font-bold text-brand shadow-sm"
+                            >
+                              {{ getInitials(patient.name) }}
+                            </div>
+                            <div class="flex flex-col">
+                              <span class="text-[15px] font-bold text-text-primary">
+                                {{ patient.name }}
+                              </span>
+                              <span class="text-xs font-medium text-text-secondary">
+                                {{ buildPatientSubtitle(patient) }}
+                              </span>
+                            </div>
+                          </button>
+                        </td>
+
+                        <td class="px-6 py-6">
+                          <div class="flex flex-col gap-1">
+                            <span class="text-sm font-bold text-text-primary">
+                              {{ patient.tutorName || 'Sin tutor registrado' }}
+                            </span>
+                            <span class="text-xs text-text-secondary">
+                              {{ patient.tutorContact || 'Sin contacto registrado' }}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td class="px-6 py-6">
+                          <div class="flex flex-col gap-1">
+                            <span class="text-sm text-text-primary">
+                              {{ buildPatientMeta(patient) }}
+                            </span>
+                            <span class="text-xs text-text-secondary">
+                              {{ patient.birthDate ? 'Nacimiento: ' + patient.birthDate.slice(0, 10) : 'Nacimiento no registrado' }}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td class="px-8 py-6 text-right">
+                          <button
+                            type="button"
+                            (click)="selectPatient(patient)"
+                            class="inline-flex cursor-pointer items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90"
+                          >
+                            Continuar
+                          </button>
+                        </td>
+                      </tr>
+                    }
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            @if (!isLoadingPatients && !loadError) {
+              <app-pagination [meta]="meta" itemLabel="mascotas" (pageChange)="onPageChange($event)" />
+            }
+          </div>
+        </section>
+      }
+
+      @if (selectedPatient && activeStep === 'adoption-details') {
+        <section class="grid gap-4">
+          <div class="flex flex-col gap-1">
+            <span class="text-xs font-bold uppercase tracking-[0.18em] text-brand">Paso 2</span>
+            <h2 class="text-lg font-bold text-text-primary">Detalles de adopcion</h2>
+          </div>
+
+          <div class="rounded-[18px] border border-border bg-[#F8FAFC] px-5 py-4">
+            <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div class="flex min-w-0 items-center gap-4">
+                <div
+                  class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-active-soft text-sm font-bold text-brand"
+                >
+                  {{ getInitials(selectedPatient.name) }}
+                </div>
+
+                <div class="min-w-0">
+                  <p class="text-[15px] font-bold text-text-primary">{{ selectedPatient.name }}</p>
+                  <p class="truncate text-sm text-text-secondary">
+                    {{ buildPatientSubtitle(selectedPatient) }}
+                  </p>
+                  <p class="truncate text-xs text-text-secondary">
+                    {{ buildTutorMeta(selectedPatient) }}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                (click)="goToPatientSelection()"
+                class="inline-flex cursor-pointer items-center rounded-xl border border-border bg-white px-4 py-2 text-xs font-bold text-text-secondary transition-all hover:bg-background hover:text-text-primary"
+              >
+                Cambiar mascota
+              </button>
+            </div>
+          </div>
+
+          <div class="grid gap-4">
+            <div class="grid gap-4 md:grid-cols-2">
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-text-primary">
+                  Telefono de contacto
+                </label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                  <input
+                    matInput
+                    formControlName="contactPhone"
+                    type="text"
+                    [attr.maxlength]="contactPhoneMaxLength"
+                    placeholder="0999999999"
+                    class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                  />
+                  @if (shouldShowError('contactPhone') && form.controls.contactPhone.hasError('required')) {
+                    <mat-error>Ingresa un telefono de contacto.</mat-error>
+                  } @else if (shouldShowError('contactPhone') && form.controls.contactPhone.hasError('maxlength')) {
+                    <mat-error>El telefono no puede superar los {{ contactPhoneMaxLength }} caracteres.</mat-error>
+                  }
+                  <mat-hint align="end">{{ form.controls.contactPhone.value.length }}/{{ contactPhoneMaxLength }}</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-text-primary">
+                  Nombre de contacto <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span>
+                </label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                  <input
+                    matInput
+                    formControlName="contactName"
+                    type="text"
+                    [attr.maxlength]="contactNameMaxLength"
+                    placeholder="Fundacion PetSafe"
+                    class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                  />
+                  @if (shouldShowError('contactName') && form.controls.contactName.hasError('maxlength')) {
+                    <mat-error>El nombre no puede superar los {{ contactNameMaxLength }} caracteres.</mat-error>
+                  }
+                  <mat-hint align="end">{{ form.controls.contactName.value.length }}/{{ contactNameMaxLength }}</mat-hint>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">
+                Correo de contacto <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span>
+              </label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                <input
+                  matInput
+                  formControlName="contactEmail"
+                  type="email"
+                  [attr.maxlength]="contactEmailMaxLength"
+                  placeholder="adopciones@petsafe.com"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                />
+                @if (shouldShowError('contactEmail') && form.controls.contactEmail.hasError('email')) {
+                  <mat-error>Ingresa un correo valido.</mat-error>
+                } @else if (shouldShowError('contactEmail') && form.controls.contactEmail.hasError('maxlength')) {
+                  <mat-error>El correo no puede superar los {{ contactEmailMaxLength }} caracteres.</mat-error>
+                }
+                <mat-hint align="end">{{ form.controls.contactEmail.value.length }}/{{ contactEmailMaxLength }}</mat-hint>
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-3">
+              <label class="text-sm font-semibold text-text-primary">
+                Tags <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span>
+              </label>
+
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                <input
+                  matInput
+                  type="text"
+                  [value]="tagSearchValue"
+                  (input)="onTagSearchInput($any($event.target).value)"
+                  [matAutocomplete]="tagsAuto"
+                  placeholder="Buscar tag"
+                  autocomplete="off"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                />
+              </mat-form-field>
+
+              @if (selectedTags.length > 0) {
+                <div class="flex flex-wrap gap-2">
+                  @for (tag of selectedTags; track tag.id) {
+                    <span class="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-bold text-text-primary shadow-sm">
+                      {{ tag.name }}
+                      <button
+                        type="button"
+                        (click)="removeTag(tag.id)"
+                        class="inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded-full text-text-secondary transition-all hover:bg-background hover:text-text-primary"
+                        [attr.aria-label]="'Quitar tag ' + tag.name"
+                      >
+                        <svg viewBox="0 0 24 24" class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M6 6l12 12M18 6 6 18"></path>
+                        </svg>
+                      </button>
+                    </span>
+                  }
+                </div>
+              }
+              <mat-autocomplete #tagsAuto="matAutocomplete" autoActiveFirstOption>
+                @for (tag of tagResults; track tag.id) {
+                  <mat-option [value]="tag.name" (onSelectionChange)="onTagOptionSelection($event.isUserInput, tag)">
+                    {{ tag.name }}
+                  </mat-option>
+                }
+                @if (isLoadingTags) {
+                  <mat-option disabled>Buscando tags...</mat-option>
+                } @else if (tagSearchValue.trim() && tagResults.length === 0) {
+                  <mat-option disabled>No se encontraron resultados</mat-option>
+                }
+                @if (shouldShowCreateTagOption()) {
+                  <mat-option [value]="tagSearchValue.trim()" (onSelectionChange)="onCreateTagOptionSelection($event.isUserInput)">
+                    Crear: "{{ tagSearchValue.trim() }}"
+                  </mat-option>
+                }
+              </mat-autocomplete>
+
+              @if (tagError) {
+                <span class="text-xs font-medium text-red-600">{{ tagError }}</span>
+              }
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">
+                Historia <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span>
+              </label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                <textarea
+                  matInput
+                  formControlName="story"
+                  rows="4"
+                  [attr.maxlength]="storyMaxLength"
+                  placeholder="Contexto de rescate, comportamiento o situacion actual."
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                ></textarea>
+                <mat-hint align="end">{{ form.controls.story.value.length }}/{{ storyMaxLength }}</mat-hint>
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">
+                Requisitos <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span>
+              </label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                <textarea
+                  matInput
+                  formControlName="requirements"
+                  rows="3"
+                  [attr.maxlength]="requirementsMaxLength"
+                  placeholder="Ej. casa con patio, seguimiento veterinario o experiencia con cachorros."
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                ></textarea>
+                <mat-hint align="end">{{ form.controls.requirements.value.length }}/{{ requirementsMaxLength }}</mat-hint>
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">
+                Notas internas <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span>
+              </label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                <textarea
+                  matInput
+                  formControlName="notes"
+                  rows="3"
+                  [attr.maxlength]="notesMaxLength"
+                  placeholder="Observaciones operativas para el seguimiento del proceso."
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                ></textarea>
+                <mat-hint align="end">{{ form.controls.notes.value.length }}/{{ notesMaxLength }}</mat-hint>
+              </mat-form-field>
+            </div>
+          </div>
+        </section>
+      }
+    </div>
+
+    <div class="border-t border-border bg-white/95 px-6 py-4 backdrop-blur">
+      @if (submitError) {
+        <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">
+          {{ submitError }}
+        </div>
+      }
+
+      <div class="flex items-center justify-end gap-3">
+        <a
+          routerLink="/adoption"
+          class="cursor-pointer rounded-xl px-5 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-background"
+        >
+          Cancelar
+        </a>
+        @if (activeStep === 'adoption-details') {
+          <button
+            type="submit"
+            [disabled]="isSaving || !selectedPatient"
+            class="cursor-pointer rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {{ isSaving ? 'Guardando...' : 'Guardar adopcion' }}
+          </button>
+        }
+      </div>
+    </div>
+  </form>
+</div>

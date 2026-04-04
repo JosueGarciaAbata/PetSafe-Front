@@ -2,7 +2,10 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { buildApiUrl } from '@app/core/config/api.config';
-import { CreatePetRequest } from '../models/create-pet.model';
+import {
+  CreatePetRequest,
+  CreatePetWithoutTutorRequest,
+} from '../models/create-pet.model';
 import { PetCreateResponseApiResponse } from '../models/pet-create-response.model';
 import {
   AddPetTutorRequest,
@@ -21,6 +24,7 @@ export class PetsApiService {
   private readonly http = inject(HttpClient);
   private readonly listUrl = buildApiUrl('patients/admin/all-basic');
   private readonly createUrl = buildApiUrl('patients');
+  private readonly createWithoutTutorUrl = buildApiUrl('patients/admin/without-tutor');
 
   list(query: PetListQuery): Observable<PetListApiResponse> {
     let params = new HttpParams()
@@ -37,6 +41,13 @@ export class PetsApiService {
 
   create(payload: CreatePetRequest): Observable<PetCreateResponseApiResponse> {
     return this.http.post<PetCreateResponseApiResponse>(this.createUrl, this.buildPetFormData(payload));
+  }
+
+  createWithoutTutor(payload: CreatePetWithoutTutorRequest): Observable<PetCreateResponseApiResponse> {
+    return this.http.post<PetCreateResponseApiResponse>(
+      this.createWithoutTutorUrl,
+      this.buildPetWithoutTutorFormData(payload),
+    );
   }
 
   getBasicById(id: number | string): Observable<PetBasicDetailApiResponse> {
@@ -116,6 +127,30 @@ export class PetsApiService {
     if ('microchipCode' in payload) {
       this.appendPrimitive(formData, 'microchipCode', payload.microchipCode);
     }
+
+    if (payload.image) {
+      formData.append('image', payload.image, payload.image.name);
+    }
+
+    return formData;
+  }
+
+  private buildPetWithoutTutorFormData(payload: CreatePetWithoutTutorRequest): FormData {
+    const formData = new FormData();
+
+    this.appendPrimitive(formData, 'name', payload.name);
+    this.appendPrimitive(formData, 'speciesId', payload.speciesId);
+    this.appendPrimitive(formData, 'vaccinationSchemeId', payload.vaccinationSchemeId);
+    this.appendPrimitive(formData, 'breedId', payload.breedId);
+    this.appendPrimitive(formData, 'colorId', payload.colorId);
+    this.appendPrimitive(formData, 'sex', payload.sex);
+    this.appendPrimitive(formData, 'birthDate', payload.birthDate);
+    this.appendPrimitive(formData, 'currentWeight', payload.currentWeight);
+    this.appendPrimitive(formData, 'sterilized', payload.sterilized);
+    this.appendPrimitive(formData, 'microchipCode', payload.microchipCode);
+    this.appendPrimitive(formData, 'distinguishingMarks', payload.distinguishingMarks);
+    this.appendPrimitive(formData, 'generalAllergies', payload.generalAllergies);
+    this.appendPrimitive(formData, 'generalHistory', payload.generalHistory);
 
     if (payload.image) {
       formData.append('image', payload.image, payload.image.name);

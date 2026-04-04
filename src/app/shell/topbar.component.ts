@@ -6,6 +6,7 @@ import {
   HostListener,
   Input,
   Output,
+  computed,
   inject,
 } from '@angular/core';
 import { Router } from '@angular/router';
@@ -23,23 +24,48 @@ export class TopBarComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly elementRef = inject(ElementRef<HTMLElement>);
+
   @Input() sidebarOpen = true;
   @Output() readonly toggleSidebar = new EventEmitter<void>();
-  protected isUserMenuOpen = false;
 
+  protected isUserMenuOpen = false;
   protected readonly today = new Intl.DateTimeFormat('es-ES', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   }).format(new Date());
+  protected readonly currentUser = this.authService.user;
+  protected readonly userName = computed(() => {
+    const user = this.currentUser();
 
-  protected readonly userName = this.resolveUserName();
-  protected readonly userRole = this.resolveUserRole();
+    if (!user) {
+      return 'Usuario';
+    }
+
+    const fullName = `${user.nombres} ${user.apellidos}`.trim();
+    return fullName.length > 0 ? fullName : user.correo;
+  });
+  protected readonly userRole = computed(() => {
+    const user = this.currentUser();
+
+    if (!user) {
+      return 'Usuario';
+    }
+
+    return user.roles.some((role) => role.trim().toUpperCase() === 'ADMIN')
+      ? 'Administrador'
+      : 'Usuario';
+  });
 
   protected toggleUserMenu(event: MouseEvent): void {
     event.stopPropagation();
     this.isUserMenuOpen = !this.isUserMenuOpen;
+  }
+
+  protected openSettings(): void {
+    this.isUserMenuOpen = false;
+    void this.router.navigateByUrl('/settings');
   }
 
   protected logout(): void {
@@ -58,20 +84,5 @@ export class TopBarComponent {
   @HostListener('document:keydown.escape')
   protected handleEscape(): void {
     this.isUserMenuOpen = false;
-  }
-
-  private resolveUserName(): string {
-    const user = this.authService.getUser();
-
-    if (!user) {
-      return 'Usuario';
-    }
-
-    const fullName = `${user.nombres} ${user.apellidos}`.trim();
-    return fullName.length > 0 ? fullName : user.correo;
-  }
-
-  private resolveUserRole(): string {
-    return this.authService.hasAnyRole(['ADMIN']) ? 'Administrador' : 'Usuario';
   }
 }

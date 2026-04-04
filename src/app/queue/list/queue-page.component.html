@@ -1,12 +1,9 @@
-<div class="mx-auto flex max-w-[1400px] flex-col gap-8 pb-12 pt-6">
+<div class="mx-auto flex max-w-[1400px] flex-col gap-8 pb-12">
   <!-- Header -->
   <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
     <header class="flex flex-col gap-1">
-      <p class="text-[13px] font-bold uppercase tracking-wider text-brand">Recepción operativa</p>
-      <h1 class="text-[28px] font-bold text-text-primary">Cola de Espera</h1>
-      <p class="text-base text-text-secondary">
-        Gestión operativa del día y atenciones en curso.
-      </p>
+      <h1 class="text-[28px] font-bold text-text-primary">Cola de espera</h1>
+      <p class="text-base text-text-secondary">Gestion operativa del dia y atenciones en curso.</p>
     </header>
 
     <button
@@ -20,17 +17,27 @@
   </div>
 
   @if (loadError) {
-    <div class="flex items-center justify-between rounded-xl border border-[#FFB8B8] bg-[#FFE0E0] p-4 text-[#990000]">
+    <div
+      class="flex items-center justify-between rounded-xl border border-[#FFB8B8] bg-[#FFE0E0] p-4 text-[#990000]"
+    >
       <span class="text-sm font-medium">{{ loadError }}</span>
-      <button type="button" class="text-sm font-bold underline hover:opacity-80" (click)="retryLoadQueue()">Reintentar</button>
+      <button
+        type="button"
+        class="cursor-pointer text-sm font-bold underline hover:opacity-80"
+        (click)="retryLoadQueue()"
+      >
+        Reintentar
+      </button>
     </div>
   }
 
   <!-- Toolbar -->
-  <section class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between" aria-label="Búsqueda y filtros">
+  <section class="flex flex-col gap-4" aria-label="Busqueda y filtros">
     <div class="max-w-[540px] w-full">
       <div class="group relative">
-        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary transition-colors group-focus-within:text-brand">
+        <div
+          class="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary transition-colors group-focus-within:text-brand"
+        >
           <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8">
             <circle cx="11" cy="11" r="6"></circle>
             <path d="m20 20-3.5-3.5"></path>
@@ -38,80 +45,99 @@
         </div>
         <input
           [formControl]="searchControl"
-          type="search"
+          type="text"
           placeholder="Buscar paciente, tutor o motivo"
           class="h-12 w-full rounded-xl border border-border bg-white pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
         />
       </div>
     </div>
 
-    <div class="flex items-center gap-4">
-      <div class="flex rounded-lg bg-background p-1 border border-border" role="group">
+    <div class="flex flex-col gap-2">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-text-secondary">
+          Estado de la cola
+        </p>
+
+        @if (hasActiveFilters) {
+          <button
+            type="button"
+            class="cursor-pointer text-xs font-semibold text-text-secondary underline decoration-transparent transition-all hover:text-brand hover:decoration-brand"
+            (click)="clearFilters()"
+          >
+            Limpiar filtros
+          </button>
+        }
+      </div>
+
+      <div class="flex flex-wrap gap-2" role="group" aria-label="Filtrar pacientes por estado">
         @for (filter of statusFilters; track filter.value) {
           <button
             type="button"
-            class="rounded-md px-4 py-1.5 text-xs font-bold transition-all"
-            [class.bg-white]="activeStatusFilter === filter.value"
-            [class.text-brand]="activeStatusFilter === filter.value"
-            [class.shadow-sm]="activeStatusFilter === filter.value"
-            [class.text-text-secondary]="activeStatusFilter !== filter.value"
-            [class.hover:text-text-primary]="activeStatusFilter !== filter.value"
+            class="inline-flex cursor-pointer items-center rounded-full border px-4 py-2 text-xs font-bold transition-all"
+            [ngClass]="
+              activeStatusFilter === filter.value
+                ? 'border-transparent bg-active-soft text-brand shadow-sm'
+                : 'border-border bg-white text-text-secondary hover:border-brand/20 hover:text-text-primary'
+            "
             (click)="selectStatusFilter(filter.value)"
           >
             {{ filter.label }}
           </button>
         }
       </div>
-
-      @if (hasActiveFilters) {
-        <button
-          type="button"
-          class="text-xs font-semibold text-text-secondary underline decoration-transparent transition-all hover:text-brand hover:decoration-brand"
-          (click)="clearFilters()"
-        >
-          Limpiar filtros
-        </button>
-      }
     </div>
   </section>
 
   <!-- Table -->
   <section class="overflow-hidden rounded-[16px] border border-border bg-card shadow-sm">
-    <div class="flex items-center justify-between border-b border-border bg-white px-8 py-5">
-      <div>
-        <h2 class="text-lg font-bold text-text-primary">Pacientes en cola</h2>
-        <p class="text-sm text-text-secondary">Lista operativa del {{ todayLabel }}</p>
-      </div>
-      <span class="inline-flex items-center rounded-lg bg-active-soft px-3 py-1 text-xs font-bold text-brand">
-        {{ totalVisibleEntries }} visibles
-      </span>
+    <div class="border-b border-border bg-white px-8 py-5">
+      <p class="text-sm font-semibold text-text-primary">Lista operativa del {{ todayLabel }}</p>
     </div>
 
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[880px] text-left">
+      <table class="w-full min-w-[1080px] text-left">
         <thead>
           <tr class="border-b border-border bg-[#F8FAFC]">
-            <th class="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">Paciente / Tutor</th>
-            <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">Llegada</th>
-            <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">Programada</th>
-            <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">Estado</th>
-            <th class="px-8 py-5 text-right text-xs font-bold uppercase tracking-wider text-text-secondary"></th>
+            <th class="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+              Paciente / Tutor
+            </th>
+            <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+              Motivo
+            </th>
+            <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+              Llegada
+            </th>
+            <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+              Programada
+            </th>
+            <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+              Estado
+            </th>
+            <th
+              class="px-8 py-5 text-right text-xs font-bold uppercase tracking-wider text-text-secondary"
+            ></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-border">
           @if (isLoading) {
             <tr>
-              <td colspan="5" class="px-8 py-16 text-center text-sm text-text-secondary font-medium">
+              <td colspan="6" class="px-8 py-16 text-center text-sm font-medium text-text-secondary">
                 Cargando pacientes de la cola...
               </td>
             </tr>
           } @else if (entries.length === 0) {
             <tr>
-              <td colspan="5" class="px-8 py-16">
+              <td colspan="6" class="px-8 py-16">
                 <div class="flex flex-col items-center gap-3 text-center">
                   <p class="text-sm font-semibold text-text-primary">No hay pacientes en cola</p>
-                  <p class="text-sm text-text-secondary mb-4">Cuando llegue un paciente, aparecerá aquí.</p>
-                  <button type="button" class="inline-flex items-center rounded-xl bg-primary px-6 py-3 text-xs font-bold text-white transition-all hover:opacity-90" (click)="openIntakePage()">
+                  <p class="mb-4 text-sm text-text-secondary">
+                    Cuando llegue un paciente, aparecera aqui.
+                  </p>
+                  <button
+                    type="button"
+                    class="inline-flex cursor-pointer items-center rounded-xl bg-primary px-6 py-3 text-xs font-bold text-white transition-all hover:opacity-90"
+                    (click)="openIntakePage()"
+                  >
                     Registrar ingreso
                   </button>
                 </div>
@@ -128,20 +154,47 @@
               >
                 <td class="px-8 py-6">
                   <div class="flex items-center gap-4">
-                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-white bg-active-soft text-sm font-bold text-brand shadow-sm">
-                      {{ getInitials(entry.patient.name) }}
+                    <div
+                      class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-active-soft text-sm font-bold text-brand shadow-sm"
+                    >
+                      @if (patientImageUrl(entry); as imageUrl) {
+                        <img
+                          [src]="imageUrl"
+                          [alt]="patientImageAlt(entry)"
+                          class="h-full w-full object-cover"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      } @else {
+                        {{ getInitials(entry.patient.name) }}
+                      }
                     </div>
                     <div class="flex flex-col gap-1">
                       <div class="flex items-center gap-2">
                         <span class="text-[15px] font-bold text-text-primary">{{ entry.patient.name }}</span>
-                        <span class="inline-flex items-center rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide {{ buildEntryTypeClass(entry.entryType) }}">
+                        <span
+                          class="inline-flex items-center rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide {{ buildEntryTypeClass(entry.entryType) }}"
+                        >
                           {{ buildEntryTypeLabel(entry) }}
                         </span>
                       </div>
                       <span class="text-xs font-medium text-text-secondary">
-                        {{ buildPatientSubtitle(entry) }} • Tutor: <strong class="font-semibold text-text-primary">{{ entry.patient.tutorName }}</strong>
+                        {{ buildPatientSubtitle(entry) }} | Tutor:
+                        <strong class="font-semibold text-text-primary">
+                          {{ entry.patient.tutorName }}
+                        </strong>
                       </span>
                     </div>
+                  </div>
+                </td>
+                <td class="px-6 py-6">
+                  <div class="max-w-[260px]">
+                    <p
+                      class="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-text-secondary"
+                      [title]="buildNotesPreview(entry)"
+                    >
+                      {{ buildNotesPreview(entry) }}
+                    </p>
                   </div>
                 </td>
                 <td class="px-6 py-6 text-sm font-semibold text-text-primary">
@@ -151,17 +204,27 @@
                   {{ buildScheduledLabel(entry) }}
                 </td>
                 <td class="px-6 py-6">
-                  <span class="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-bold {{ buildStatusClass(entry.queueStatus) }}">
+                  <span
+                    class="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-bold {{ buildStatusClass(entry.queueStatus) }}"
+                  >
                     {{ buildStatusLabel(entry.queueStatus) }}
                   </span>
                 </td>
                 <td class="px-8 py-6 text-right">
                   <button
                     type="button"
-                    class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#F1F5F9] text-text-secondary transition-all hover:bg-active-soft hover:text-brand"
+                    class="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-[#F1F5F9] text-text-secondary transition-all hover:bg-active-soft hover:text-brand"
                     aria-label="Ver detalle"
                   >
-                    <svg viewBox="0 0 24 24" class="h-4.5 w-4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="h-4.5 w-4.5"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
                       <path d="m9 6 6 6-6 6"></path>
                     </svg>
                   </button>
@@ -174,123 +237,236 @@
     </div>
 
     @if (!isLoading && paginationMeta.totalPages > 1) {
-      <app-pagination [meta]="paginationMeta" itemLabel="pacientes" (pageChange)="onPageChange($event)"></app-pagination>
+      <app-pagination
+        [meta]="paginationMeta"
+        itemLabel="pacientes"
+        (pageChange)="onPageChange($event)"
+      ></app-pagination>
     }
   </section>
 
-  <!-- Drawer Backdrop -->
-  @if (isDetailPanelOpen) {
-    <div class="fixed inset-0 z-40 bg-zinc-900/20 backdrop-blur-sm transition-opacity" (click)="closeDetailPanel()"></div>
-  }
-
-  <!-- Drawer -->
   @if (isDetailPanelOpen && selectedEntry) {
-    <aside class="fixed right-0 top-0 z-50 flex h-full w-full max-w-[440px] flex-col border-l border-border bg-white shadow-2xl transition-transform">
-      <header class="flex flex-col gap-2 border-b border-border bg-[#F8FAFC] px-8 py-6">
-        <div class="flex items-start justify-between">
-          <div class="flex flex-col">
-            <p class="text-xs font-bold uppercase tracking-wider text-brand">Detalle Operativo</p>
-            <h2 class="text-2xl font-bold text-text-primary mt-1">{{ selectedEntry.patient.name }}</h2>
-            <p class="text-sm font-medium text-text-secondary mt-1 max-w-[280px]">{{ buildPatientSubtitle(selectedEntry) }}</p>
-          </div>
-          <button type="button" class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-text-secondary shadow-sm hover:text-text-primary" (click)="closeDetailPanel()">
-            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"></path></svg>
-          </button>
-        </div>
-      </header>
+    <div
+      class="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]"
+      (click)="closeDetailPanel()"
+    >
+      <section
+        class="flex max-h-[90vh] w-full max-w-[680px] flex-col overflow-hidden rounded-[24px] border border-border bg-white shadow-2xl"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="border-b border-border bg-white px-6 py-5 sm:px-8">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex flex-col gap-1">
+              <p class="text-xs font-bold uppercase tracking-wider text-brand">Detalle operativo</p>
+            </div>
 
-      <div class="flex-1 overflow-y-auto px-8 py-6 flex flex-col gap-8">
-        <div class="flex flex-wrap items-center gap-3">
-          <span class="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-bold {{ buildStatusClass(selectedEntry.queueStatus) }}">
-            {{ buildStatusLabel(selectedEntry.queueStatus) }}
-          </span>
-          <span class="inline-flex items-center rounded-lg px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide {{ buildEntryTypeClass(selectedEntry.entryType) }}">
-            {{ buildEntryTypeLabel(selectedEntry) }}
-          </span>
-        </div>
-
-        <div class="rounded-xl border border-border bg-[#F8FAFC] p-5">
-           <dl class="grid grid-cols-2 gap-x-4 gap-y-6">
-             <div>
-               <dt class="text-xs font-semibold text-text-secondary">Llegada</dt>
-               <dd class="mt-1 text-sm font-bold text-text-primary">{{ buildArrivalLabel(selectedEntry) }}</dd>
-             </div>
-             <div>
-               <dt class="text-xs font-semibold text-text-secondary">Programada</dt>
-               <dd class="mt-1 text-sm font-bold text-text-primary">{{ buildScheduledLabel(selectedEntry) }}</dd>
-             </div>
-             <div>
-               <dt class="text-xs font-semibold text-text-secondary">Tutor</dt>
-               <dd class="mt-1 text-sm font-bold text-text-primary">{{ selectedEntry.patient.tutorName }}</dd>
-             </div>
-             <div>
-               <dt class="text-xs font-semibold text-text-secondary">Teléfono</dt>
-               <dd class="mt-1 text-sm font-bold text-text-primary">{{ selectedEntry.patient.tutorPhone }}</dd>
-             </div>
-           </dl>
-        </div>
-
-        <section class="flex flex-col gap-2">
-          <h3 class="text-sm font-bold text-text-primary">Motivo de atención</h3>
-          <p class="text-sm text-text-secondary leading-relaxed bg-background rounded-xl p-4 border border-border">
-            {{ selectedEntry.notes || 'Sin motivo registrado por recepción al momento de ingreso.' }}
-          </p>
-        </section>
-      </div>
-
-      <footer class="flex flex-col gap-3 border-t border-border bg-white px-8 py-6 shrink-0">
-        @if (selectedEntry.queueStatus === 'EN_ESPERA') {
-          <button type="button" class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white shadow-sm hover:opacity-90" (click)="startAttention(selectedEntry)">
-            <svg viewBox="0 0 24 24" class="inline-block h-4 w-4 mr-2" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3v18l15-9L5 3z"></path></svg>
-            Iniciar atención
-          </button>
-          <button type="button" class="w-full rounded-xl border border-[#FFB8B8] bg-white px-4 py-3 text-sm font-bold text-[#990000] hover:bg-[#FFE0E0]" (click)="openCancelModal(selectedEntry)">
-            Cancelar ingreso
-          </button>
-        }
-        @if (selectedEntry.queueStatus === 'EN_ATENCION') {
-          <button type="button" class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white shadow-sm hover:opacity-90" (click)="startAttention(selectedEntry)">
-            <svg viewBox="0 0 24 24" class="inline-block h-4 w-4 mr-2" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3v18l15-9L5 3z"></path></svg>
-            Continuar Consulta
-          </button>
-          <button type="button" class="mt-2 w-full rounded-xl bg-[#1D7A04] px-4 py-3 text-sm font-bold text-white shadow-sm hover:opacity-90" (click)="finishAttention(selectedEntry)">
-            <svg viewBox="0 0 24 24" class="inline-block h-4 w-4 mr-2" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"></path></svg>
-            Finalizar atención
-          </button>
-        }
-      </footer>
-    </aside>
-  }
-
-  <!-- Cancel Modal Backdrop -->
-  @if (isCancelModalOpen) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 backdrop-blur-sm p-4" (click)="closeCancelModal()">
-      <div class="w-full max-w-[400px] rounded-2xl bg-white p-6 shadow-xl" (click)="$event.stopPropagation()">
-        <header class="flex flex-col items-center gap-3 text-center mb-6">
-          <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[#FFE0E0] text-[#990000]">
-            <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 9-6 6M9 9l6 6M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg>
-          </div>
-          <div>
-            <h2 class="text-xl font-bold text-text-primary">Confirmar cancelación</h2>
-            <p class="text-sm text-text-secondary mt-2">
-              El paciente quedará fuera de la cola operativa. Estás a punto de cancelar la entrada de:
-            </p>
+            <button
+              type="button"
+              class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-text-secondary transition-all hover:bg-background hover:text-text-primary"
+              (click)="closeDetailPanel()"
+            >
+              <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6 6 18M6 6l12 12"></path>
+              </svg>
+            </button>
           </div>
         </header>
 
-        <div class="rounded-xl border border-border bg-background p-4 mb-8 text-center">
-          <p class="font-bold text-text-primary">{{ entryPendingCancel?.patient?.name }}</p>
+        <div class="flex-1 overflow-y-auto px-6 py-5 sm:px-8">
+          <div class="flex flex-col">
+            <section class="pb-5">
+              <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-text-secondary">Paciente</p>
+              <div
+                class="mt-3 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-active-soft text-base font-bold text-brand shadow-sm"
+              >
+                @if (patientImageUrl(selectedEntry); as imageUrl) {
+                  <img
+                    [src]="imageUrl"
+                    [alt]="patientImageAlt(selectedEntry)"
+                    class="h-full w-full object-cover"
+                  />
+                } @else {
+                  {{ getInitials(selectedEntry.patient.name) }}
+                }
+              </div>
+              <h3 class="mt-2 text-[32px] font-bold leading-none text-text-primary">
+                {{ selectedEntry.patient.name }}
+              </h3>
+              <p class="mt-2 text-[13px] leading-6 text-text-secondary">
+                {{ buildPatientSubtitle(selectedEntry) }}
+              </p>
+              <p class="text-[13px] leading-6 text-text-secondary">
+                <span class="font-medium text-text-primary">Tutor:</span>
+                {{ selectedEntry.patient.tutorName }}
+                <span class="mx-1 text-text-secondary/60">·</span>
+                {{ selectedEntry.patient.tutorPhone }}
+              </p>
+            </section>
+
+            <section class="border-t border-border/80 py-5">
+              <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-text-secondary">Fecha y hora</p>
+              <p class="mt-2 text-base font-bold text-text-primary">{{ buildArrivalLabel(selectedEntry) }}</p>
+              <p class="mt-1 text-[13px] leading-6 text-text-secondary">
+                Programada: {{ buildScheduledLabel(selectedEntry) }}
+              </p>
+            </section>
+
+            <section class="border-t border-border/80 py-5">
+              <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-text-secondary">Estado</p>
+              <div class="mt-2 flex flex-wrap items-center gap-2">
+                <p class="text-[17px] font-bold" [ngClass]="buildStatusValueClass(selectedEntry.queueStatus)">
+                  {{ buildStatusLabel(selectedEntry.queueStatus) }}
+                </p>
+                <span
+                  class="inline-flex items-center rounded-lg px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide {{ buildEntryTypeClass(selectedEntry.entryType) }}"
+                >
+                  {{ buildEntryTypeLabel(selectedEntry) }}
+                </span>
+              </div>
+              <p class="mt-1 text-[13px] leading-6 text-text-secondary">
+                {{ buildQueueStatusHelpText(selectedEntry) }}
+              </p>
+            </section>
+
+            <section class="border-t border-border/80 py-5">
+              <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-text-secondary">Motivo</p>
+              <p
+                class="mt-2 max-h-28 overflow-y-auto pr-2 text-[14px] leading-7 text-text-primary [overflow-wrap:anywhere]"
+              >
+                {{ selectedEntry.notes || 'Sin motivo registrado por recepcion al momento del ingreso.' }}
+              </p>
+            </section>
+          </div>
         </div>
 
-        <footer class="flex gap-3">
-          <button type="button" class="flex-1 rounded-xl bg-background px-4 py-3 text-sm font-bold text-text-secondary hover:text-text-primary" (click)="closeCancelModal()">
-            Volver
-          </button>
-          <button type="button" class="flex-1 rounded-xl bg-[#cc0000] px-4 py-3 text-sm font-bold text-white shadow-sm hover:opacity-90" (click)="confirmCancelEntry()">
-            Sí, cancelar
-          </button>
+        <footer class="border-t border-border bg-white px-6 py-5 sm:px-8">
+          <div class="flex flex-wrap items-center justify-end gap-3">
+            @if (selectedEntry.queueStatus === 'EN_ESPERA') {
+              <button
+                type="button"
+                class="cursor-pointer rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+                (click)="openCancelModal(selectedEntry)"
+              >
+                Cancelar ingreso
+              </button>
+              <button
+                type="button"
+                class="cursor-pointer rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90"
+                (click)="openStartModal(selectedEntry)"
+              >
+                Iniciar atencion
+              </button>
+            }
+
+            @if (selectedEntry.queueStatus === 'EN_ATENCION') {
+              <button
+                type="button"
+                class="cursor-pointer rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+                (click)="startAttention(selectedEntry)"
+              >
+                Continuar consulta
+              </button>
+              <button
+                type="button"
+                class="cursor-pointer rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90"
+                (click)="openFinishModal(selectedEntry)"
+              >
+                Finalizar atencion
+              </button>
+            }
+          </div>
+
+          @if (selectedEntry.queueStatus === 'FINALIZADA' || selectedEntry.queueStatus === 'CANCELADA') {
+            <p class="text-sm text-text-secondary">
+              Esta cita no tiene acciones disponibles en este momento.
+            </p>
+          }
         </footer>
-      </div>
+      </section>
+    </div>
+  }
+
+  @if (isActionModalOpen && pendingActionEntry) {
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]"
+      (click)="closeActionModal()"
+    >
+      <section
+        class="flex w-full max-w-[520px] flex-col overflow-hidden rounded-[16px] border border-border bg-card shadow-2xl"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="border-b border-border bg-white px-5 py-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="min-w-0">
+              <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-brand">
+                Accion operativa
+              </span>
+              <h2 class="mt-2 text-sm font-semibold text-text-secondary">{{ buildActionModalTitle() }}</h2>
+            </div>
+
+            <button
+              type="button"
+              (click)="closeActionModal()"
+              class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-text-secondary transition-all hover:bg-background hover:text-text-primary"
+              aria-label="Cerrar modal"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                class="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              >
+                <path d="M6 6l12 12M18 6 6 18"></path>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <div class="px-5 py-5">
+          <div class="flex flex-col gap-6">
+            <section class="border-b border-border pb-5">
+              <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-text-secondary">Paciente</p>
+              <p class="mt-2 text-[28px] font-bold leading-none text-text-primary">
+                {{ pendingActionEntry.patient.name }}
+              </p>
+              <p class="mt-2 text-sm leading-6 text-text-secondary">
+                {{ buildActionModalDescription() }}
+              </p>
+            </section>
+
+            <section>
+              <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-text-secondary">Estado actual</p>
+              <p class="mt-2 text-base font-bold" [ngClass]="buildStatusValueClass(pendingActionEntry.queueStatus)">
+                {{ buildStatusLabel(pendingActionEntry.queueStatus) }}
+              </p>
+              <p class="mt-1 text-sm text-text-secondary">
+                {{ buildQueueStatusHelpText(pendingActionEntry) }}
+              </p>
+            </section>
+          </div>
+        </div>
+
+        <footer class="border-t border-border bg-white px-5 py-4">
+          <div class="flex flex-wrap items-center justify-end gap-3">
+            <button
+              type="button"
+              class="cursor-pointer rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+              (click)="closeActionModal()"
+            >
+              Volver
+            </button>
+            <button
+              type="button"
+              class="cursor-pointer rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90"
+              (click)="confirmPendingAction()"
+            >
+              {{ buildActionModalConfirmLabel() }}
+            </button>
+          </div>
+        </footer>
+      </section>
     </div>
   }
 </div>

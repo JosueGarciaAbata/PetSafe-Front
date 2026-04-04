@@ -230,8 +230,35 @@ export const routes: Routes = [
         canActivate: [authGuard],
         data: { roles: staffRoles },
         loadComponent: () =>
-          import('@app/internal-section-page/internal-section-page.component').then(
-            (m) => m.InternalSectionPageComponent,
+          import('@app/adoptions/list/adoptions-page.component').then(
+            (m) => m.AdoptionsPageComponent,
+          ),
+      },
+      {
+        path: 'adoption/new',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/adoptions/create/adoption-create-page.component').then(
+            (m) => m.AdoptionCreatePageComponent,
+          ),
+      },
+      {
+        path: 'adoption/new/pet',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/adoptions/create/adoption-pet-create-page.component').then(
+            (m) => m.AdoptionPetCreatePageComponent,
+          ),
+      },
+      {
+        path: 'adoption/:id/edit',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/adoptions/edit/adoption-edit-page.component').then(
+            (m) => m.AdoptionEditPageComponent,
           ),
       },
       {
@@ -246,11 +273,9 @@ export const routes: Routes = [
       {
         path: 'settings',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () =>
-          import('@app/internal-section-page/internal-section-page.component').then(
-            (m) => m.InternalSectionPageComponent,
-          ),
+          import('@app/settings/settings-page.component').then((m) => m.SettingsPageComponent),
       },
       {
         path: '',

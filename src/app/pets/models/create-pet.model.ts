@@ -14,3 +14,20 @@ export interface CreatePetRequest {
   generalHistory?: string;
   image?: File;
 }
+
+export interface CreatePetWithoutTutorRequest {
+  name: string;
+  speciesId: number;
+  vaccinationSchemeId?: number;
+  sex: 'MACHO' | 'HEMBRA';
+  breedId?: number;
+  colorId?: number;
+  birthDate?: string;
+  currentWeight?: number;
+  sterilized?: boolean;
+  microchipCode?: string;
+  distinguishingMarks?: string;
+  generalAllergies?: string;
+  generalHistory?: string;
+  image?: File;
+}

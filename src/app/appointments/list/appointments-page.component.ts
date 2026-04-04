@@ -31,7 +31,6 @@ import {
 import {
   addDays,
   addMonths,
-  buildFullDateLabel,
   endOfMonth,
   endOfWeek,
   formatDateKey,
@@ -66,8 +65,7 @@ export class AppointmentsPageComponent implements OnInit {
   protected currentView: AppointmentCalendarView = 'month';
   protected readonly weekdayLabels = buildWeekdayLabels();
   protected activeDate = getTodayDateKey();
-  protected monthLabel = buildMonthLabel(this.activeDate);
-  protected todayLabel = buildFullDateLabel(this.activeDate);
+  protected currentRangeLabel = buildMonthLabel(this.activeDate);
   protected monthCells: readonly AppointmentMonthCell[] = [];
   protected weekDays: readonly AppointmentWeekDay[] = [];
   protected summary: AppointmentCalendarSummary = EMPTY_APPOINTMENT_SUMMARY;
@@ -75,7 +73,6 @@ export class AppointmentsPageComponent implements OnInit {
   protected selectedAppointment: AppointmentRecord | null = null;
   protected isLoading = false;
   protected loadError: string | null = null;
-  protected selectedDateInput = this.activeDate;
 
   ngOnInit(): void {
     void this.loadAppointments();
@@ -126,7 +123,6 @@ export class AppointmentsPageComponent implements OnInit {
       this.currentView === 'week' ? addDays(currentDate, -7) : addMonths(currentDate, -1);
 
     this.activeDate = formatDateKey(nextDate);
-    this.selectedDateInput = this.activeDate;
     void this.loadAppointments();
   }
 
@@ -136,24 +132,29 @@ export class AppointmentsPageComponent implements OnInit {
       this.currentView === 'week' ? addDays(currentDate, 7) : addMonths(currentDate, 1);
 
     this.activeDate = formatDateKey(nextDate);
-    this.selectedDateInput = this.activeDate;
     void this.loadAppointments();
   }
 
   protected goToToday(): void {
     this.activeDate = getTodayDateKey();
-    this.selectedDateInput = this.activeDate;
     void this.loadAppointments();
   }
 
-  protected onDateSelected(value: string): void {
-    if (!value) {
-      return;
+  protected isCurrentRangeActive(): boolean {
+    const todayKey = getTodayDateKey();
+
+    if (this.currentView === 'week') {
+      return (
+        formatDateKey(startOfWeek(this.activeDate)) === formatDateKey(startOfWeek(todayKey))
+      );
     }
 
-    this.activeDate = value;
-    this.selectedDateInput = value;
-    void this.loadAppointments();
+    const activeDate = parseDateKey(this.activeDate);
+    const todayDate = parseDateKey(todayKey);
+    return (
+      activeDate.getFullYear() === todayDate.getFullYear()
+      && activeDate.getMonth() === todayDate.getMonth()
+    );
   }
 
   private async loadAppointments(): Promise<void> {
@@ -177,13 +178,11 @@ export class AppointmentsPageComponent implements OnInit {
         return;
       }
 
-      this.monthLabel =
+      this.currentRangeLabel =
         response.view === 'week'
           ? buildWeekRangeLabel(response.activeDate)
           : buildMonthLabel(response.activeDate);
       this.activeDate = response.activeDate;
-      this.selectedDateInput = response.activeDate;
-      this.todayLabel = buildFullDateLabel(response.activeDate);
       this.monthCells =
         response.view === 'month'
           ? buildAppointmentMonthCells(response.activeDate, response.appointments)

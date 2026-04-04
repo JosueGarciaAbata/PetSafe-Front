@@ -2,7 +2,20 @@
   display: block;
 }
 
-:host .appointment-create-field {
+:host .pet-image-preview {
+  display: flex;
+  height: 5.5rem;
+  width: 5.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid var(--ps-border);
+  background: linear-gradient(135deg, rgba(47, 96, 94, 0.14), rgba(47, 96, 94, 0.04));
+}
+
+:host .pet-create-field {
   --mat-form-field-container-height: 44px;
   --mat-form-field-container-vertical-padding: 10px;
   --mdc-outlined-text-field-container-shape: 12px;
@@ -14,11 +27,11 @@
   --mdc-outlined-text-field-focus-label-text-color: var(--ps-brand);
 }
 
-:host ::ng-deep .appointment-create-field .mat-mdc-form-field-subscript-wrapper {
+:host ::ng-deep .pet-create-field .mat-mdc-form-field-subscript-wrapper {
   padding-inline: 4px;
 }
 
-:host ::ng-deep .appointment-create-field .mat-mdc-form-field-infix {
+:host ::ng-deep .pet-create-field .mat-mdc-form-field-infix {
   min-height: 44px;
   padding-top: 11px;
   padding-bottom: 11px;

@@ -6,6 +6,35 @@
   grid-auto-rows: minmax(224px, 1fr);
 }
 
+.appointment-day-cell {
+  position: relative;
+}
+
+.appointment-day-cell--today {
+  background: linear-gradient(180deg, rgba(47, 96, 94, 0.12) 0%, rgba(47, 96, 94, 0.04) 100%);
+  box-shadow: inset 0 0 0 2px rgba(47, 96, 94, 0.28);
+}
+
+.appointment-day-number--today {
+  background: var(--ps-brand);
+  color: #ffffff;
+  box-shadow: 0 0 0 4px #eaf3f2;
+}
+
+.appointment-today-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(47, 96, 94, 0.14);
+  padding: 0.2rem 0.55rem;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ps-brand);
+}
+
 .calendar-scroll-area,
 .appointment-day-scroll {
   scrollbar-width: thin;
@@ -33,10 +62,73 @@
   border-width: 1px;
 }
 
-.month-status-chip {
-  max-width: 72px;
+.appointment-month-card {
+  min-width: 0;
+}
+
+.appointment-card-content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.appointment-card-time {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--ps-text-secondary);
+}
+
+.appointment-card-heading {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.appointment-card-patient {
+  min-width: 0;
+  flex: 1 1 auto;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ps-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appointment-card-details {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.appointment-card-detail {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--ps-text-secondary);
+}
+
+.appointment-card-detail--notes {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  overflow: hidden;
+}
+
+.month-status-chip {
+  max-width: 100%;
+  white-space: nowrap;
 }
 
 .appointment-card-status--scheduled {

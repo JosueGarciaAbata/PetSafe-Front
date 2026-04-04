@@ -12,19 +12,27 @@
       <div class="appointment-month-grid grid grid-cols-7">
         @for (cell of cells; track trackByDate($index, cell)) {
           <section
-            class="border-b border-r border-border/80 p-3"
+            class="appointment-day-cell border-b border-r border-border/80 p-3"
             [class.bg-background/40]="!cell.isCurrentMonth"
+            [class.appointment-day-cell--today]="cell.isToday"
           >
             <div class="mb-3 flex items-center justify-between gap-2">
-              <span
-                class="inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold"
-                [class.bg-active-soft]="cell.isToday"
-                [class.text-brand]="cell.isToday"
-                [class.text-text-primary]="!cell.isToday && cell.isCurrentMonth"
-                [class.text-text-secondary]="!cell.isCurrentMonth"
-              >
-                {{ cell.dayNumber }}
-              </span>
+              <div class="flex items-center gap-2">
+                <span
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold"
+                  [class.bg-active-soft]="cell.isToday"
+                  [class.text-brand]="cell.isToday"
+                  [class.appointment-day-number--today]="cell.isToday"
+                  [class.text-text-primary]="!cell.isToday && cell.isCurrentMonth"
+                  [class.text-text-secondary]="!cell.isCurrentMonth"
+                >
+                  {{ cell.dayNumber }}
+                </span>
+
+                @if (cell.isToday) {
+                  <span class="appointment-today-chip">Hoy</span>
+                }
+              </div>
 
               @if (cell.appointments.length > 0) {
                 <span class="text-[11px] font-semibold text-text-secondary">
@@ -36,29 +44,52 @@
             <div class="appointment-day-scroll flex max-h-[168px] flex-col gap-2 overflow-y-auto pr-1">
               @for (appointment of cell.appointments; track trackByAppointment($index, appointment)) {
                 <article
-                  class="cursor-pointer rounded-[16px] border border-border bg-white px-3 py-2.5 shadow-sm transition-all hover:-translate-y-[1px] hover:ring-2 hover:ring-primary/20"
+                  class="appointment-month-card cursor-pointer rounded-[16px] border border-border bg-white px-3 py-3 shadow-sm transition-all hover:-translate-y-[1px] hover:ring-2 hover:ring-primary/20"
                   (click)="appointmentClick.emit(appointment)"
                   [class.opacity-70]="appointment.status === 'CANCELADA' || !appointment.isActive"
                 >
-                  <div class="flex items-start justify-between gap-2">
-                    <div class="min-w-0 flex-1">
-                      <p class="text-[11px] font-semibold text-text-secondary">
-                        {{ buildTimeRange(appointment) }}
-                      </p>
-                      <h3 class="mt-1 truncate text-[13px] font-bold text-text-primary">
-                        {{ buildPatientLabel(appointment) }}
-                      </h3>
-                      <p class="mt-1 truncate text-[11px] text-text-secondary">
-                        {{ buildReasonLabel(appointment.reason) }}
-                      </p>
+                  <div class="appointment-card-content min-w-0">
+                    <p class="appointment-card-time" [title]="buildTimeRange(appointment)">
+                      {{ buildTimeRange(appointment) }}
+                    </p>
+
+                    <div class="appointment-card-heading items-start">
+                      <div class="min-w-0">
+                        <h3
+                          class="truncate appointment-card-patient"
+                          [title]="
+                            hasOwnerName(appointment.ownerName)
+                              ? buildPatientLabel(appointment) + ' (' + appointment.ownerName + ')'
+                              : buildPatientLabel(appointment)
+                          "
+                        >
+                          {{ buildPatientLabel(appointment) }}
+                          @if (hasOwnerName(appointment.ownerName)) {
+                            <span class="text-[11px] font-medium text-text-secondary"> ({{ appointment.ownerName }})</span>
+                          }
+                        </h3>
+                      </div>
                     </div>
 
-                    <span
-                      class="month-status-chip shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] whitespace-nowrap"
-                      [class]="buildStatusClasses(appointment.status)"
-                    >
-                      {{ buildStatusLabel(appointment.status) }}
-                    </span>
+                    <div class="flex flex-col items-start gap-1">
+                      <span
+                        class="month-status-chip rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em]"
+                        [class]="buildStatusClasses(appointment.status)"
+                        [title]="buildStatusLabel(appointment.status)"
+                      >
+                        {{ buildStatusLabel(appointment.status) }}
+                      </span>
+
+                      @if (shouldShowQueueBadge(appointment)) {
+                        <span
+                          class="rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.08em]"
+                          [class]="buildQueueBadgeClasses(appointment)"
+                          [title]="buildQueueBadgeLabel(appointment)"
+                        >
+                          {{ buildQueueBadgeLabel(appointment) }}
+                        </span>
+                      }
+                    </div>
                   </div>
                 </article>
               }

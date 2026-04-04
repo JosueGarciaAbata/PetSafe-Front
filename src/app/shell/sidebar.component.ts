@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { AuthService } from '@app/core/auth/auth.service';
 import { LogoComponent } from '@app/logo/logo';
 import { ShellIconComponent, ShellIconName } from './shell-icon.component';
 
@@ -26,7 +25,6 @@ interface SidebarChildItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SidebarComponent {
-  private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   @Input() isOpen = true;
   protected readonly expandedItemIds = new Set<string>();
@@ -87,10 +85,5 @@ export class SidebarComponent {
     return item.children?.some((child) =>
       currentUrl === child.path || currentUrl.startsWith(`${child.path}/`),
     ) ?? false;
-  }
-
-  protected logout(): void {
-    this.authService.clearToken();
-    void this.router.navigateByUrl('/login');
   }
 }
