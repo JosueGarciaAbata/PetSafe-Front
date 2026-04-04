@@ -5,6 +5,7 @@ import {
   OnInit,
   inject,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { PaginationComponent } from '@app/shared/pagination/pagination.component';
 import {
@@ -24,16 +25,21 @@ import { AdoptionBasicItemApiResponse } from '../models/adoption.model';
 })
 export class AdoptionsPageComponent implements OnInit {
   private readonly adoptionsApi = inject(AdoptionsApiService);
+  private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly pageSize = 10;
   private requestVersion = 0;
   private searchTimer?: ReturnType<typeof setTimeout>;
+  private readonly navigationState = history.state as {
+    successMessage?: string | null;
+  } | null;
 
   protected adoptions: AdoptionBasicItemApiResponse[] = [];
   protected meta: PaginationMeta = EMPTY_PAGINATION_META;
   protected searchValue = '';
   protected isLoading = false;
   protected loadError: string | null = null;
+  protected readonly successMessage = this.navigationState?.successMessage?.trim() || null;
 
   ngOnInit(): void {
     void this.loadAdoptions(1);
@@ -51,6 +57,14 @@ export class AdoptionsPageComponent implements OnInit {
 
   protected retryLoadAdoptions(): void {
     void this.loadAdoptions(this.meta.currentPage);
+  }
+
+  protected openCreatePage(): void {
+    void this.router.navigate(['/adoption/new']);
+  }
+
+  protected openEditPage(adoptionId: number): void {
+    void this.router.navigate(['/adoption', adoptionId, 'edit']);
   }
 
   protected getInitials(name: string): string {

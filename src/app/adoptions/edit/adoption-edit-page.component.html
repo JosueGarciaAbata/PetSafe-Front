@@ -1,0 +1,314 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-6 pb-12">
+  <button
+    type="button"
+    routerLink="/adoption"
+    class="inline-flex cursor-pointer items-center gap-2 self-start text-sm font-medium text-text-secondary transition-colors hover:text-brand"
+  >
+    <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="m15 18-6-6 6-6"></path>
+    </svg>
+    <span>Volver a adopciones</span>
+  </button>
+
+  @if (isLoading) {
+    <div class="h-[720px] animate-pulse rounded-[24px] bg-background"></div>
+  } @else if (loadError) {
+    <div class="rounded-[24px] border border-border bg-card p-8 text-sm text-text-secondary shadow-sm">
+      {{ loadError }}
+    </div>
+  } @else if (adoption && patient) {
+    <form
+      [formGroup]="form"
+      (ngSubmit)="save()"
+      novalidate
+      class="overflow-hidden rounded-[24px] border border-border bg-card shadow-sm"
+    >
+      <div class="flex flex-col gap-8 p-8">
+          <section class="grid gap-4">
+            <div class="flex items-start gap-4">
+              <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-white shadow-sm">
+                <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M5 12h14"></path>
+                  <path d="M12 5v14"></path>
+                </svg>
+              </div>
+              <div class="flex flex-col gap-2">
+                <h1 class="text-[28px] font-bold text-text-primary">Editar adopcion</h1>
+                <p class="text-sm leading-6 text-text-secondary">
+                  Actualiza la historia, requisitos, notas e imagen del paciente asociado.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section class="grid gap-4">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Imagen del paciente</h3>
+
+            <div class="grid gap-3 rounded-2xl border border-dashed border-border bg-background/50 p-4">
+              <div class="flex items-center justify-between gap-4">
+                <div class="flex flex-col gap-1">
+                  <span class="text-sm font-semibold text-text-primary">Foto de la mascota</span>
+                  <p class="text-xs text-text-secondary">JPG, PNG o WEBP. Se optimiza antes del envio y se limita a 5 MB.</p>
+                </div>
+                <input
+                  #petImageInput
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  class="hidden"
+                  (change)="onImageSelected($event)"
+                />
+                <button
+                  type="button"
+                  (click)="petImageInput.click()"
+                  class="rounded-xl border border-border bg-white px-4 py-2 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background"
+                >
+                  {{ hasPendingImage() || patient.image ? 'Cambiar imagen' : 'Subir imagen' }}
+                </button>
+              </div>
+
+              <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div class="pet-image-preview">
+                  @if (displayImageUrl(); as previewUrl) {
+                    <img
+                      [src]="previewUrl"
+                      [alt]="displayImageName() || patient.name"
+                      class="h-full w-full object-cover"
+                    />
+                  } @else {
+                    <span class="text-2xl font-bold uppercase text-brand">{{ getInitials(patient.name) }}</span>
+                  }
+                </div>
+
+                <div class="flex min-w-0 flex-1 flex-col gap-1">
+                  <span class="text-sm font-semibold text-text-primary">{{ displayImageName() || 'Sin imagen seleccionada' }}</span>
+                  <span class="text-xs text-text-secondary">{{ displayImageSizeLabel() || 'La imagen se convierte y comprime para mejorar velocidad y cache.' }}</span>
+                  @if (imageSelectionError) {
+                    <span class="text-xs font-medium text-red-600">{{ imageSelectionError }}</span>
+                  }
+                </div>
+
+                @if (hasPendingImage()) {
+                  <button
+                    type="button"
+                    (click)="clearImageSelection(petImageInput)"
+                    class="self-start rounded-xl px-3 py-2 text-xs font-bold text-text-secondary transition-all hover:bg-white"
+                  >
+                    Descartar cambio
+                  </button>
+                }
+              </div>
+            </div>
+          </section>
+
+          <div class="h-px bg-border"></div>
+
+          <section class="grid gap-4">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Detalles de adopcion</h3>
+
+            <div class="grid gap-4">
+              <div class="grid gap-4 md:grid-cols-2">
+                <div class="flex flex-col gap-2">
+                  <label class="text-sm font-semibold text-text-primary">
+                    Telefono de contacto
+                  </label>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                    <input
+                      matInput
+                      formControlName="contactPhone"
+                      type="text"
+                      [attr.maxlength]="contactPhoneMaxLength"
+                      placeholder="0999999999"
+                      class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                    />
+                    @if (shouldShowError('contactPhone') && form.controls.contactPhone.hasError('required')) {
+                      <mat-error>Ingresa un telefono de contacto.</mat-error>
+                    } @else if (shouldShowError('contactPhone') && form.controls.contactPhone.hasError('maxlength')) {
+                      <mat-error>El telefono no puede superar los {{ contactPhoneMaxLength }} caracteres.</mat-error>
+                    }
+                    <mat-hint align="end">{{ form.controls.contactPhone.value.length }}/{{ contactPhoneMaxLength }}</mat-hint>
+                  </mat-form-field>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <label class="text-sm font-semibold text-text-primary">
+                    Nombre de contacto <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span>
+                  </label>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                    <input
+                      matInput
+                      formControlName="contactName"
+                      type="text"
+                      [attr.maxlength]="contactNameMaxLength"
+                      placeholder="Fundacion PetSafe"
+                      class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                    />
+                    @if (shouldShowError('contactName') && form.controls.contactName.hasError('maxlength')) {
+                      <mat-error>El nombre no puede superar los {{ contactNameMaxLength }} caracteres.</mat-error>
+                    }
+                    <mat-hint align="end">{{ form.controls.contactName.value.length }}/{{ contactNameMaxLength }}</mat-hint>
+                  </mat-form-field>
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-text-primary">
+                  Correo de contacto <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span>
+                </label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                  <input
+                    matInput
+                    formControlName="contactEmail"
+                    type="email"
+                    [attr.maxlength]="contactEmailMaxLength"
+                    placeholder="adopciones@petsafe.com"
+                    class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                  />
+                  @if (shouldShowError('contactEmail') && form.controls.contactEmail.hasError('email')) {
+                    <mat-error>Ingresa un correo valido.</mat-error>
+                  } @else if (shouldShowError('contactEmail') && form.controls.contactEmail.hasError('maxlength')) {
+                    <mat-error>El correo no puede superar los {{ contactEmailMaxLength }} caracteres.</mat-error>
+                  }
+                  <mat-hint align="end">{{ form.controls.contactEmail.value.length }}/{{ contactEmailMaxLength }}</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <div class="flex flex-col gap-3">
+                <label class="text-sm font-semibold text-text-primary">
+                  Tags <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span>
+                </label>
+
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                  <input
+                    matInput
+                    type="text"
+                    [value]="tagSearchValue"
+                    (input)="onTagSearchInput($any($event.target).value)"
+                    [matAutocomplete]="tagsAuto"
+                    placeholder="Buscar tag"
+                    autocomplete="off"
+                    class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                  />
+                </mat-form-field>
+
+                @if (selectedTags.length > 0) {
+                  <div class="flex flex-wrap gap-2">
+                    @for (tag of selectedTags; track tag.id) {
+                      <span class="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-bold text-text-primary shadow-sm">
+                        {{ tag.name }}
+                        <button
+                          type="button"
+                          (click)="removeTag(tag.id)"
+                          class="inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded-full text-text-secondary transition-all hover:bg-background hover:text-text-primary"
+                          [attr.aria-label]="'Quitar tag ' + tag.name"
+                        >
+                          <svg viewBox="0 0 24 24" class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 6l12 12M18 6 6 18"></path>
+                          </svg>
+                        </button>
+                      </span>
+                    }
+                  </div>
+                }
+
+                <mat-autocomplete #tagsAuto="matAutocomplete" autoActiveFirstOption>
+                  @for (tag of tagResults; track tag.id) {
+                    <mat-option [value]="tag.name" (onSelectionChange)="onTagOptionSelection($event.isUserInput, tag)">
+                      {{ tag.name }}
+                    </mat-option>
+                  }
+                  @if (isLoadingTags) {
+                    <mat-option disabled>Buscando tags...</mat-option>
+                  } @else if (tagSearchValue.trim() && tagResults.length === 0) {
+                    <mat-option disabled>No se encontraron resultados</mat-option>
+                  }
+                  @if (shouldShowCreateTagOption()) {
+                    <mat-option [value]="tagSearchValue.trim()" (onSelectionChange)="onCreateTagOptionSelection($event.isUserInput)">
+                      Crear: "{{ tagSearchValue.trim() }}"
+                    </mat-option>
+                  }
+                </mat-autocomplete>
+
+                @if (tagError) {
+                  <span class="text-xs font-medium text-red-600">{{ tagError }}</span>
+                }
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-text-primary">
+                  Historia <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span>
+                </label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                  <textarea
+                    matInput
+                    formControlName="story"
+                    rows="5"
+                    [attr.maxlength]="storyMaxLength"
+                    placeholder="Contexto de rescate, comportamiento o situacion actual."
+                    class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                  ></textarea>
+                  <mat-hint align="end">{{ form.controls.story.value.length }}/{{ storyMaxLength }}</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-text-primary">
+                  Requisitos <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span>
+                </label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                  <textarea
+                    matInput
+                    formControlName="requirements"
+                    rows="4"
+                    [attr.maxlength]="requirementsMaxLength"
+                    placeholder="Ej. casa con patio, seguimiento veterinario o experiencia previa."
+                    class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                  ></textarea>
+                  <mat-hint align="end">{{ form.controls.requirements.value.length }}/{{ requirementsMaxLength }}</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-text-primary">
+                  Notas internas <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span>
+                </label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                  <textarea
+                    matInput
+                    formControlName="notes"
+                    rows="4"
+                    [attr.maxlength]="notesMaxLength"
+                    placeholder="Observaciones operativas para el seguimiento del proceso."
+                    class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                  ></textarea>
+                  <mat-hint align="end">{{ form.controls.notes.value.length }}/{{ notesMaxLength }}</mat-hint>
+                </mat-form-field>
+              </div>
+            </div>
+          </section>
+      </div>
+
+      <div class="border-t border-border bg-white/95 px-8 py-5 backdrop-blur">
+        <div class="flex items-center justify-end gap-3">
+          @if (submitError) {
+            <div class="mr-auto rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">
+              {{ submitError }}
+            </div>
+          }
+          <a
+            routerLink="/adoption"
+            class="cursor-pointer rounded-xl px-5 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-background"
+          >
+            Cancelar
+          </a>
+          <button
+            type="submit"
+            [disabled]="isSaving"
+            class="cursor-pointer rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {{ isSaving ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  }
+</div>
