@@ -176,6 +176,33 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'adoption/new',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/adoptions/create/adoption-create-page.component').then(
+            (m) => m.AdoptionCreatePageComponent,
+          ),
+      },
+      {
+        path: 'adoption/new/pet',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/adoptions/create/adoption-pet-create-page.component').then(
+            (m) => m.AdoptionPetCreatePageComponent,
+          ),
+      },
+      {
+        path: 'adoption/:id/edit',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/adoptions/edit/adoption-edit-page.component').then(
+            (m) => m.AdoptionEditPageComponent,
+          ),
+      },
+      {
         path: 'reports',
         canActivate: [authGuard],
         data: { roles: staffRoles },

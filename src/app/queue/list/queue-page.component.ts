@@ -250,6 +250,14 @@ export class QueuePageComponent implements OnInit {
     return `${firstInitial}${secondInitial}`.trim().toUpperCase() || 'Q';
   }
 
+  protected patientImageUrl(entry: QueueEntryRecord): string | null {
+    return entry.patient.image?.url ?? null;
+  }
+
+  protected patientImageAlt(entry: QueueEntryRecord): string {
+    return `Foto de ${entry.patient.name}`;
+  }
+
   protected isSelected(entry: QueueEntryRecord): boolean {
     return this.selectedEntryId === entry.id;
   }

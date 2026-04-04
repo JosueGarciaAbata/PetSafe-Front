@@ -6,7 +6,31 @@
         Consulta los pacientes disponibles o en proceso dentro del modulo de adopcion
       </p>
     </header>
+
+    <button
+      type="button"
+      (click)="openCreatePage()"
+      class="inline-flex cursor-pointer items-center gap-2 self-start rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 md:self-auto"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        class="h-[18px] w-[18px]"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.4"
+        stroke-linecap="round"
+      >
+        <path d="M12 5v14M5 12h14"></path>
+      </svg>
+      <span>Nueva adopcion</span>
+    </button>
   </div>
+
+  @if (successMessage) {
+    <div class="rounded-xl border border-[#A7F3D0] bg-[#ECFDF5] px-4 py-3 text-sm text-[#065F46]">
+      {{ successMessage }}
+    </div>
+  }
 
   <div class="max-w-[540px]">
     <div class="group relative">
@@ -51,19 +75,22 @@
             <th class="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
               Observaciones
             </th>
+            <th class="px-8 py-5 text-right text-xs font-bold uppercase tracking-wider text-text-secondary">
+              Acciones
+            </th>
           </tr>
         </thead>
 
         <tbody class="divide-y divide-border">
           @if (isLoading && adoptions.length === 0) {
             <tr>
-              <td colspan="4" class="px-8 py-16 text-center text-sm text-text-secondary">
+              <td colspan="5" class="px-8 py-16 text-center text-sm text-text-secondary">
                 Cargando adopciones...
               </td>
             </tr>
           } @else if (loadError) {
             <tr>
-              <td colspan="4" class="px-8 py-16">
+              <td colspan="5" class="px-8 py-16">
                 <div class="flex flex-col items-center gap-3 text-center">
                   <p class="text-sm font-semibold text-text-primary">{{ loadError }}</p>
                   <button
@@ -78,13 +105,16 @@
             </tr>
           } @else if (adoptions.length === 0) {
             <tr>
-              <td colspan="4" class="px-8 py-16 text-center text-sm text-text-secondary">
+              <td colspan="5" class="px-8 py-16 text-center text-sm text-text-secondary">
                 No se encontraron pacientes en adopcion.
               </td>
             </tr>
           } @else {
             @for (adoption of adoptions; track adoption.id) {
-              <tr class="bg-white transition-colors hover:bg-[#F8FAFC]">
+              <tr
+                class="cursor-pointer bg-white transition-colors hover:bg-[#F8FAFC]"
+                (click)="openEditPage(adoption.id)"
+              >
                 <td class="px-8 py-6">
                   <div class="flex items-center gap-4">
                     <div
@@ -131,6 +161,27 @@
                   <p class="max-w-[320px] text-sm text-text-secondary">
                     {{ buildNotesPreview(adoption) }}
                   </p>
+                </td>
+
+                <td class="px-8 py-6 text-right">
+                  <button
+                    type="button"
+                    (click)="$event.stopPropagation(); openEditPage(adoption.id)"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#F1F5F9] text-text-secondary transition-all hover:bg-active-soft hover:text-brand"
+                    aria-label="Editar adopcion"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="h-4.5 w-4.5"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="m9 6 6 6-6 6"></path>
+                    </svg>
+                  </button>
                 </td>
               </tr>
             }

@@ -1,3 +1,4 @@
+import { PetImageApiResponse } from '@app/pets/models/pet-image.model';
 import { PaginationMeta } from '@app/shared/pagination/pagination.model';
 
 export type QueueEntryType = 'CON_CITA' | 'SIN_CITA' | 'EMERGENCIA';
@@ -18,6 +19,7 @@ export interface QueuePatientSummary {
   breed: string;
   tutorName: string;
   tutorPhone: string;
+  image: PetImageApiResponse | null;
 }
 
 export interface QueueEntryRecord {
