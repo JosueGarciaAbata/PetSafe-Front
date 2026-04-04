@@ -214,11 +214,9 @@ export const routes: Routes = [
       {
         path: 'settings',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () =>
-          import('@app/internal-section-page/internal-section-page.component').then(
-            (m) => m.InternalSectionPageComponent,
-          ),
+          import('@app/settings/settings-page.component').then((m) => m.SettingsPageComponent),
       },
       {
         path: '',

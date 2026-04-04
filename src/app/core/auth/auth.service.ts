@@ -1,15 +1,13 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { jwtDecode } from 'jwt-decode';
-import {
-  AuthJwtPayload,
-  AuthLoginResponse,
-  AuthStoredUser,
-} from './auth.model';
+import { AuthJwtPayload, AuthLoginResponse, AuthStoredUser } from './auth.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private static readonly accessTokenKey = 'petsafe.auth.access-token';
   private static readonly userKey = 'petsafe.auth.user';
+
+  readonly user = signal<AuthStoredUser | null>(this.readStoredUser());
 
   getToken(): string | null {
     return localStorage.getItem(AuthService.accessTokenKey);
@@ -31,6 +29,7 @@ export class AuthService {
 
   saveUser(user: AuthStoredUser): void {
     localStorage.setItem(AuthService.userKey, JSON.stringify(user));
+    this.user.set(user);
   }
 
   saveSession(session: AuthLoginResponse): void {
@@ -45,6 +44,7 @@ export class AuthService {
   clearSession(): void {
     localStorage.removeItem(AuthService.accessTokenKey);
     localStorage.removeItem(AuthService.userKey);
+    this.user.set(null);
   }
 
   hasToken(): boolean {
@@ -61,48 +61,7 @@ export class AuthService {
   }
 
   getUser(): AuthStoredUser | null {
-    const storedUser = localStorage.getItem(AuthService.userKey);
-
-    if (!storedUser) {
-      return null;
-    }
-
-    try {
-      const parsedUser = JSON.parse(storedUser) as Record<string, unknown>;
-
-      if (!parsedUser || typeof parsedUser !== 'object') {
-        return null;
-      }
-
-      const id = parsedUser['id'];
-      const correo = parsedUser['correo'] ?? parsedUser['email'];
-      const nombres = parsedUser['nombres'] ?? parsedUser['firstName'];
-      const apellidos = parsedUser['apellidos'] ?? parsedUser['lastName'];
-      const roles = parsedUser['roles'];
-      const isVet = parsedUser['isVet'];
-
-      if (
-        (typeof id !== 'string' && typeof id !== 'number') ||
-        typeof correo !== 'string' ||
-        typeof nombres !== 'string' ||
-        typeof apellidos !== 'string' ||
-        !Array.isArray(roles) ||
-        typeof isVet !== 'boolean'
-      ) {
-        return null;
-      }
-
-      return {
-        id: String(id),
-        correo,
-        nombres,
-        apellidos,
-        roles: roles.filter((value): value is string => typeof value === 'string'),
-        isVet,
-      };
-    } catch {
-      return null;
-    }
+    return this.user();
   }
 
   getRoles(token: string | null = this.getToken()): string[] {
@@ -129,9 +88,58 @@ export class AuthService {
       correo: user.email,
       nombres: user.firstName,
       apellidos: user.lastName,
+      telefono: user.phone?.trim() ?? '',
       roles: user.roles,
       isVet: user.isVet,
     };
+  }
+
+  private readStoredUser(): AuthStoredUser | null {
+    const storedUser = localStorage.getItem(AuthService.userKey);
+
+    if (!storedUser) {
+      return null;
+    }
+
+    try {
+      const parsedUser = JSON.parse(storedUser) as Record<string, unknown>;
+
+      if (!parsedUser || typeof parsedUser !== 'object') {
+        return null;
+      }
+
+      const id = parsedUser['id'];
+      const correo = parsedUser['correo'] ?? parsedUser['email'];
+      const nombres = parsedUser['nombres'] ?? parsedUser['firstName'];
+      const apellidos = parsedUser['apellidos'] ?? parsedUser['lastName'];
+      const telefono = parsedUser['telefono'] ?? parsedUser['phone'] ?? '';
+      const roles = parsedUser['roles'];
+      const isVet = parsedUser['isVet'];
+
+      if (
+        (typeof id !== 'string' && typeof id !== 'number') ||
+        typeof correo !== 'string' ||
+        typeof nombres !== 'string' ||
+        typeof apellidos !== 'string' ||
+        typeof telefono !== 'string' ||
+        !Array.isArray(roles) ||
+        typeof isVet !== 'boolean'
+      ) {
+        return null;
+      }
+
+      return {
+        id: String(id),
+        correo,
+        nombres,
+        apellidos,
+        telefono,
+        roles: roles.filter((value): value is string => typeof value === 'string'),
+        isVet,
+      };
+    } catch {
+      return null;
+    }
   }
 
   private decodeToken(token: string | null): AuthJwtPayload | null {
