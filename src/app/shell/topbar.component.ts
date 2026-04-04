@@ -42,6 +42,11 @@ export class TopBarComponent {
     this.isUserMenuOpen = !this.isUserMenuOpen;
   }
 
+  protected openSettings(): void {
+    this.isUserMenuOpen = false;
+    void this.router.navigateByUrl('/settings');
+  }
+
   protected logout(): void {
     this.isUserMenuOpen = false;
     this.authService.clearSession();

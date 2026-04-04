@@ -62,12 +62,22 @@
 
             <button
               type="button"
+              (click)="openSettings()"
+              class="mt-2 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-text-primary transition-colors hover:bg-background"
+              role="menuitem"
+            >
+              <app-shell-icon name="settings" [size]="18"></app-shell-icon>
+              <span>Configuracion</span>
+            </button>
+
+            <button
+              type="button"
               (click)="logout()"
-              class="mt-2 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+              class="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
               role="menuitem"
             >
               <app-shell-icon name="logout" [size]="18"></app-shell-icon>
-              <span>Cerrar sesión</span>
+              <span>Cerrar sesion</span>
             </button>
           </div>
         }
