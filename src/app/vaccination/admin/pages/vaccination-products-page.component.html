@@ -1,0 +1,201 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-8 pb-12">
+  <header class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+    <div class="flex flex-col gap-1">
+      <p class="text-sm font-semibold uppercase tracking-[0.24em] text-brand/70">Vacunacion</p>
+      <h1 class="text-[28px] font-bold text-text-primary">Productos biologicos</h1>
+      <p class="text-base text-text-secondary">
+        Gestiona el catalogo activo de vacunas por especie.
+      </p>
+    </div>
+
+    @if (canManageProducts()) {
+      <button
+        type="button"
+        (click)="openCreateModal()"
+        class="inline-flex cursor-pointer items-center gap-2 self-start rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 md:self-auto"
+      >
+        <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+          <path d="M12 5v14M5 12h14"></path>
+        </svg>
+        <span>Nuevo producto</span>
+      </button>
+    }
+  </header>
+
+  <div class="max-w-[520px]">
+    <div class="group relative">
+      <div class="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary transition-colors group-focus-within:text-brand">
+        <app-shell-icon name="search" [size]="18"></app-shell-icon>
+      </div>
+      <input
+        type="text"
+        [(ngModel)]="filter.term"
+        (ngModelChange)="onFilterTermChange()"
+        name="productsSearch"
+        placeholder="Buscar por nombre, especie o tipo"
+        class="h-12 w-full rounded-xl border border-border bg-white pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+      />
+    </div>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-2">
+    <button
+      type="button"
+      (click)="setStatusFilter('ALL')"
+      class="rounded-full px-4 py-2 text-xs font-bold transition-all"
+      [class.bg-primary]="filter.status === 'ALL'"
+      [class.text-white]="filter.status === 'ALL'"
+      [class.bg-white]="filter.status !== 'ALL'"
+      [class.text-text-secondary]="filter.status !== 'ALL'"
+      [class.border]="filter.status !== 'ALL'"
+      [class.border-border]="filter.status !== 'ALL'"
+    >
+      Todos
+    </button>
+    <button
+      type="button"
+      (click)="setStatusFilter('ACTIVE')"
+      class="rounded-full px-4 py-2 text-xs font-bold transition-all"
+      [class.bg-[#ecfdf3]]="filter.status === 'ACTIVE'"
+      [class.text-[#166534]]="filter.status === 'ACTIVE'"
+      [class.bg-white]="filter.status !== 'ACTIVE'"
+      [class.text-text-secondary]="filter.status !== 'ACTIVE'"
+      [class.border]="filter.status !== 'ACTIVE'"
+      [class.border-border]="filter.status !== 'ACTIVE'"
+    >
+      Activos
+    </button>
+    <button
+      type="button"
+      (click)="setStatusFilter('INACTIVE')"
+      class="rounded-full px-4 py-2 text-xs font-bold transition-all"
+      [class.bg-[#fff7ed]]="filter.status === 'INACTIVE'"
+      [class.text-[#c2410c]]="filter.status === 'INACTIVE'"
+      [class.bg-white]="filter.status !== 'INACTIVE'"
+      [class.text-text-secondary]="filter.status !== 'INACTIVE'"
+      [class.border]="filter.status !== 'INACTIVE'"
+      [class.border-border]="filter.status !== 'INACTIVE'"
+    >
+      Inactivos
+    </button>
+  </div>
+
+  <section class="overflow-hidden rounded-[16px] border border-border bg-card shadow-sm">
+    @if (isLoading) {
+      <div class="px-8 py-16 text-center text-sm text-text-secondary">
+        Cargando productos vacunales...
+      </div>
+    } @else if (loadError) {
+      <div class="px-8 py-16 text-center text-sm text-text-secondary">
+        {{ loadError }}
+      </div>
+    } @else if (visibleProducts().length === 0) {
+      <div class="px-8 py-16 text-center text-sm text-text-secondary">
+        No se encontraron productos.
+      </div>
+    } @else {
+      <div class="flex flex-col gap-6 px-6 py-6">
+        @for (group of pagedProductsBySpecies(); track group.speciesId) {
+          <section class="rounded-[20px] border border-border bg-[#FCFDFD] p-4">
+            <div class="mb-3 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eff6ff] text-primary">
+                  <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 12c1.5-3 3.5-4.5 5-4.5S15.5 9 17 12"></path>
+                    <path d="M7 12c0 2.5 2.2 4.5 5 4.5s5-2 5-4.5"></path>
+                    <path d="M9.5 8.5c0-1 .7-1.8 1.5-1.8s1.5.8 1.5 1.8"></path>
+                  </svg>
+                </div>
+                <div class="flex flex-col">
+                  <h2 class="text-sm font-bold text-text-primary">{{ group.speciesName }}</h2>
+                  <p class="text-xs text-text-secondary">{{ group.products.length }} producto{{ group.products.length === 1 ? '' : 's' }} en esta página</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              @for (product of group.products; track product.id) {
+                <article class="rounded-[18px] border border-border bg-white p-4 shadow-sm transition hover:border-[#dbeafe] hover:shadow-md">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0 flex-1">
+                      <h3 class="truncate text-sm font-bold text-text-primary">{{ product.name }}</h3>
+                      <p class="mt-1 text-[11px] text-text-secondary">ID {{ product.id }}</p>
+                    </div>
+                  </div>
+
+                  <div class="mt-3 flex flex-wrap items-center gap-2">
+                    <span
+                      class="inline-flex shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em]"
+                      [class]="productTypeClasses(product)"
+                    >
+                      {{ productTypeLabel(product) }}
+                    </span>
+                    <span
+                      class="inline-flex shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em]"
+                      [class]="productStatusClasses(product)"
+                    >
+                      {{ productStatusLabel(product) }}
+                    </span>
+                  </div>
+
+                  <div class="mt-4 flex items-center justify-end gap-2">
+                    @if (canManageProducts()) {
+                      <button
+                        type="button"
+                        (click)="openEditModal(product)"
+                        class="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-[11px] font-semibold text-text-primary transition hover:bg-[#F8FAFC]"
+                      >
+                        <span>Editar</span>
+                      </button>
+                    }
+
+                    @if (canHideProducts()) {
+                      <button
+                        type="button"
+                        (click)="openHideModal(product)"
+                        [disabled]="isHidingId === product.id"
+                        class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-[11px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
+                        [ngClass]="product.isActive
+                          ? 'border border-amber-200 text-amber-700 hover:bg-amber-50'
+                          : 'border border-[#bfdbfe] text-primary hover:bg-[#eff6ff]'"
+                      >
+                        <span>{{ product.isActive ? 'Desactivar' : 'Reactivar' }}</span>
+                      </button>
+                    }
+                  </div>
+                </article>
+              }
+            </div>
+          </section>
+        }
+      </div>
+    }
+
+    @if (!isLoading && !loadError) {
+      <app-pagination
+        [meta]="paginationMeta"
+        itemLabel="productos"
+        (pageChange)="onPageChange($event)"
+      />
+    }
+  </section>
+</div>
+
+<app-vaccination-product-form-modal
+  [open]="isModalOpen"
+  [speciesOptions]="speciesOptions"
+  [product]="editingProduct"
+  [isSaving]="isSaving"
+  [errorMessage]="modalError"
+  (closed)="closeModal()"
+  (saved)="saveProduct($event)"
+/>
+
+<app-vaccination-product-hide-modal
+  [open]="hideTarget !== null"
+  [productName]="hideTarget?.name || ''"
+  [isActive]="hideTarget?.isActive ?? true"
+  [isSaving]="isHidingId !== null"
+  (closed)="closeHideModal()"
+  (confirmed)="toggleProductStatus()"
+/>

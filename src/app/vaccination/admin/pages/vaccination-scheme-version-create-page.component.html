@@ -1,0 +1,209 @@
+<div class="flex w-full flex-col gap-6 pb-12">
+  <button
+    type="button"
+    (click)="goBack()"
+    class="inline-flex items-center gap-2 self-start text-sm font-medium text-text-secondary transition-colors hover:text-brand"
+  >
+    <app-shell-icon name="arrowLeft" [size]="16"></app-shell-icon>
+    <span>Volver al esquema</span>
+  </button>
+
+  @if (errorMessage && !scheme && !isLoading) {
+    <div class="rounded-[16px] border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+      {{ errorMessage }}
+    </div>
+  } @else if (isLoading || !scheme) {
+    <div class="rounded-[16px] border border-border bg-card p-8 text-sm text-text-secondary shadow-sm">
+      Cargando esquema...
+    </div>
+  } @else {
+    <header class="flex flex-col gap-2">
+      <span class="text-xs font-bold uppercase tracking-[0.24em] text-primary">Nueva versión</span>
+      <h1 class="text-[28px] font-bold text-text-primary">{{ scheme.name }}</h1>
+      <p class="text-sm leading-6 text-text-secondary">
+        {{ scheme.species.name }} · Construye la siguiente versión del protocolo.
+      </p>
+    </header>
+
+    <section class="rounded-[24px] border border-border bg-card p-6 shadow-sm">
+      <div class="mb-5 rounded-2xl border border-[#dbeafe] bg-[#eff6ff] px-4 py-4">
+        <p class="text-sm font-semibold text-primary">Comportamiento de la nueva versión</p>
+        <p class="mt-1 text-sm leading-6 text-[#35507f]">
+          Una nueva versión siempre nace como vigente y sin fecha de cierre. Si este esquema ya tiene una versión vigente,
+          el sistema la moverá automáticamente a reemplazado y cerrará su vigencia el día anterior.
+        </p>
+      </div>
+
+      @if (availableBaseVersions().length > 0) {
+        <div class="mb-5 rounded-2xl border border-border bg-background/60 px-4 py-4">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div class="flex flex-col gap-1">
+              <p class="text-sm font-semibold text-text-primary">Crear a partir de una versión anterior</p>
+              <p class="text-sm leading-6 text-text-secondary">
+                Puedes usar una versión previa como base y luego ajustar dosis, intervalos o notas antes de guardar.
+              </p>
+            </div>
+
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="min-w-[240px]">
+                <mat-label>Versión base</mat-label>
+                <mat-select [(ngModel)]="baseVersionId" name="baseVersionId">
+                  @for (baseVersion of availableBaseVersions(); track baseVersion.id) {
+                    <mat-option [value]="baseVersion.id">
+                      Versión {{ baseVersion.version }} · {{ baseVersion.status }}
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <button
+                type="button"
+                (click)="applyBaseVersion()"
+                class="inline-flex h-12 items-center justify-center rounded-xl border border-border bg-white px-4 text-sm font-semibold text-text-primary transition hover:bg-[#F8FAFC]"
+              >
+                Usar como base
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+          <mat-label>Versión</mat-label>
+          <input matInput [(ngModel)]="version" name="versionNumber" type="number" min="1" class="text-sm text-text-primary" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+          <mat-label>Vigente desde</mat-label>
+          <input matInput [(ngModel)]="validFrom" name="versionValidFrom" type="date" class="text-sm text-text-primary" />
+          <mat-hint>No puede ser futura. La vigencia final la administra el sistema.</mat-hint>
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+          <mat-label>Intervalo general</mat-label>
+          <input matInput [(ngModel)]="generalIntervalDays" name="versionGeneralInterval" type="number" min="0" class="text-sm text-text-primary" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+          <mat-label>Revacunación</mat-label>
+          <input matInput [(ngModel)]="revaccinationRule" name="versionRevaccinationRule" type="text" placeholder="Ej. anual" class="text-sm text-text-primary" />
+        </mat-form-field>
+      </div>
+
+      <div class="mt-4 flex flex-col gap-2">
+        <label class="text-sm font-semibold text-text-primary">Motivo del cambio</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+          <textarea matInput [(ngModel)]="changeReason" name="versionChangeReason" rows="2" placeholder="Describe el ajuste clínico u operativo" class="text-sm text-text-primary placeholder:text-text-secondary/50"></textarea>
+        </mat-form-field>
+      </div>
+
+      <section class="mt-4 rounded-[16px] border border-border bg-background/50 p-4">
+        <div class="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <h3 class="text-sm font-bold text-text-primary">Dosis de la versión</h3>
+            <p class="text-xs text-text-secondary">Selecciona productos activos de la especie.</p>
+          </div>
+          <button type="button" (click)="addDose()" class="rounded-xl border border-border bg-white px-3 py-2 text-xs font-semibold text-text-primary transition hover:bg-[#F8FAFC]">
+            + Agregar dosis
+          </button>
+        </div>
+
+        <div cdkDropList class="space-y-4" (cdkDropListDropped)="reorderDoses($event)">
+          @for (dose of doses; track $index; let doseIndex = $index) {
+            <div cdkDrag class="rounded-2xl border border-border bg-white p-4 shadow-sm transition-[transform,border-color,box-shadow] duration-200 hover:border-[#dbeafe]">
+              <div class="mb-3 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <button
+                    type="button"
+                    cdkDragHandle
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-background text-text-secondary transition hover:bg-white hover:text-text-primary"
+                    aria-label="Reordenar dosis"
+                  >
+                    <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                      <path d="M9 6h.01M9 12h.01M9 18h.01M15 6h.01M15 12h.01M15 18h.01"></path>
+                    </svg>
+                  </button>
+                  <div class="flex flex-col">
+                    <span class="text-sm font-bold text-text-primary">Dosis {{ doseIndex + 1 }}</span>
+                    <span class="text-xs text-text-secondary">Arrastra para reorganizar el orden</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    (click)="duplicateDose(doseIndex)"
+                    class="inline-flex items-center gap-1 rounded-xl border border-border px-3 py-2 text-xs font-semibold text-text-primary transition hover:bg-[#F8FAFC]"
+                  >
+                    Duplicar dosis
+                  </button>
+                  @if (doses.length > 1) {
+                    <button type="button" (click)="removeDose(doseIndex)" class="text-xs font-semibold text-red-600 transition hover:text-red-700">Quitar</button>
+                  }
+                </div>
+              </div>
+
+              <div class="grid gap-3">
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+                  <input
+                    matInput
+                    type="text"
+                    [ngModel]="dose.vaccineSearch"
+                    [ngModelOptions]="{ standalone: true }"
+                    (ngModelChange)="onDoseVaccineChanged(doseIndex, $event)"
+                    [matAutocomplete]="doseAuto"
+                    placeholder="Buscar vacuna"
+                    autocomplete="off"
+                    class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                  />
+                </mat-form-field>
+
+                <mat-autocomplete #doseAuto="matAutocomplete" autoActiveFirstOption>
+                  @for (product of filteredProducts(dose.vaccineSearch); track product.id) {
+                    <mat-option [value]="product.name" (onSelectionChange)="onDoseVaccineSelected(doseIndex, $event.isUserInput, product)">
+                      {{ product.name }}
+                    </mat-option>
+                  }
+                </mat-autocomplete>
+
+                <div class="grid gap-3 md:grid-cols-3">
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+                    <input matInput [(ngModel)]="dose.ageStartWeeks" [name]="'versionDoseAgeStart' + doseIndex" type="number" min="0" placeholder="Edad inicio (sem)" class="text-sm text-text-primary" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+                    <input matInput [(ngModel)]="dose.ageEndWeeks" [name]="'versionDoseAgeEnd' + doseIndex" type="number" min="0" placeholder="Edad fin (sem)" class="text-sm text-text-primary" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+                    <input matInput [(ngModel)]="dose.intervalDays" [name]="'versionDoseInterval' + doseIndex" type="number" min="0" placeholder="Intervalo (días)" class="text-sm text-text-primary" />
+                  </mat-form-field>
+                </div>
+
+                <div class="rounded-xl border border-border bg-background/60 px-4 py-3">
+                  <mat-checkbox [(ngModel)]="dose.isRequired" [name]="'versionDoseRequired' + doseIndex" class="text-sm text-text-primary">
+                    Dosis obligatoria
+                  </mat-checkbox>
+                </div>
+
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+                  <textarea matInput [(ngModel)]="dose.notes" [name]="'versionDoseNotes' + doseIndex" rows="2" placeholder="Notas clínicas de esta dosis" class="text-sm text-text-primary placeholder:text-text-secondary/50"></textarea>
+                </mat-form-field>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      @if (errorMessage) {
+        <div class="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">
+          {{ errorMessage }}
+        </div>
+      }
+
+      <div class="mt-6 flex items-center justify-end gap-3">
+        <button type="button" (click)="goBack()" [disabled]="isSaving" class="cursor-pointer rounded-xl px-5 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-background disabled:cursor-not-allowed disabled:opacity-60">
+          Cancelar
+        </button>
+        <button type="button" (click)="save()" [disabled]="isSaving" class="cursor-pointer rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70">
+          {{ isSaving ? 'Guardando...' : 'Crear versión' }}
+        </button>
+      </div>
+    </section>
+  }
+</div>

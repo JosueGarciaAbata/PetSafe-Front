@@ -8,6 +8,7 @@ import {
   Output,
   inject,
 } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule, FormControl, FormGroupDirective, NgForm } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { ErrorStateMatcher } from '@angular/material/core';
@@ -16,6 +17,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { firstValueFrom } from 'rxjs';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
+import { AppToastService } from '@app/core/ui/app-toast.service';
+import { VaccinationAdminApiService } from '@app/vaccination/admin/api/vaccination-admin-api.service';
+import {
+  VaccinationScheme,
+  VaccinationSchemeVersion,
+} from '@app/vaccination/admin/models/vaccination-admin.model';
 import { ColorApiResponse } from '../models/color.model';
 import { PetBasicDetailApiResponse } from '../models/pet-detail.model';
 import { PetImageUploadValue } from '../models/pet-image.model';
@@ -37,6 +44,7 @@ import {
   SpeciesBreedApiResponse,
 } from '../models/species.model';
 import { UpdatePetBasicRequest } from '../models/update-pet-basic.model';
+import { PatientVaccinationApiService } from '../vaccination/services/patient-vaccination-api.service';
 import { ColorsApiService } from '../services/colors-api.service';
 import { PetImageUploadService } from '../services/pet-image-upload.service';
 import { PetsApiService } from '../services/pets-api.service';
@@ -75,10 +83,14 @@ export class EditPetModalComponent implements OnDestroy {
   private readonly petImageUploadService = inject(PetImageUploadService);
   private readonly petsApi = inject(PetsApiService);
   private readonly speciesApi = inject(SpeciesApiService);
+  private readonly vaccinationAdminApi = inject(VaccinationAdminApiService);
+  private readonly patientVaccinationApi = inject(PatientVaccinationApiService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly toast = inject(AppToastService);
   private readonly speciesPageSize = 20;
   private readonly colorsPageSize = 20;
   private speciesRequestVersion = 0;
+  private vaccinationSchemeRequestVersion = 0;
   private colorRequestVersion = 0;
   private colorCreateVersion = 0;
   private speciesSearchTimer?: ReturnType<typeof setTimeout>;
@@ -98,6 +110,9 @@ export class EditPetModalComponent implements OnDestroy {
   );
   protected readonly speciesErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
     this.isSpeciesInvalid(),
+  );
+  protected readonly vaccinationSchemeErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
+    this.isVaccinationSchemeInvalid(),
   );
   protected readonly breedErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
     this.isBreedInvalid(),
@@ -120,6 +135,7 @@ export class EditPetModalComponent implements OnDestroy {
 
   protected name = '';
   protected speciesValue = '';
+  protected vaccinationSchemeValue = '';
   protected breedId: number | null = null;
   protected birthDate = '';
   protected weightKg = '';
@@ -130,6 +146,11 @@ export class EditPetModalComponent implements OnDestroy {
   protected editSterilized: EditPetSterilized = 'No';
   protected species: SpeciesApiResponse[] = [];
   protected isSpeciesLoading = false;
+  protected vaccinationSchemes: VaccinationScheme[] = [];
+  protected selectedVaccinationScheme: VaccinationScheme | null = null;
+  protected isVaccinationSchemesLoading = false;
+  protected currentVaccinationSchemeId: number | null = null;
+  protected vaccinationPlanLoadError: string | null = null;
   protected colors: ColorApiResponse[] = [];
   protected selectedColor: ColorApiResponse | null = null;
   protected isColorsLoading = false;
@@ -175,9 +196,11 @@ export class EditPetModalComponent implements OnDestroy {
     this.hasTouchedSpecies = false;
     this.submitError = null;
     this.colorCreateError = null;
+    this.vaccinationPlanLoadError = null;
     this.imageSelectionError = null;
     this.clearSelectedImage();
     void this.loadSpecies(this.speciesValue);
+    void this.loadVaccinationPlanContext(value.id, value.species?.id ?? null);
     void this.loadColors(this.colorValue);
   }
 
@@ -210,6 +233,7 @@ export class EditPetModalComponent implements OnDestroy {
     const payload = this.buildPayload();
 
     if (!payload) {
+      this.toast.info('Revisa los datos obligatorios de la mascota.');
       this.cdr.detectChanges();
       return;
     }
@@ -219,11 +243,19 @@ export class EditPetModalComponent implements OnDestroy {
     this.isSaving = true;
     this.cdr.detectChanges();
 
+    let basicUpdateCompleted = false;
+
     try {
       await firstValueFrom(this.petsApi.updateBasic(this.pet.id, payload));
+      basicUpdateCompleted = true;
+      await this.applyVaccinationSchemeChangeIfNeeded(payload.speciesId);
+      this.toast.success('Mascota actualizada correctamente.');
       this.saved.emit();
     } catch (error: unknown) {
-      this.submitError = this.resolveErrorMessage(error);
+      this.submitError = basicUpdateCompleted
+        ? this.resolveVaccinationSchemeOperationError(error)
+        : this.resolveErrorMessage(error);
+      this.toast.error(this.submitError);
     } finally {
       this.isSaving = false;
       this.cdr.detectChanges();
@@ -299,6 +331,24 @@ export class EditPetModalComponent implements OnDestroy {
     return this.resolveSpeciesByName(this.speciesValue)?.breeds ?? [];
   }
 
+  protected vaccinationSchemeOptions(): VaccinationScheme[] {
+    const searchTerm = this.vaccinationSchemeValue.trim().toLocaleLowerCase();
+    if (!searchTerm) {
+      return this.vaccinationSchemes;
+    }
+
+    return this.vaccinationSchemes.filter((scheme) => {
+      const description = scheme.description?.toLocaleLowerCase() ?? '';
+      const version = this.resolveUsableSchemeVersion(scheme);
+
+      return (
+        scheme.name.toLocaleLowerCase().includes(searchTerm)
+        || description.includes(searchTerm)
+        || String(version?.version ?? '').includes(searchTerm)
+      );
+    });
+  }
+
   protected isBreedDisabled(): boolean {
     return this.breedOptions().length === 0;
   }
@@ -311,6 +361,34 @@ export class EditPetModalComponent implements OnDestroy {
     return this.breedOptions().length > 0
       ? 'Selecciona una raza'
       : 'Sin razas disponibles';
+  }
+
+  protected vaccinationSchemePlaceholder(): string {
+    if (!this.hasSelectedSpecies()) {
+      return 'Selecciona una especie primero';
+    }
+
+    if (this.isVaccinationSchemesLoading) {
+      return 'Buscando esquemas...';
+    }
+
+    if (this.vaccinationSchemes.length === 0) {
+      return 'No hay esquemas utilizables para esta especie';
+    }
+
+    return 'Buscar esquema vacunal';
+  }
+
+  protected hasSelectedSpecies(): boolean {
+    return this.resolveSpeciesByName(this.speciesValue) !== null;
+  }
+
+  protected isVaccinationSchemeDisabled(): boolean {
+    return (
+      !this.hasSelectedSpecies()
+      || this.isVaccinationSchemesLoading
+      || this.vaccinationSchemes.length === 0
+    );
   }
 
   protected onSpeciesChanged(value: string): void {
@@ -328,11 +406,17 @@ export class EditPetModalComponent implements OnDestroy {
         this.breedId = null;
       }
 
+      void this.loadVaccinationSchemes(
+        matchedSpecies.id,
+        this.preferredVaccinationSchemeIdForSpecies(matchedSpecies.id),
+      );
       this.clearSpeciesSearchTimer();
       return;
     }
 
     this.breedId = null;
+    this.cancelVaccinationSchemeRequests();
+    this.resetVaccinationSchemes();
     this.scheduleSpeciesSearch();
   }
 
@@ -348,6 +432,57 @@ export class EditPetModalComponent implements OnDestroy {
     ) {
       this.breedId = null;
     }
+
+    if (selected) {
+      void this.loadVaccinationSchemes(
+        selected.id,
+        this.preferredVaccinationSchemeIdForSpecies(selected.id),
+      );
+      return;
+    }
+
+    this.cancelVaccinationSchemeRequests();
+    this.resetVaccinationSchemes();
+  }
+
+  protected onVaccinationSchemeChanged(value: string): void {
+    this.vaccinationSchemeValue = value;
+    this.submitError = null;
+    this.selectedVaccinationScheme =
+      this.vaccinationSchemes.find((scheme) => this.buildVaccinationSchemeLabel(scheme) === value.trim()) ?? null;
+  }
+
+  protected onVaccinationSchemeOptionSelection(
+    isUserInput: boolean,
+    option: VaccinationScheme,
+  ): void {
+    if (!isUserInput) {
+      return;
+    }
+
+    this.selectVaccinationScheme(option);
+  }
+
+  protected buildVaccinationSchemeLabel(option: VaccinationScheme): string {
+    return option.name;
+  }
+
+  protected buildVaccinationSchemeSupportText(option: VaccinationScheme): string {
+    const usableVersion = this.resolveUsableSchemeVersion(option);
+    const versionLabel = usableVersion ? `Version vigente ${usableVersion.version}` : 'Sin version vigente';
+    const description = option.description?.trim();
+    const currentMarker = option.id === this.currentVaccinationSchemeId ? 'Plan actual · ' : '';
+    const base = description ? `${versionLabel} · ${description}` : versionLabel;
+
+    return `${currentMarker}${base}`;
+  }
+
+  protected selectedVaccinationSchemeSupportText(): string | null {
+    if (!this.selectedVaccinationScheme) {
+      return null;
+    }
+
+    return this.buildVaccinationSchemeSupportText(this.selectedVaccinationScheme);
   }
 
   protected colorOptions(): ColorApiResponse[] {
@@ -473,6 +608,14 @@ export class EditPetModalComponent implements OnDestroy {
     );
   }
 
+  protected isVaccinationSchemeInvalid(): boolean {
+    if (!this.hasSelectedSpecies() || this.vaccinationSchemes.length === 0 || this.vaccinationPlanLoadError) {
+      return false;
+    }
+
+    return !this.selectedVaccinationScheme;
+  }
+
   protected isBirthDateInvalid(): boolean {
     return this.birthDate.trim().length > 0 && !isValidPetBirthDate(this.birthDate);
   }
@@ -561,12 +704,24 @@ export class EditPetModalComponent implements OnDestroy {
       ) {
         this.breedId = null;
       }
+
+      if (matchedSpecies) {
+        void this.loadVaccinationSchemes(
+          matchedSpecies.id,
+          this.preferredVaccinationSchemeIdForSpecies(matchedSpecies.id),
+        );
+      } else {
+        this.cancelVaccinationSchemeRequests();
+        this.resetVaccinationSchemes();
+      }
     } catch {
       if (requestToken !== this.speciesRequestVersion) {
         return;
       }
 
       this.species = [];
+      this.cancelVaccinationSchemeRequests();
+      this.resetVaccinationSchemes();
     } finally {
       if (requestToken !== this.speciesRequestVersion) {
         return;
@@ -595,6 +750,155 @@ export class EditPetModalComponent implements OnDestroy {
     }
 
     return species.breeds.find((item) => item.id === breedId) ?? null;
+  }
+
+  private async loadVaccinationPlanContext(
+    patientId: number,
+    speciesId: number | null,
+  ): Promise<void> {
+    this.vaccinationPlanLoadError = null;
+    this.currentVaccinationSchemeId = null;
+    this.cancelVaccinationSchemeRequests();
+    this.resetVaccinationSchemes();
+    this.cdr.detectChanges();
+
+    try {
+      const plan = await firstValueFrom(this.patientVaccinationApi.getPatientPlan(patientId));
+      this.currentVaccinationSchemeId = plan.scheme.id;
+
+      if (speciesId) {
+        await this.loadVaccinationSchemes(speciesId, plan.scheme.id);
+      }
+    } catch (error: unknown) {
+      this.vaccinationPlanLoadError = this.resolveVaccinationPlanLoadMessage(error);
+
+      if (speciesId) {
+        await this.loadVaccinationSchemes(speciesId);
+      } else {
+        this.cdr.detectChanges();
+      }
+    }
+  }
+
+  private async loadVaccinationSchemes(
+    speciesId: number,
+    preferredSchemeId?: number | null,
+  ): Promise<void> {
+    const requestToken = ++this.vaccinationSchemeRequestVersion;
+    this.isVaccinationSchemesLoading = true;
+    this.resetVaccinationSchemes();
+    this.cdr.detectChanges();
+
+    try {
+      const response = await firstValueFrom(this.vaccinationAdminApi.listSchemes(speciesId));
+
+      if (requestToken !== this.vaccinationSchemeRequestVersion) {
+        return;
+      }
+
+      this.vaccinationSchemes = response
+        .filter((scheme) => scheme.species.id === speciesId && this.resolveUsableSchemeVersion(scheme) !== null)
+        .sort((left, right) => left.name.localeCompare(right.name));
+
+      const preferred =
+        (preferredSchemeId
+          ? this.vaccinationSchemes.find((scheme) => scheme.id === preferredSchemeId) ?? null
+          : null)
+        ?? this.vaccinationSchemes[0]
+        ?? null;
+
+      if (preferred) {
+        this.selectVaccinationScheme(preferred);
+      }
+    } catch {
+      if (requestToken !== this.vaccinationSchemeRequestVersion) {
+        return;
+      }
+
+      this.resetVaccinationSchemes();
+    } finally {
+      if (requestToken !== this.vaccinationSchemeRequestVersion) {
+        return;
+      }
+
+      this.isVaccinationSchemesLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  private cancelVaccinationSchemeRequests(): void {
+    this.vaccinationSchemeRequestVersion += 1;
+  }
+
+  private resetVaccinationSchemes(): void {
+    this.vaccinationSchemes = [];
+    this.selectedVaccinationScheme = null;
+    this.vaccinationSchemeValue = '';
+    this.isVaccinationSchemesLoading = false;
+  }
+
+  private preferredVaccinationSchemeIdForSpecies(speciesId: number): number | null {
+    if (
+      this.selectedVaccinationScheme
+      && this.selectedVaccinationScheme.species.id === speciesId
+    ) {
+      return this.selectedVaccinationScheme.id;
+    }
+
+    if (this.pet?.species?.id === speciesId) {
+      return this.currentVaccinationSchemeId;
+    }
+
+    return null;
+  }
+
+  private selectVaccinationScheme(option: VaccinationScheme): void {
+    this.selectedVaccinationScheme = option;
+    this.vaccinationSchemeValue = this.buildVaccinationSchemeLabel(option);
+  }
+
+  private resolveUsableSchemeVersion(
+    scheme: VaccinationScheme,
+  ): VaccinationSchemeVersion | null {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const usableVersions = scheme.versions
+      .filter((version) => version.status === 'VIGENTE')
+      .filter((version) => {
+        const validFrom = this.parseDateOnly(version.validFrom);
+        const validTo = this.parseDateOnly(version.validTo);
+
+        if (!validFrom || validFrom > today) {
+          return false;
+        }
+
+        return !validTo || validTo >= today;
+      })
+      .sort((left, right) => {
+        if (right.version !== left.version) {
+          return right.version - left.version;
+        }
+
+        return (this.parseDateOnly(right.validFrom)?.getTime() ?? 0)
+          - (this.parseDateOnly(left.validFrom)?.getTime() ?? 0);
+      });
+
+    return usableVersions[0] ?? null;
+  }
+
+  private parseDateOnly(value: string | null | undefined): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return null;
+    }
+
+    parsed.setHours(0, 0, 0, 0);
+    return parsed;
   }
 
   private async loadColors(search: string): Promise<void> {
@@ -732,6 +1036,29 @@ export class EditPetModalComponent implements OnDestroy {
     return payload;
   }
 
+  private async applyVaccinationSchemeChangeIfNeeded(targetSpeciesId: number): Promise<void> {
+    if (!this.selectedVaccinationScheme || this.vaccinationPlanLoadError) {
+      return;
+    }
+
+    const originalSpeciesId = this.pet.species?.id ?? null;
+    const shouldChangeScheme =
+      this.selectedVaccinationScheme.id !== this.currentVaccinationSchemeId
+      || targetSpeciesId !== originalSpeciesId;
+
+    if (!shouldChangeScheme) {
+      return;
+    }
+
+    await firstValueFrom(
+      this.patientVaccinationApi.changePatientVaccinationScheme(this.pet.id, {
+        mode: 'CHANGE_SCHEME',
+        vaccinationSchemeId: this.selectedVaccinationScheme.id,
+        notes: 'Cambio de esquema solicitado desde la edición de mascota.',
+      }),
+    );
+  }
+
   private parseWeight(): number | null {
     return parsePositivePetWeight(this.normalizedWeightValue());
   }
@@ -746,6 +1073,34 @@ export class EditPetModalComponent implements OnDestroy {
     return resolveApiErrorMessage(error, {
       defaultMessage: 'No se pudo actualizar la mascota.',
     });
+  }
+
+  private resolveVaccinationPlanLoadMessage(error: unknown): string {
+    if (
+      error instanceof HttpErrorResponse
+      && error.status === 404
+      && resolveApiErrorMessage(error, { defaultMessage: '' })
+        .toLowerCase()
+        .includes('no tiene plan vacunal generado')
+    ) {
+      return 'La mascota aún no tiene plan vacunal generado.';
+    }
+
+    return 'No se pudo cargar el plan vacunal actual de la mascota.';
+  }
+
+  private resolveVaccinationSchemeOperationError(error: unknown): string {
+    const message = resolveApiErrorMessage(error, {
+      defaultMessage:
+        'Los datos básicos de la mascota se actualizaron, pero no se pudo cambiar el esquema vacunal.',
+    });
+    const normalized = message.toLowerCase();
+
+    if (normalized.includes('null value in column "vaccine_id"') || normalized.includes('vaccine_id')) {
+      return 'Los datos básicos de la mascota se actualizaron, pero el esquema seleccionado tiene una o más dosis sin vacuna asociada. Revisa la versión vigente del esquema antes de asignarlo.';
+    }
+
+    return message;
   }
 
   private replaceSelectedImage(imageUpload: PetImageUploadValue): void {

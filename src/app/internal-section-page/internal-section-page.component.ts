@@ -8,6 +8,8 @@ const SECTION_LABELS: Record<string, string> = {
   appointments: 'Citas',
   history: 'Historial medico',
   treatments: 'Vacunas y tratamientos',
+  'vaccination/schemes': 'Esquemas vacunales',
+  'vaccination/products': 'Productos biológicos',
   adoption: 'Adopcion',
   reports: 'Reportes',
   settings: 'Configuracion',

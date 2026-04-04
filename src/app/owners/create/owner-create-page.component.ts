@@ -7,6 +7,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { firstValueFrom } from 'rxjs';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
+import { AppToastService } from '@app/core/ui/app-toast.service';
 import { OwnersApiService } from '../api/owners-api.service';
 import { ClientTutorBasicApiResponse } from '../models/client-tutor-basic.model';
 import {
@@ -46,6 +47,7 @@ export class OwnerCreatePageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly ownersApi = inject(OwnersApiService);
   private readonly router = inject(Router);
+  private readonly toast = inject(AppToastService);
 
   protected readonly addressMaxLength = CLIENT_ADDRESS_MAX_LENGTH;
   protected readonly documentIdMaxLength = CLIENT_DOCUMENT_ID_MAX_LENGTH;
@@ -64,7 +66,7 @@ export class OwnerCreatePageComponent {
   protected readonly form = this.fb.nonNullable.group({
     firstName: ['', [trimmedRequiredValidator(), trimmedMinLengthValidator(2), Validators.maxLength(CLIENT_NAME_MAX_LENGTH), optionalPatternValidator(CLIENT_NAME_PATTERN, 'invalidNamePattern')]],
     lastName: ['', [trimmedRequiredValidator(), trimmedMinLengthValidator(2), Validators.maxLength(CLIENT_NAME_MAX_LENGTH), optionalPatternValidator(CLIENT_NAME_PATTERN, 'invalidNamePattern')]],
-    documentId: ['', [Validators.maxLength(CLIENT_DOCUMENT_ID_MAX_LENGTH), ecuadorCedulaValidator()]],
+    documentId: ['', [trimmedRequiredValidator(), Validators.maxLength(CLIENT_DOCUMENT_ID_MAX_LENGTH), ecuadorCedulaValidator()]],
     gender: ['F' as ClientGenderCode],
     birthDate: ['', [clientDateRangeValidator(CLIENT_MIN_BIRTH_DATE, CLIENT_MAX_BIRTH_DATE)]],
     phone: ['', [Validators.pattern(CLIENT_PHONE_PATTERN)]],
@@ -85,6 +87,7 @@ export class OwnerCreatePageComponent {
     if (this.form.invalid) {
       this.errorMessage = null;
       this.form.markAllAsTouched();
+      this.toast.info('Revisa los campos obligatorios del propietario.');
       this.cdr.markForCheck();
       return;
     }
@@ -97,6 +100,7 @@ export class OwnerCreatePageComponent {
       const payload = this.buildPayload(this.form.getRawValue() as CreateClientFormValue);
       const owner = await firstValueFrom(this.ownersApi.createClient(payload));
       if (this.continueWithPetCreation) {
+        this.toast.success('Propietario creado. Continúa con el registro de la mascota.');
         void this.router.navigate(['/pets/new'], {
           state: {
             initialTutor: this.mapOwnerToTutor(owner),
@@ -106,8 +110,12 @@ export class OwnerCreatePageComponent {
           },
         });
       } else {
-        void this.router.navigate(['/owners', owner.id, 'next-steps'], {
-          state: { owner },
+        this.toast.success('Propietario creado correctamente.');
+        void this.router.navigate(['/owners', owner.id], {
+          state: {
+            backTarget: ['/owners'],
+            backLabel: 'Volver a propietarios',
+          },
         });
       }
     } catch (error: unknown) {
@@ -115,6 +123,7 @@ export class OwnerCreatePageComponent {
         defaultMessage: 'No se pudo crear el cliente. Intenta nuevamente.',
         clientErrorMessage: 'Revisa los datos ingresados.',
       });
+      this.toast.error(this.errorMessage);
     } finally {
       this.isSaving = false;
       this.cdr.markForCheck();
@@ -125,19 +134,15 @@ export class OwnerCreatePageComponent {
     const payload: CreateClientRequest = {
       firstName: normalizeWhitespace(value.firstName),
       lastName: normalizeWhitespace(value.lastName),
+      documentId: value.documentId.trim(),
       gender: value.gender,
     };
 
-    const documentId = value.documentId.trim();
     const phone = value.phone.trim();
     const address = normalizeWhitespace(value.address);
     const birthDate = value.birthDate.trim();
     const notes = normalizeWhitespace(value.notes);
     const email = value.email.trim().toLowerCase();
-
-    if (documentId) {
-      payload.documentId = documentId;
-    }
 
     if (phone) {
       payload.phone = phone;

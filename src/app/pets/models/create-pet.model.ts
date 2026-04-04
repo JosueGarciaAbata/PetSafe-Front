@@ -2,6 +2,7 @@ export interface CreatePetRequest {
   clientId?: number;
   name: string;
   speciesId: number;
+  vaccinationSchemeId?: number;
   breedId?: number;
   colorId?: number;
   microchipCode?: string;
@@ -17,6 +18,7 @@ export interface CreatePetRequest {
 export interface CreatePetWithoutTutorRequest {
   name: string;
   speciesId: number;
+  vaccinationSchemeId?: number;
   sex: 'MACHO' | 'HEMBRA';
   breedId?: number;
   colorId?: number;

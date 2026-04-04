@@ -1,1 +1,17 @@
 <router-outlet />
+
+<div class="app-toast-stack" aria-live="polite" aria-atomic="true">
+  @for (item of toast.toasts(); track item.id) {
+    <div class="app-toast" [ngClass]="'app-toast--' + item.variant">
+      <span class="app-toast__message">{{ item.message }}</span>
+      <button
+        type="button"
+        class="app-toast__close"
+        (click)="toast.dismiss(item.id)"
+        aria-label="Cerrar notificación"
+      >
+        ×
+      </button>
+    </div>
+  }
+</div>
