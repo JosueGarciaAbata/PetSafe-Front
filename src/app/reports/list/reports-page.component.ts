@@ -2,168 +2,291 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  OnDestroy,
+  OnInit,
   inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
+import { PetsApiService } from '@app/pets/services/pets-api.service';
+import { PetListItemApiResponse } from '@app/pets/models/pet-list.model';
+import { PaginationComponent } from '@app/shared/pagination/pagination.component';
+import {
+  EMPTY_PAGINATION_META,
+  PaginationMeta,
+} from '@app/shared/pagination/pagination.model';
 import { ReportsApiService } from '../api/reports-api.service';
-
-type ReportType = 'appointments' | 'queue' | 'summary';
-
-interface ReportCard {
-  type: ReportType;
-  icon: string;
-  title: string;
-  description: string;
-  color: string;
-  needsRange: boolean;   // true = from+to, false = date (un día)
-}
-
-const REPORT_CARDS: ReportCard[] = [
-  {
-    type: 'appointments',
-    icon: '📅',
-    title: 'Agenda de Citas',
-    description:
-      'Listado completo de citas por período: paciente, tutor, veterinario, motivo y estado.',
-    color: 'teal',
-    needsRange: true,
-  },
-  {
-    type: 'queue',
-    icon: '🏥',
-    title: 'Cola de Atención',
-    description:
-      'Detalle de todos los ingresos del día: llegada, tipo, estado y veterinario asignado.',
-    color: 'indigo',
-    needsRange: false,
-  },
-  {
-    type: 'summary',
-    icon: '📊',
-    title: 'Resumen Estadístico',
-    description:
-      'KPIs y distribución de citas y atenciones por estado, tipo y día del período.',
-    color: 'emerald',
-    needsRange: true,
-  },
-];
 
 @Component({
   selector: 'app-reports-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, PaginationComponent],
   templateUrl: './reports-page.component.html',
   styleUrl: './reports-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ReportsPageComponent {
+export class ReportsPageComponent implements OnInit, OnDestroy {
+  private readonly petsApi = inject(PetsApiService);
   private readonly reportsApi = inject(ReportsApiService);
-  private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly sanitizer = inject(DomSanitizer);
+  private searchTimer?: ReturnType<typeof setTimeout>;
+  private searchRequestVersion = 0;
+  private pdfObjectUrl: string | null = null;
+  private readonly patientPageSize = 6;
 
-  protected readonly cards = REPORT_CARDS;
-  protected selectedCard: ReportCard | null = null;
+  protected searchValue = '';
+  protected searchResults: PetListItemApiResponse[] = [];
+  protected patientMeta: PaginationMeta = EMPTY_PAGINATION_META;
+  protected selectedPatient: PetListItemApiResponse | null = null;
+  protected isSearching = false;
   protected isGenerating = false;
-  protected errorMessage: string | null = null;
+  protected activeGenerationKey: 'clinical-history' | 'appointments' | null = null;
+  protected searchError: string | null = null;
+  protected actionError: string | null = null;
   protected successMessage: string | null = null;
+  protected isPreviewOpen = false;
+  protected previewUrl: SafeResourceUrl | null = null;
+  protected previewTitle = 'Vista previa PDF';
+  protected previewSubject = '';
+  protected appointmentsFrom = '';
+  protected appointmentsTo = '';
 
-  protected readonly rangeForm = this.fb.nonNullable.group({
-    from: ['', Validators.required],
-    to: ['', Validators.required],
-  });
-
-  protected readonly dayForm = this.fb.nonNullable.group({
-    date: ['', Validators.required],
-  });
-
-  protected get todayIso(): string {
-    return new Date().toISOString().substring(0, 10);
+  ngOnInit(): void {
+    const today = this.todayIso();
+    this.appointmentsFrom = today;
+    this.appointmentsTo = today;
+    void this.loadPatients();
   }
 
-  protected get firstDayOfMonth(): string {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-  }
-
-  protected selectCard(card: ReportCard): void {
-    this.selectedCard = card;
-    this.errorMessage = null;
-    this.successMessage = null;
-
-    if (card.needsRange) {
-      this.rangeForm.patchValue({ from: this.firstDayOfMonth, to: this.todayIso });
-    } else {
-      this.dayForm.patchValue({ date: this.todayIso });
+  ngOnDestroy(): void {
+    if (this.searchTimer !== undefined) {
+      clearTimeout(this.searchTimer);
     }
 
+    this.clearPreviewUrl();
+  }
+
+  protected onSearchInput(value: string): void {
+    this.searchValue = value;
+    this.selectedPatient = null;
+    this.actionError = null;
+    this.successMessage = null;
+    this.scheduleSearch();
+  }
+
+  protected retrySearch(): void {
+    void this.loadPatients(this.patientMeta.currentPage);
+  }
+
+  protected onPatientPageChange(page: number): void {
+    if (this.searchTimer !== undefined) {
+      clearTimeout(this.searchTimer);
+      this.searchTimer = undefined;
+    }
+
+    void this.loadPatients(page);
+  }
+
+  protected selectPatient(patient: PetListItemApiResponse): void {
+    this.selectedPatient = patient;
+    this.actionError = null;
+    this.successMessage = null;
     this.cdr.markForCheck();
   }
 
-  protected clearSelection(): void {
-    this.selectedCard = null;
-    this.errorMessage = null;
-    this.successMessage = null;
-    this.cdr.markForCheck();
-  }
-
-  protected async generate(): Promise<void> {
-    if (!this.selectedCard || this.isGenerating) return;
-
-    const card = this.selectedCard;
-
-    if (card.needsRange) {
-      if (this.rangeForm.invalid) {
-        this.rangeForm.markAllAsTouched();
-        return;
-      }
-    } else {
-      if (this.dayForm.invalid) {
-        this.dayForm.markAllAsTouched();
-        return;
-      }
+  protected async openClinicalHistoryPreview(patient?: PetListItemApiResponse): Promise<void> {
+    const targetPatient = patient ?? this.selectedPatient;
+    if (!targetPatient || this.isGenerating) {
+      return;
     }
 
+    this.selectedPatient = targetPatient;
     this.isGenerating = true;
-    this.errorMessage = null;
+    this.activeGenerationKey = 'clinical-history';
+    this.actionError = null;
     this.successMessage = null;
     this.cdr.markForCheck();
 
     try {
-      let blob: Blob;
-      let filename: string;
-
-      if (card.type === 'appointments') {
-        const { from, to } = this.rangeForm.getRawValue();
-        blob = await firstValueFrom(this.reportsApi.downloadAppointmentsPdf(from, to));
-        filename = `agenda-citas-${from}-a-${to}.pdf`;
-      } else if (card.type === 'queue') {
-        const { date } = this.dayForm.getRawValue();
-        blob = await firstValueFrom(this.reportsApi.downloadQueuePdf(date));
-        filename = `cola-atencion-${date}.pdf`;
-      } else {
-        const { from, to } = this.rangeForm.getRawValue();
-        blob = await firstValueFrom(this.reportsApi.downloadSummaryPdf(from, to));
-        filename = `resumen-estadistico-${from}-a-${to}.pdf`;
-      }
-
-      this.triggerDownload(blob, filename);
-      this.successMessage = `PDF generado: ${filename}`;
+      const blob = await firstValueFrom(this.reportsApi.downloadClinicalHistoryPdf(targetPatient.id));
+      const filename = `historial-clinico-${this.slugify(targetPatient.name)}-${targetPatient.id}.pdf`;
+      this.setPreviewBlob(blob);
+      this.previewTitle = 'Historial clinico del paciente';
+      this.previewSubject = targetPatient.name;
+      this.successMessage = `Vista previa generada para ${targetPatient.name}.`;
+      this.isPreviewOpen = true;
     } catch {
-      this.errorMessage = 'No se pudo generar el reporte. Verifica los parámetros e intenta de nuevo.';
+      this.actionError =
+        'No se pudo generar el historial clinico del paciente seleccionado.';
     } finally {
       this.isGenerating = false;
+      this.activeGenerationKey = null;
       this.cdr.markForCheck();
     }
   }
 
-  private triggerDownload(blob: Blob, filename: string): void {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+  protected async openAppointmentsPreview(): Promise<void> {
+    if (this.isGenerating) {
+      return;
+    }
+
+    const from = this.appointmentsFrom.trim();
+    const to = this.appointmentsTo.trim();
+
+    if (!from || !to) {
+      this.actionError = 'Debes indicar la fecha inicial y final para generar la agenda.';
+      this.successMessage = null;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    if (from > to) {
+      this.actionError = 'La fecha inicial no puede ser mayor que la fecha final.';
+      this.successMessage = null;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.isGenerating = true;
+    this.activeGenerationKey = 'appointments';
+    this.actionError = null;
+    this.successMessage = null;
+    this.cdr.markForCheck();
+
+    try {
+      const blob = await firstValueFrom(this.reportsApi.downloadAppointmentsPdf(from, to));
+      this.setPreviewBlob(blob);
+      this.previewTitle = 'Agenda de citas';
+      this.previewSubject = from === to ? from : `${from} a ${to}`;
+      this.successMessage =
+        from === to
+          ? `Vista previa generada para la agenda del ${from}.`
+          : `Vista previa generada para la agenda del ${from} al ${to}.`;
+      this.isPreviewOpen = true;
+    } catch {
+      this.actionError = 'No se pudo generar la agenda en PDF para el rango seleccionado.';
+    } finally {
+      this.isGenerating = false;
+      this.activeGenerationKey = null;
+      this.cdr.markForCheck();
+    }
+  }
+
+  protected closePreview(): void {
+    this.isPreviewOpen = false;
+    this.cdr.markForCheck();
+  }
+
+  protected onAppointmentsFromChange(value: string): void {
+    this.appointmentsFrom = value;
+    this.actionError = null;
+    this.successMessage = null;
+  }
+
+  protected onAppointmentsToChange(value: string): void {
+    this.appointmentsTo = value;
+    this.actionError = null;
+    this.successMessage = null;
+  }
+
+  protected buildPatientSubtitle(patient: PetListItemApiResponse): string {
+    const species = patient.species?.name?.trim() || 'Especie no registrada';
+    const breed = patient.breed?.name?.trim() || 'Raza no registrada';
+    return `${species} - ${breed}`;
+  }
+
+  protected buildPatientMeta(patient: PetListItemApiResponse): string {
+    const tutor = patient.tutorName?.trim() || 'Sin tutor registrado';
+    const contact = patient.tutorContact?.trim() || 'Sin contacto registrado';
+    return `${tutor} | ${contact}`;
+  }
+
+  protected getInitials(name: string): string {
+    const trimmedName = name.trim();
+    return trimmedName.charAt(0).toUpperCase() || 'P';
+  }
+
+  private scheduleSearch(): void {
+    if (this.searchTimer !== undefined) {
+      clearTimeout(this.searchTimer);
+    }
+
+    this.searchTimer = setTimeout(() => {
+      void this.loadPatients(1);
+    }, 300);
+  }
+
+  private async loadPatients(page = 1): Promise<void> {
+    const requestToken = ++this.searchRequestVersion;
+    this.isSearching = true;
+    this.searchError = null;
+    this.searchResults = [];
+    this.cdr.detectChanges();
+
+    try {
+      const response = await firstValueFrom(
+        this.petsApi.list({
+          page,
+          limit: this.patientPageSize,
+          search: this.searchValue.trim() || undefined,
+        }),
+      );
+
+      if (requestToken !== this.searchRequestVersion) {
+        return;
+      }
+
+      this.searchResults = response.data;
+      this.patientMeta = response.meta;
+
+      if (this.selectedPatient) {
+        this.selectedPatient =
+          response.data.find((patient) => patient.id === this.selectedPatient?.id) ?? null;
+      }
+    } catch {
+      if (requestToken !== this.searchRequestVersion) {
+        return;
+      }
+
+      this.searchError = 'No se pudo consultar la lista de pacientes.';
+      this.patientMeta = EMPTY_PAGINATION_META;
+    } finally {
+      if (requestToken !== this.searchRequestVersion) {
+        return;
+      }
+
+      this.isSearching = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  private slugify(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  private todayIso(): string {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  private setPreviewBlob(blob: Blob): void {
+    this.clearPreviewUrl();
+    this.pdfObjectUrl = URL.createObjectURL(blob);
+    this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.pdfObjectUrl);
+  }
+
+  private clearPreviewUrl(): void {
+    if (this.pdfObjectUrl) {
+      URL.revokeObjectURL(this.pdfObjectUrl);
+      this.pdfObjectUrl = null;
+    }
+
+    this.previewUrl = null;
   }
 }

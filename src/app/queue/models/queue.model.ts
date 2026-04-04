@@ -208,11 +208,12 @@ export function formatQueueTime(value: string | null | undefined): string {
     return normalizedValue;
   }
 
-  const amPm = hours >= 12 ? 'PM' : 'AM';
+  const meridiem = hours >= 12 ? 'PM' : 'AM';
   const normalizedHours = hours % 12 || 12;
+
   return `${normalizedHours.toString().padStart(2, '0')}:${minutes
     .toString()
-    .padStart(2, '0')} ${amPm}`;
+    .padStart(2, '0')} ${meridiem}`;
 }
 
 export function buildQueuePatientSubtitle(entry: Pick<QueueEntryRecord, 'patient'>): string {

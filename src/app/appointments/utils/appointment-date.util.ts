@@ -131,3 +131,30 @@ export function buildFullDateLabel(
     year: 'numeric',
   }).format(parseDateKey(dateKey));
 }
+
+export function formatAppointmentTime(value: string | null | undefined): string {
+  if (!value) {
+    return 'Sin hora';
+  }
+
+  const normalizedValue = value.trim();
+  const timeMatch = normalizedValue.match(/^(\d{1,2}):(\d{2})/);
+
+  if (!timeMatch) {
+    return normalizedValue;
+  }
+
+  const hours = Number(timeMatch[1]);
+  const minutes = Number(timeMatch[2]);
+
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+    return normalizedValue;
+  }
+
+  const meridiem = hours >= 12 ? 'PM' : 'AM';
+  const normalizedHours = hours % 12 || 12;
+
+  return `${normalizedHours.toString().padStart(2, '0')}:${minutes
+    .toString()
+    .padStart(2, '0')} ${meridiem}`;
+}

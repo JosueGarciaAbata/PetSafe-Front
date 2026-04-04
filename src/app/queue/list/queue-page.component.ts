@@ -26,7 +26,6 @@ import {
   QueueStatusFilter,
   QueueSummary,
   buildQueueEntryTypeLabel,
-  buildQueuePatientSubtitle,
   buildQueueStatusLabel,
   buildQueueTimingLabel,
   formatQueueTime,
@@ -64,10 +63,11 @@ export class QueuePageComponent implements OnInit {
   protected isLoading = false;
   protected loadError: string | null = null;
   protected isDetailPanelOpen = false;
-  protected isCancelModalOpen = false;
+  protected isActionModalOpen = false;
   protected selectedEntryId: number | null = null;
-  protected entryPendingCancel: QueueEntryRecord | null = null;
-  protected activeStatusFilter: QueueStatusFilter = 'EN_ESPERA';
+  protected pendingActionEntry: QueueEntryRecord | null = null;
+  protected pendingActionType: 'start' | 'cancel' | 'finish' | null = null;
+  protected activeStatusFilter: QueueStatusFilter = 'TODOS';
 
   ngOnInit(): void {
     const state = history.state as { entryId?: number } | null;
@@ -136,7 +136,7 @@ export class QueuePageComponent implements OnInit {
     }
 
     this.searchControl.setValue('', { emitEvent: false });
-    this.activeStatusFilter = 'EN_ESPERA';
+    this.activeStatusFilter = 'TODOS';
     void this.loadQueue(1);
   }
 
@@ -151,11 +151,19 @@ export class QueuePageComponent implements OnInit {
 
   protected closeDetailPanel(): void {
     this.isDetailPanelOpen = false;
-    this.closeCancelModal();
+    this.closeActionModal();
   }
 
   protected buildPatientSubtitle(entry: QueueEntryRecord): string {
-    return buildQueuePatientSubtitle(entry);
+    const species = entry.patient.species?.trim();
+    const breed = entry.patient.breed?.trim();
+    const parts = [species, breed].filter((value): value is string => Boolean(value));
+
+    if (parts.length === 0) {
+      return 'Sin especie registrada';
+    }
+
+    return parts.join(' | ');
   }
 
   protected buildArrivalLabel(entry: QueueEntryRecord): string {
@@ -170,12 +178,45 @@ export class QueuePageComponent implements OnInit {
     return buildQueueStatusLabel(status);
   }
 
+  protected buildStatusValueClass(status: QueueEntryStatus): string {
+    switch (status) {
+      case 'EN_ESPERA':
+        return 'text-[#365E9D]';
+      case 'EN_ATENCION':
+        return 'text-brand';
+      case 'FINALIZADA':
+        return 'text-text-secondary';
+      case 'CANCELADA':
+        return 'text-[#A35454]';
+    }
+  }
+
+  protected buildNotesPreview(entry: QueueEntryRecord): string {
+    const notes = entry.notes?.trim();
+    return notes || 'Sin motivo registrado';
+  }
+
   protected buildEntryTypeLabel(entry: QueueEntryRecord): string {
     return buildQueueEntryTypeLabel(entry.entryType);
   }
 
   protected buildTimingLabel(entry: QueueEntryRecord): string {
     return buildQueueTimingLabel(entry);
+  }
+
+  protected buildQueueStatusHelpText(entry: QueueEntryRecord): string {
+    const entryLabel = buildQueueEntryTypeLabel(entry.entryType).toLowerCase();
+
+    switch (entry.queueStatus) {
+      case 'EN_ESPERA':
+        return `Ingreso ${entryLabel}. Pendiente de ser atendido.`;
+      case 'EN_ATENCION':
+        return `Ingreso ${entryLabel}. El paciente ya se encuentra en atencion.`;
+      case 'FINALIZADA':
+        return `Ingreso ${entryLabel}. La atencion ya fue finalizada.`;
+      case 'CANCELADA':
+        return `Ingreso ${entryLabel}. El ingreso fue cancelado.`;
+    }
   }
 
   protected buildEntryTypeClass(entryType: QueueEntryType): string {
@@ -196,7 +237,7 @@ export class QueuePageComponent implements OnInit {
       case 'EN_ATENCION':
         return 'bg-[#E5F5E0] text-[#1D7A04] border border-[#BDE8B4]';
       case 'FINALIZADA':
-        return 'bg-[#F1F5F9] text-text-secondary border border-border';
+        return 'bg-[#E8F7F1] text-[#1F7A5A] border border-[#BFE7D6]';
       case 'CANCELADA':
         return 'bg-[#FFE0E0] text-[#990000] border border-[#FFB8B8]';
     }
@@ -274,36 +315,115 @@ export class QueuePageComponent implements OnInit {
     }
   }
 
+  protected openStartModal(entry: QueueEntryRecord): void {
+    if (entry.queueStatus === 'FINALIZADA' || entry.queueStatus === 'CANCELADA') {
+      return;
+    }
+
+    this.pendingActionEntry = entry;
+    this.pendingActionType = 'start';
+    this.isActionModalOpen = true;
+  }
+
   protected openCancelModal(entry: QueueEntryRecord): void {
     if (entry.queueStatus !== 'EN_ESPERA') {
       return;
     }
 
-    this.entryPendingCancel = entry;
-    this.isCancelModalOpen = true;
+    this.pendingActionEntry = entry;
+    this.pendingActionType = 'cancel';
+    this.isActionModalOpen = true;
   }
 
-  protected closeCancelModal(): void {
-    this.isCancelModalOpen = false;
-    this.entryPendingCancel = null;
+  protected openFinishModal(entry: QueueEntryRecord): void {
+    if (entry.queueStatus !== 'EN_ATENCION') {
+      return;
+    }
+
+    this.pendingActionEntry = entry;
+    this.pendingActionType = 'finish';
+    this.isActionModalOpen = true;
   }
 
-  protected async confirmCancelEntry(): Promise<void> {
-    const entry = this.entryPendingCancel;
+  protected closeActionModal(): void {
+    this.isActionModalOpen = false;
+    this.pendingActionEntry = null;
+    this.pendingActionType = null;
+  }
 
-    if (!entry || entry.queueStatus !== 'EN_ESPERA') {
-      this.closeCancelModal();
+  protected buildActionModalTitle(): string {
+    switch (this.pendingActionType) {
+      case 'start':
+        return 'Confirmar inicio de atencion';
+      case 'cancel':
+        return 'Confirmar cancelacion';
+      case 'finish':
+        return 'Confirmar finalizacion';
+      default:
+        return 'Confirmar accion';
+    }
+  }
+
+  protected buildActionModalDescription(): string {
+    switch (this.pendingActionType) {
+      case 'start':
+        return 'Se abrira la consulta para este paciente y se cambiara su estado operativo.';
+      case 'cancel':
+        return 'El paciente quedara fuera de la cola operativa.';
+      case 'finish':
+        return 'La atencion se marcara como finalizada para este paciente.';
+      default:
+        return '';
+    }
+  }
+
+  protected buildActionModalConfirmLabel(): string {
+    switch (this.pendingActionType) {
+      case 'start':
+        return 'Si, iniciar atencion';
+      case 'cancel':
+        return 'Si, cancelar';
+      case 'finish':
+        return 'Si, finalizar';
+      default:
+        return 'Confirmar';
+    }
+  }
+
+  protected isDestructiveAction(): boolean {
+    return this.pendingActionType === 'cancel';
+  }
+
+  protected async confirmPendingAction(): Promise<void> {
+    const entry = this.pendingActionEntry;
+    const pendingActionType = this.pendingActionType;
+
+    if (!entry || !pendingActionType) {
+      this.closeActionModal();
       return;
     }
 
     try {
-      await firstValueFrom(this.queueApi.cancelEntry(entry.id));
-      await this.loadQueue(this.paginationMeta.currentPage);
-      this.selectedEntryId = entry.id;
-      this.closeCancelModal();
+      this.closeActionModal();
+
+      if (pendingActionType === 'start') {
+        await this.startAttention(entry);
+        return;
+      }
+
+      if (pendingActionType === 'finish') {
+        await this.finishAttention(entry);
+      } else if (pendingActionType === 'cancel') {
+        await firstValueFrom(this.queueApi.cancelEntry(entry.id));
+        await this.loadQueue(this.paginationMeta.currentPage);
+        this.selectedEntryId = entry.id;
+      }
     } catch (error) {
       this.loadError = resolveApiErrorMessage(error, {
-        defaultMessage: 'No se pudo cancelar el ingreso de este paciente.',
+        defaultMessage:
+          pendingActionType === 'finish'
+            ? 'No se pudo finalizar la atenciA3n de este paciente.'
+            : 'No se pudo cancelar el ingreso de este paciente.',
       });
       this.cdr.detectChanges();
     }

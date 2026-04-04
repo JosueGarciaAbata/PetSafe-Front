@@ -1,146 +1,281 @@
-<div class="reports-page">
+<div class="mx-auto flex max-w-[1400px] flex-col gap-8 pb-12">
+  <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+    <header class="flex flex-col gap-1">
+      <h1 class="text-[28px] font-bold text-text-primary">Reporteria</h1>
+      <p class="text-base text-text-secondary">
+        Genera el historial clinico consolidado del paciente desde un solo flujo.
+      </p>
+    </header>
+  </div>
 
-  <!-- ── Encabezado ── -->
-  <header class="page-header">
-    <div class="page-header__text">
-      <h1 class="page-header__title">Reportes</h1>
-      <p class="page-header__subtitle">Genera y descarga reportes en PDF para gestión clínica y administrativa.</p>
-    </div>
-  </header>
-
-  <!-- ── Grid de tarjetas (estado inicial: ninguna seleccionada) ── -->
-  <section *ngIf="!selectedCard" class="cards-grid">
-    <article
-      *ngFor="let card of cards"
-      class="report-card report-card--{{ card.color }}"
-      (click)="selectCard(card)"
-      tabindex="0"
-      (keydown.enter)="selectCard(card)"
-      (keydown.space)="selectCard(card)"
-      [attr.aria-label]="'Generar reporte ' + card.title"
-    >
-      <div class="report-card__icon" aria-hidden="true">{{ card.icon }}</div>
-      <div class="report-card__body">
-        <h2 class="report-card__title">{{ card.title }}</h2>
-        <p class="report-card__desc">{{ card.description }}</p>
-      </div>
-      <div class="report-card__cta">
-        <span class="btn-pill">Configurar →</span>
-      </div>
-    </article>
-  </section>
-
-  <!-- ── Panel de configuración (tarjeta seleccionada) ── -->
-  <section *ngIf="selectedCard" class="config-panel">
-
-    <!-- Back -->
-    <button class="btn-back" type="button" (click)="clearSelection()">
-      ← Volver a reportes
-    </button>
-
-    <div class="config-card config-card--{{ selectedCard.color }}">
-
-      <!-- Encabezado del panel -->
-      <div class="config-card__header">
-        <span class="config-card__icon" aria-hidden="true">{{ selectedCard.icon }}</span>
-        <div>
-          <h2 class="config-card__title">{{ selectedCard.title }}</h2>
-          <p class="config-card__desc">{{ selectedCard.description }}</p>
-        </div>
-      </div>
-
-      <hr class="divider" />
-
-      <!-- Formulario rango (from + to) -->
-      <form
-        *ngIf="selectedCard.needsRange"
-        [formGroup]="rangeForm"
-        (ngSubmit)="generate()"
-        class="config-form"
-        id="report-range-form"
-        novalidate
-      >
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="rpt-from">Desde</label>
-            <input
-              id="rpt-from"
-              class="form-input"
-              type="date"
-              formControlName="from"
-              [max]="todayIso"
-            />
-            <span
-              class="form-error"
-              *ngIf="rangeForm.controls.from.invalid && rangeForm.controls.from.touched"
-            >Este campo es obligatorio.</span>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="rpt-to">Hasta</label>
-            <input
-              id="rpt-to"
-              class="form-input"
-              type="date"
-              formControlName="to"
-              [max]="todayIso"
-            />
-            <span
-              class="form-error"
-              *ngIf="rangeForm.controls.to.invalid && rangeForm.controls.to.touched"
-            >Este campo es obligatorio.</span>
-          </div>
-        </div>
-      </form>
-
-      <!-- Formulario día único -->
-      <form
-        *ngIf="!selectedCard.needsRange"
-        [formGroup]="dayForm"
-        (ngSubmit)="generate()"
-        class="config-form"
-        id="report-day-form"
-        novalidate
-      >
-        <div class="form-row form-row--single">
-          <div class="form-group">
-            <label class="form-label" for="rpt-date">Fecha</label>
-            <input
-              id="rpt-date"
-              class="form-input"
-              type="date"
-              formControlName="date"
-              [max]="todayIso"
-            />
-            <span
-              class="form-error"
-              *ngIf="dayForm.controls.date.invalid && dayForm.controls.date.touched"
-            >Este campo es obligatorio.</span>
-          </div>
-        </div>
-      </form>
-
-      <!-- Mensajes de estado -->
-      <div class="alert alert--success" *ngIf="successMessage">
-        <span>✅</span> {{ successMessage }}
-      </div>
-      <div class="alert alert--error" *ngIf="errorMessage">
-        <span>⚠️</span> {{ errorMessage }}
-      </div>
-
-      <!-- CTA -->
-      <div class="config-card__footer">
-        <button
-          class="btn-generate"
-          type="button"
-          [disabled]="isGenerating"
-          (click)="generate()"
+  <section
+    class="overflow-hidden rounded-[20px] border border-border bg-card shadow-sm"
+    aria-label="Reporte principal de historial clinico"
+  >
+    <div class="flex flex-col gap-6 px-6 py-6 sm:px-8">
+      <div class="flex flex-col gap-2">
+        <span
+          class="inline-flex w-fit items-center rounded-full bg-active-soft px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-brand"
         >
-          <span *ngIf="!isGenerating">⬇&nbsp; Generar PDF</span>
-          <span *ngIf="isGenerating" class="spinner"></span>
-        </button>
+          Reporte principal
+        </span>
+        <div class="flex flex-col gap-1">
+          <h2 class="text-[24px] font-bold text-text-primary">Historial clinico del paciente</h2>
+          <p class="max-w-[760px] text-sm leading-6 text-text-secondary">
+            Busca una mascota registrada y abre la vista previa del PDF en pantalla para revisarlo
+            antes de descargarlo.
+          </p>
+        </div>
       </div>
 
+      <div class="max-w-[640px]">
+        <div class="group relative">
+          <div
+            class="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary transition-colors group-focus-within:text-brand"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              class="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+            >
+              <circle cx="11" cy="11" r="6"></circle>
+              <path d="m20 20-3.5-3.5"></path>
+            </svg>
+          </div>
+
+          <input
+            type="text"
+            [value]="searchValue"
+            (input)="onSearchInput($any($event.target).value)"
+            placeholder="Buscar por nombre del paciente, tutor o especie"
+            class="h-12 w-full rounded-xl border border-border bg-white pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+          />
+        </div>
+      </div>
+
+      @if (searchError) {
+        <div
+          class="flex flex-col gap-3 rounded-xl border border-[#FFB8B8] bg-[#FFE0E0] p-4 text-[#990000] sm:flex-row sm:items-center sm:justify-between"
+        >
+          <span class="text-sm font-medium">{{ searchError }}</span>
+          <button
+            type="button"
+            class="cursor-pointer text-sm font-bold underline hover:opacity-80"
+            (click)="retrySearch()"
+          >
+            Reintentar
+          </button>
+        </div>
+      }
+
+      @if (successMessage) {
+        <div class="rounded-xl border border-[#A7F3D0] bg-[#ECFDF5] px-4 py-3 text-sm text-[#065F46]">
+          {{ successMessage }}
+        </div>
+      }
+
+      @if (actionError) {
+        <div class="rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#991B1B]">
+          {{ actionError }}
+        </div>
+      }
+
+      <div class="-mx-6 border-y border-border/80 sm:-mx-8">
+        <div class="bg-[#F8FAFC] px-6 py-4 sm:px-8">
+          <p class="text-xs font-bold uppercase tracking-[0.16em] text-text-secondary">
+            Resultados de pacientes
+          </p>
+        </div>
+
+        <div class="divide-y divide-border bg-white">
+          @if (isSearching) {
+            <div class="px-6 py-10 text-sm text-text-secondary sm:px-8">Buscando pacientes...</div>
+          } @else if (searchResults.length === 0) {
+            <div class="px-6 py-10 text-sm text-text-secondary sm:px-8">
+              No se encontraron pacientes con ese criterio.
+            </div>
+          } @else {
+            @for (patient of searchResults; track patient.id) {
+              <div
+                class="flex flex-col gap-4 px-6 py-4 transition-colors hover:bg-[#F8FAFC] sm:px-8 sm:flex-row sm:items-center sm:justify-between"
+                [class.bg-[#F8FAFC]]="selectedPatient?.id === patient.id"
+              >
+                <button
+                  type="button"
+                  class="flex min-w-0 flex-1 cursor-pointer items-center gap-4 text-left"
+                  (click)="selectPatient(patient)"
+                >
+                  <div
+                    class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-white bg-active-soft text-sm font-bold text-brand shadow-sm"
+                  >
+                    {{ getInitials(patient.name) }}
+                  </div>
+
+                  <div class="min-w-0">
+                    <p class="truncate text-[15px] font-bold text-text-primary">
+                      {{ patient.name }}
+                    </p>
+                    <p class="truncate text-sm text-text-secondary">
+                      {{ buildPatientSubtitle(patient) }}
+                    </p>
+                    <p class="truncate text-xs text-text-secondary">
+                      {{ buildPatientMeta(patient) }}
+                    </p>
+                  </div>
+                </button>
+
+                <div class="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    class="inline-flex cursor-pointer items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                    [disabled]="isGenerating"
+                    (click)="openClinicalHistoryPreview(patient)"
+                  >
+                    @if (isGenerating && selectedPatient?.id === patient.id) {
+                      <span>Generando...</span>
+                    } @else {
+                      <span>Ver PDF</span>
+                    }
+                  </button>
+                </div>
+              </div>
+            }
+          }
+        </div>
+
+        @if (!isSearching && !searchError) {
+          <app-pagination
+            [meta]="patientMeta"
+            itemLabel="pacientes"
+            (pageChange)="onPatientPageChange($event)"
+          />
+        }
+      </div>
     </div>
   </section>
 
+  <section
+    class="overflow-hidden rounded-[20px] border border-border bg-card shadow-sm"
+    aria-label="Reporte de agenda de citas"
+  >
+    <div class="flex flex-col gap-6 px-6 py-6 sm:px-8">
+      <div class="flex flex-col gap-2">
+        <span
+          class="inline-flex w-fit items-center rounded-full bg-[#EEF2FF] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[#3B82F6]"
+        >
+          Agenda
+        </span>
+        <div class="flex flex-col gap-1">
+          <h2 class="text-[24px] font-bold text-text-primary">Agenda de citas</h2>
+          <p class="max-w-[760px] text-sm leading-6 text-text-secondary">
+            Genera la agenda PDF por rango de fechas. Si usas el mismo dia en ambos campos, se
+            genera la agenda del dia.
+          </p>
+        </div>
+      </div>
+
+      <div class="-mx-6 grid gap-4 border-t border-border/80 px-6 pt-5 sm:-mx-8 sm:px-8 md:grid-cols-[1fr_1fr_auto] md:items-end">
+        <div class="md:col-span-3">
+          <p class="text-xs font-bold uppercase tracking-[0.16em] text-text-secondary">
+            Rango de agenda
+          </p>
+        </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase tracking-[0.14em] text-text-secondary">
+              Desde
+            </label>
+            <input
+              type="date"
+              [value]="appointmentsFrom"
+              (input)="onAppointmentsFromChange($any($event.target).value)"
+              class="h-12 rounded-xl border border-border bg-white px-4 text-sm text-text-primary shadow-sm transition-all focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+            />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold uppercase tracking-[0.14em] text-text-secondary">
+              Hasta
+            </label>
+            <input
+              type="date"
+              [value]="appointmentsTo"
+              (input)="onAppointmentsToChange($any($event.target).value)"
+              class="h-12 rounded-xl border border-border bg-white px-4 text-sm text-text-primary shadow-sm transition-all focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+            />
+          </div>
+
+          <button
+            type="button"
+            class="inline-flex cursor-pointer items-center justify-center self-start rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 md:self-auto"
+            [disabled]="isGenerating"
+            (click)="openAppointmentsPreview()"
+          >
+            @if (isGenerating && activeGenerationKey === 'appointments') {
+              <span>Generando...</span>
+            } @else {
+              <span>Ver PDF</span>
+            }
+          </button>
+      </div>
+    </div>
+  </section>
+
+  @if (isPreviewOpen) {
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-[2px]"
+      (click)="closePreview()"
+    >
+      <section
+        class="flex max-h-[92vh] w-full max-w-[1080px] flex-col overflow-hidden rounded-[24px] border border-border bg-white shadow-2xl"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="border-b border-border bg-white px-6 py-5 sm:px-8">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div class="min-w-0">
+              <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-brand">
+                Vista previa PDF
+              </p>
+              <h3 class="mt-2 text-lg font-bold text-text-primary">{{ previewTitle }}</h3>
+              <p class="mt-1 text-sm text-text-secondary">
+                {{ previewSubject }}
+              </p>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <button
+                type="button"
+                class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-text-secondary transition-all hover:bg-background hover:text-text-primary"
+                (click)="closePreview()"
+                aria-label="Cerrar vista previa"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  class="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                >
+                  <path d="M6 6l12 12M18 6 6 18"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <div class="flex-1 bg-[#F8FAFC] p-4 sm:p-6">
+          @if (previewUrl) {
+            <iframe
+              [src]="previewUrl"
+              title="Vista previa del reporte"
+              class="h-[72vh] w-full rounded-[18px] border border-border bg-white shadow-sm"
+            ></iframe>
+          }
+        </div>
+      </section>
+    </div>
+  }
 </div>
