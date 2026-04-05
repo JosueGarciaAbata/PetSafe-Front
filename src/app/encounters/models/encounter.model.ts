@@ -1,7 +1,19 @@
 export type AppetiteStatus = 'NORMAL' | 'AUMENTADO' | 'DISMINUIDO' | 'ANOREXIA';
 export type WaterIntakeStatus = 'NORMAL' | 'POLIDIPSIA' | 'ADIPSIA';
-export type MucosaStatus = 'ROSADAS' | 'PALIDAS' | 'ICTERICAS' | 'CIANOTICAS' | 'CONGESTIVAS';
-export type HydrationStatus = 'NORMAL' | 'DESHIDRATACION_LEVE' | 'DESHIDRATACION_MODERADA' | 'DESHIDRATACION_SEVERA';
+export type MucosaStatus =
+  | 'ROSADAS'
+  | 'PALIDAS'
+  | 'ICTERICAS'
+  | 'CIANOTICAS'
+  | 'CONGESTIVAS';
+export type HydrationStatus =
+  | 'NORMAL'
+  | 'DESHIDRATACION_LEVE'
+  | 'DESHIDRATACION_MODERADA'
+  | 'DESHIDRATACION_SEVERA';
+export type EncounterStatus = 'ACTIVA' | 'FINALIZADA' | 'ANULADA';
+export type TreatmentStatus = 'ACTIVO' | 'FINALIZADO' | 'SUSPENDIDO' | 'CANCELADO';
+export type TreatmentItemStatus = 'ACTIVO' | 'SUSPENDIDO' | 'FINALIZADO' | 'CANCELADO';
 
 export interface EncounterPatient {
   id: number;
@@ -26,14 +38,11 @@ export interface EncounterAnamnesis {
   hasPetAtHome?: boolean | null;
   petAtHomeDetail?: string | null;
   administeredMedicationText?: string | null;
-  
   appetiteStatus?: AppetiteStatus | null;
   waterIntakeStatus?: WaterIntakeStatus | null;
-  
   fecesText?: string | null;
   vomitText?: string | null;
   numberOfBowelMovements?: number | null;
-  
   urineText?: string | null;
   respiratoryProblemsText?: string | null;
   difficultyWalkingText?: string | null;
@@ -46,19 +55,18 @@ export interface EncounterClinicalExam {
   pulse?: number | null;
   heartRate?: number | null;
   respiratoryRate?: number | null;
-  
   mucousMembranes?: MucosaStatus | null;
   lymphNodes?: string | null;
   hydration?: HydrationStatus | null;
-  
   crtSeconds?: number | null;
   examNotes?: string | null;
 }
 
 export interface EncounterEnvironmentalData {
-  currentDiet?: string | null;
-  reproductiveStatus?: string | null;
-  environmentDescription?: string | null;
+  environmentNotes?: string | null;
+  nutritionNotes?: string | null;
+  lifestyleNotes?: string | null;
+  feedingTypeNotes?: string | null;
   notes?: string | null;
 }
 
@@ -71,37 +79,73 @@ export interface EncounterClinicalImpression {
 
 export interface EncounterPlan {
   clinicalPlan?: string | null;
-  requiresNextAppointment?: boolean | null;
-  suggestedNextAppointmentDate?: string | null;
+  requiresFollowUp?: boolean | null;
+  suggestedFollowUpDate?: string | null;
   planNotes?: string | null;
 }
 
-export interface EncounterDetail {
+export interface EncounterVaccinationEvent {
   id: number;
-  patientId: number;
-  veterinarianId: number;
-  queueEntryId: number | null;
-  appointmentId: number | null;
-  startTime: string;
-  endTime: string | null;
-  status: string;
-  generalNotes: string | null;
+  vaccineId: number;
+  vaccineName: string | null;
+  applicationDate: string;
+  suggestedNextDate: string | null;
+  notes: string | null;
+}
 
-  patient: EncounterPatient;
+export interface EncounterDewormingEvent {
+  id: number;
+  productId: number;
+  productName: string | null;
+  applicationDate: string;
+  suggestedNextDate: string | null;
+  notes: string | null;
+}
 
-  // Tabs
-  consultationReason?: EncounterReason | null;
-  anamnesis?: EncounterAnamnesis | null;
-  clinicalExam?: EncounterClinicalExam | null;
-  environmentalData?: EncounterEnvironmentalData | null;
-  clinicalImpression?: EncounterClinicalImpression | null;
-  plan?: EncounterPlan | null;
+export interface EncounterTreatmentItem {
+  id: number;
+  medication: string;
+  dose: string;
+  frequency: string;
+  durationDays: number;
+  administrationRoute: string;
+  notes: string | null;
+  status: TreatmentItemStatus;
+}
 
-  treatmentsCount: number;
-  vaccinesCount: number;
-  dewormingCount: number;
-  surgeriesCount: number;
-  proceduresCount: number;
+export interface EncounterTreatment {
+  id: number;
+  status: TreatmentStatus;
+  startDate: string;
+  endDate: string | null;
+  generalInstructions: string | null;
+  items: EncounterTreatmentItem[];
+}
+
+export interface EncounterProcedure {
+  id: number;
+  procedureType: string;
+  performedDate: string;
+  description: string | null;
+  result: string | null;
+  notes: string | null;
+}
+
+export interface EncounterSurgery {
+  id: number;
+  surgeryType: string;
+  scheduledDate: string | null;
+  performedDate: string | null;
+  surgeryStatus: string;
+  description: string | null;
+  postoperativeInstructions: string | null;
+}
+
+export interface ProcedureCatalogItem {
+  id: number;
+  name: string;
+  description: string | null;
+  isActive: boolean;
 }
 
 export interface CreateEncounterRequest {
@@ -111,4 +155,69 @@ export interface CreateEncounterRequest {
   queueEntryId?: number;
   startTime?: string;
   generalNotes?: string;
+}
+
+export interface CreateEncounterVaccinationRequest {
+  vaccineId: number;
+  applicationDate: string;
+  suggestedNextDate?: string;
+  notes?: string;
+}
+
+export interface CreateEncounterTreatmentItemRequest {
+  medication: string;
+  dose: string;
+  frequency: string;
+  durationDays: number;
+  administrationRoute: string;
+  notes?: string;
+}
+
+export interface CreateEncounterTreatmentRequest {
+  startDate: string;
+  endDate?: string;
+  generalInstructions?: string;
+  items?: CreateEncounterTreatmentItemRequest[];
+}
+
+export interface CreateEncounterProcedureRequest {
+  catalogId?: number;
+  procedureType?: string;
+  performedDate: string;
+  description?: string;
+  result?: string;
+  notes?: string;
+}
+
+export interface EncounterDetail {
+  id: number;
+  patientId: number;
+  vetId: number;
+  veterinarianId: number;
+  queueEntryId: number | null;
+  appointmentId: number | null;
+  startTime: string;
+  endTime: string | null;
+  status: EncounterStatus;
+  generalNotes: string | null;
+  createdByUserId: number | null;
+  createdAt: string;
+  updatedAt: string;
+  patient: EncounterPatient;
+  consultationReason?: EncounterReason | null;
+  anamnesis?: EncounterAnamnesis | null;
+  clinicalExam?: EncounterClinicalExam | null;
+  environmentalData?: EncounterEnvironmentalData | null;
+  clinicalImpression?: EncounterClinicalImpression | null;
+  plan?: EncounterPlan | null;
+  vaccinationEvents: EncounterVaccinationEvent[];
+  dewormingEvents: EncounterDewormingEvent[];
+  treatments: EncounterTreatment[];
+  surgeries: EncounterSurgery[];
+  procedures: EncounterProcedure[];
+  treatmentsCount: number;
+  vaccinesCount: number;
+  dewormingCount: number;
+  surgeriesCount: number;
+  proceduresCount: number;
 }

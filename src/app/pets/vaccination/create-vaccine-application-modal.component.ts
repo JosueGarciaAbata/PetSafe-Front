@@ -78,6 +78,13 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
   @Input() doctorLoadError: string | null = null;
   @Input() submitError: string | null = null;
   @Input() isSaving = false;
+  @Input() title = 'Registrar aplicación de vacuna';
+  @Input() description = 'Registra la vacuna aplicada al paciente.';
+  @Input() submitLabel = 'Registrar vacuna';
+  @Input() showDoctorField = true;
+  @Input() showExternalToggle = true;
+  @Input() showAdministeredAtField = true;
+  @Input() showBatchNumberField = true;
 
   @Output() readonly closed = new EventEmitter<void>();
   @Output() readonly submitted = new EventEmitter<CreatePatientVaccineApplicationRequest>();
@@ -162,7 +169,7 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
     const payload: CreatePatientVaccineApplicationRequest = {
       vaccineId: this.selectedProduct.id,
       applicationDate: value.applicationDate,
-      isExternal: value.isExternal,
+      isExternal: this.showExternalToggle ? value.isExternal : false,
     };
 
     const administeredAt = value.administeredAt.trim();
@@ -170,15 +177,15 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
     const nextDoseDate = value.nextDoseDate.trim();
     const notes = value.notes.trim();
 
-    if (!value.isExternal && this.selectedDoctor) {
+    if (this.showDoctorField && !value.isExternal && this.selectedDoctor) {
       payload.administeredByEmployeeId = this.selectedDoctor.id;
     }
 
-    if (administeredAt) {
+    if (this.showAdministeredAtField && administeredAt) {
       payload.administeredAt = administeredAt;
     }
 
-    if (batchNumber) {
+    if (this.showBatchNumberField && batchNumber) {
       payload.batchNumber = batchNumber;
     }
 
@@ -311,6 +318,11 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
   }
 
   protected onExternalChanged(): void {
+    if (!this.showExternalToggle) {
+      this.form.controls.isExternal.setValue(false);
+      return;
+    }
+
     const isExternal = this.form.controls.isExternal.getRawValue();
 
     if (isExternal) {
@@ -361,7 +373,7 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
   }
 
   protected requiresDoctorSelection(): boolean {
-    return !this.form.controls.isExternal.getRawValue();
+    return this.showDoctorField && !this.form.controls.isExternal.getRawValue();
   }
 
   protected openDatePicker(input: HTMLInputElement): void {
@@ -390,11 +402,15 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
       applicationDate: this.initialApplicationDate?.trim() || this.today,
       administeredByEmployeeId: null,
       administeredAt: '',
-      isExternal: false,
+      isExternal: this.showExternalToggle ? false : false,
       batchNumber: '',
       nextDoseDate: this.initialNextDoseDate?.trim() || '',
       notes: '',
     });
+
+    if (!this.showExternalToggle) {
+      this.form.controls.isExternal.setValue(false);
+    }
 
     this.syncDoctorSelection(this.initialDoctorSelection);
     this.syncProductSelection(this.initialProductSelection);

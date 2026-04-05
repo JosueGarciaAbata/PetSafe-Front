@@ -4,7 +4,11 @@ import { Observable } from 'rxjs';
 import { buildApiUrl } from '@app/core/config/api.config';
 import {
   CreateEncounterRequest,
+  CreateEncounterProcedureRequest,
+  CreateEncounterTreatmentRequest,
+  CreateEncounterVaccinationRequest,
   EncounterDetail,
+  ProcedureCatalogItem,
   EncounterReason,
   EncounterAnamnesis,
   EncounterClinicalExam,
@@ -38,27 +42,54 @@ export class EncountersApiService {
   }
 
   // PESTAÑAS (TABS) ACTUALIZAR
-  updateReason(id: number, payload: EncounterReason): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/${id}/consultation-reason`, payload);
+  updateReason(id: number, payload: EncounterReason): Observable<EncounterDetail> {
+    return this.http.put<EncounterDetail>(`${this.baseUrl}/${id}/consultation-reason`, payload);
   }
 
-  updateAnamnesis(id: number, payload: EncounterAnamnesis): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/${id}/anamnesis`, payload);
+  updateAnamnesis(id: number, payload: EncounterAnamnesis): Observable<EncounterDetail> {
+    return this.http.put<EncounterDetail>(`${this.baseUrl}/${id}/anamnesis`, payload);
   }
 
-  updateClinicalExam(id: number, payload: EncounterClinicalExam): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/${id}/clinical-exam`, payload);
+  updateClinicalExam(id: number, payload: EncounterClinicalExam): Observable<EncounterDetail> {
+    return this.http.put<EncounterDetail>(`${this.baseUrl}/${id}/clinical-exam`, payload);
   }
 
-  updateEnvironmentalData(id: number, payload: EncounterEnvironmentalData): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/${id}/environmental-data`, payload);
+  updateEnvironmentalData(
+    id: number,
+    payload: EncounterEnvironmentalData,
+  ): Observable<EncounterDetail> {
+    return this.http.put<EncounterDetail>(`${this.baseUrl}/${id}/environmental-data`, payload);
   }
 
-  updateImpression(id: number, payload: EncounterClinicalImpression): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/${id}/clinical-impression`, payload);
+  updateImpression(
+    id: number,
+    payload: EncounterClinicalImpression,
+  ): Observable<EncounterDetail> {
+    return this.http.put<EncounterDetail>(`${this.baseUrl}/${id}/clinical-impression`, payload);
   }
 
-  updatePlan(id: number, payload: EncounterPlan): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/${id}/plan`, payload);
+  updatePlan(id: number, payload: EncounterPlan): Observable<EncounterDetail> {
+    return this.http.put<EncounterDetail>(`${this.baseUrl}/${id}/plan`, payload);
+  }
+
+  addVaccination(
+    id: number,
+    payload: CreateEncounterVaccinationRequest,
+  ): Observable<EncounterDetail> {
+    return this.http.post<EncounterDetail>(`${this.baseUrl}/${id}/vaccinations`, payload);
+  }
+
+  addTreatment(id: number, payload: CreateEncounterTreatmentRequest): Observable<EncounterDetail> {
+    return this.http.post<EncounterDetail>(`${this.baseUrl}/${id}/treatments`, payload);
+  }
+
+  addProcedure(id: number, payload: CreateEncounterProcedureRequest): Observable<EncounterDetail> {
+    return this.http.post<EncounterDetail>(`${this.baseUrl}/${id}/procedures`, payload);
+  }
+
+  listProcedureCatalog(includeInactive = false): Observable<ProcedureCatalogItem[]> {
+    return this.http.get<ProcedureCatalogItem[]>(buildApiUrl('catalogs/procedures'), {
+      params: { includeInactive: String(includeInactive) },
+    });
   }
 }
