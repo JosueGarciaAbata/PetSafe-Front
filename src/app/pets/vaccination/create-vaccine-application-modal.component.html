@@ -21,7 +21,7 @@
           </div>
           <div class="space-y-1">
             <h2 id="vaccine-application-title" class="text-lg font-bold text-text-primary">
-              Registrar aplicación de vacuna
+              {{ title }}
             </h2>
             <p class="text-sm text-text-secondary">{{ patientName }}</p>
             @if (quickContextLabel) {
@@ -29,6 +29,7 @@
                 {{ quickContextLabel }}
               </p>
             }
+            <p class="text-sm text-text-secondary">{{ description }}</p>
           </div>
         </div>
 
@@ -202,7 +203,7 @@
             </mat-form-field>
           </div>
 
-          @if (requiresDoctorSelection()) {
+          @if (showDoctorField && requiresDoctorSelection()) {
             <div class="flex flex-col gap-2">
               <div class="flex items-center gap-2">
                 <label class="text-sm font-semibold text-text-primary">Doctor que aplica la vacuna</label>
@@ -287,12 +288,13 @@
                 }
               </mat-autocomplete>
             </div>
-          } @else {
+          } @else if (showDoctorField) {
             <div class="rounded-2xl border border-[#dbeafe] bg-[#eff6ff] px-4 py-3 text-sm leading-6 text-[#1d4ed8]">
               Al marcar la vacuna como externa, no se registra un doctor de la clínica porque la aplicación proviene de otra veterinaria.
             </div>
           }
 
+          @if (showAdministeredAtField) {
           <div class="flex flex-col gap-2">
               <div class="flex items-center gap-2">
                 <label class="text-sm font-semibold text-text-primary">Administrado en</label>
@@ -327,13 +329,16 @@
               />
             </mat-form-field>
           </div>
+          }
         </div>
 
+        @if (showExternalToggle) {
         <div class="rounded-2xl border border-border bg-background/60 px-4 py-3">
           <mat-checkbox formControlName="isExternal" class="text-sm text-text-primary" (change)="onExternalChanged()">
             La vacuna fue aplicada por una veterinaria externa
           </mat-checkbox>
         </div>
+        }
 
         <details class="rounded-2xl border border-border bg-background/40">
           <summary class="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-text-primary">
@@ -389,6 +394,7 @@
               </mat-form-field>
             </div>
 
+            @if (showBatchNumberField) {
             <div class="flex flex-col gap-2">
               <label class="flex items-center gap-2 text-sm font-semibold text-text-secondary">
                 <span>Lote</span>
@@ -404,6 +410,7 @@
                 />
               </mat-form-field>
             </div>
+            }
 
             <div class="flex flex-col gap-2 lg:col-span-2">
               <label class="flex items-center gap-2 text-sm font-semibold text-text-primary">
@@ -440,7 +447,7 @@
             class="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
             [disabled]="isSaving || isLoadingProducts || isLoadingDoctors || products.length === 0"
           >
-            {{ isSaving ? 'Guardando...' : 'Registrar vacuna' }}
+            {{ isSaving ? 'Guardando...' : submitLabel }}
           </button>
         </div>
       </form>
