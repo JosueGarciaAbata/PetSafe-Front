@@ -12,6 +12,20 @@ export interface AuthLoginRequest {
   password: string;
 }
 
+export interface AuthPasswordResetRequest {
+  email: string;
+}
+
+export interface AuthPasswordResetConfirmRequest {
+  email: string;
+  code: string;
+  newPassword: string;
+}
+
+export interface AuthMessageResponse {
+  message: string;
+}
+
 export interface AuthLoginResponse {
   accessToken: string;
   user: AuthLoginUserResponse;

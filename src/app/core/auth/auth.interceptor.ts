@@ -8,6 +8,7 @@ function shouldSkipAuthHeader(url: string): boolean {
 
   return (
     normalizedUrl.endsWith('/auth/login') ||
+    normalizedUrl.includes('/auth/password-reset/') ||
     normalizedUrl.includes('/auth/recovery') ||
     normalizedUrl.includes('/auth/forgot') ||
     normalizedUrl.includes('/auth/reset')

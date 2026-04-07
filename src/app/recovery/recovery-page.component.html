@@ -9,34 +9,69 @@
       class="pointer-events-none absolute inset-0 h-full w-full object-cover"
     />
   } @else {
-    <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,#dfe9f0_0%,#eff4f7_42%,#d8e4eb_100%)]"></div>
+    <div
+      class="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,#dfe9f0_0%,#eff4f7_42%,#d8e4eb_100%)]"
+    ></div>
   }
-  <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(15,23,42,0.22)_0%,rgba(255,255,255,0.06)_42%,rgba(15,23,42,0.18)_100%)] backdrop-blur-[3px]"></div>
+  <div
+    class="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(15,23,42,0.22)_0%,rgba(255,255,255,0.06)_42%,rgba(15,23,42,0.18)_100%)] backdrop-blur-[3px]"
+  ></div>
 
   <div
     class="relative z-10 grid w-full max-w-[1180px] overflow-hidden rounded-[34px] border border-white/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.28),rgba(255,246,240,0.16))] shadow-[0_28px_80px_rgba(15,23,42,0.12)] backdrop-blur-[24px] lg:grid-cols-[0.9fr_1.1fr]"
   >
-    <section class="relative flex items-center overflow-visible bg-[linear-gradient(180deg,rgba(255,247,241,0.94),rgba(255,239,229,0.88))] px-5 py-8 sm:px-8 lg:px-12 lg:py-12">
-      <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.48),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(233,167,112,0.14),transparent_28%)]"></div>
-      <div class="absolute inset-y-8 right-0 hidden w-px bg-[linear-gradient(180deg,transparent,rgba(176,127,89,0.22),transparent)] lg:block"></div>
+    <section
+      class="relative flex items-center overflow-visible bg-[linear-gradient(180deg,rgba(255,247,241,0.94),rgba(255,239,229,0.88))] px-5 py-8 sm:px-8 lg:px-12 lg:py-12"
+    >
+      <div
+        class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.48),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(233,167,112,0.14),transparent_28%)]"
+      ></div>
+      <div
+        class="absolute inset-y-8 right-0 hidden w-px bg-[linear-gradient(180deg,transparent,rgba(176,127,89,0.22),transparent)] lg:block"
+      ></div>
 
       <div class="relative mx-auto w-full max-w-[390px]">
         <div class="mb-8">
-          <p class="text-sm font-semibold uppercase tracking-[0.32em] text-[#9a6a42]">Recuperacion</p>
-          <h2 class="mt-3 text-[2.05rem] font-semibold leading-[1.02] tracking-[-0.05em] text-[#172033]">
-            Recuperar contrasena
-          </h2>
-          <p class="mt-4 text-[15px] leading-7 text-[#5d6b86]">
-            Ingresa tu correo electronico y te enviaremos instrucciones para restablecer tu acceso.
+          <p
+            class="text-sm font-semibold uppercase tracking-[0.32em] text-slate-600 drop-shadow-[0_1px_0_rgba(255,255,255,0.45)]"
+          >
+            Recuperacion
           </p>
+          <h2
+            class="mt-3 text-[2.05rem] font-semibold leading-[1.02] tracking-[-0.05em] text-slate-900"
+          >
+            Recuperar contraseña
+          </h2>
+
+          @if (currentStep === 'request') {
+            <p class="mt-4 text-[15px] leading-7 text-slate-500">
+              Ingresa tu correo electronico para enviarte un PIN de recuperación.
+            </p>
+          } @else if (currentStep === 'verify') {
+            <p class="mt-4 text-[15px] leading-7 text-slate-500">
+              Ingresa el PIN recibido por correo y define tu nueva contraseña.
+            </p>
+          } @else {
+            <p class="mt-4 text-[15px] leading-7 text-slate-500">
+              Tu contraseña fue actualizada. Ya puedes volver a iniciar sesión.
+            </p>
+          }
         </div>
 
-        @if (!isSubmitted) {
-          <form [formGroup]="form" (ngSubmit)="handleSubmit()" class="flex w-full flex-col gap-5">
+        @if (currentStep === 'request') {
+          <form
+            [formGroup]="requestForm"
+            (ngSubmit)="requestPin()"
+            class="flex w-full flex-col gap-5"
+          >
             <div class="flex flex-col gap-2">
               <label class="ml-1 text-sm font-semibold text-[#37425a]">Correo electronico</label>
 
-              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="recovery-field w-full">
+              <mat-form-field
+                appearance="outline"
+                subscriptSizing="dynamic"
+                class="recovery-field w-full"
+              >
                 <span matPrefix class="ml-3 mr-3 inline-flex text-text-secondary">
                   <svg
                     viewBox="0 0 24 24"
@@ -55,15 +90,19 @@
                   placeholder="ejemplo@correo.com"
                   formControlName="email"
                   autocomplete="email"
-                  [disabled]="isLoading"
                   class="text-text-primary placeholder:text-text-secondary/40"
                 />
 
-                @if (shouldShowError(form.controls.email) && form.controls.email.hasError('required')) {
+                @if (
+                  requestForm.controls.email.touched &&
+                  requestForm.controls.email.hasError('required')
+                ) {
                   <mat-error>El correo es obligatorio.</mat-error>
                 }
 
-                @if (shouldShowError(form.controls.email) && form.controls.email.hasError('email')) {
+                @if (
+                  requestForm.controls.email.touched && requestForm.controls.email.hasError('email')
+                ) {
                   <mat-error>Ingresa un correo valido.</mat-error>
                 }
               </mat-form-field>
@@ -73,21 +112,33 @@
               mat-raised-button
               color="primary"
               type="submit"
-              [disabled]="isLoading"
+              [disabled]="isRequestLoading"
               class="auth-submit-button mt-2 flex h-[54px] w-full items-center justify-center gap-2 rounded-[18px] !border-0 !bg-transparent font-semibold !text-white transition disabled:cursor-not-allowed disabled:opacity-70"
             >
-              @if (isLoading) {
-                <span class="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
-                <span>Enviando...</span>
+              @if (isRequestLoading) {
+                <span
+                  class="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"
+                ></span>
+                <span>Enviando PIN...</span>
               } @else {
-                <span>Enviar instrucciones</span>
+                <span>Enviar PIN</span>
               }
             </button>
           </form>
-        } @else {
-          <div class="rounded-[22px] border border-emerald-200 bg-emerald-50/88 p-5 shadow-[0_12px_30px_rgba(22,163,74,0.08)]">
+
+          @if (requestErrorMessage) {
+            <div
+              class="mt-5 rounded-[16px] border border-rose-200 bg-rose-50/88 px-4 py-3 text-sm font-medium text-rose-700"
+            >
+              {{ requestErrorMessage }}
+            </div>
+          }
+        } @else if (currentStep === 'verify') {
+          <div
+            class="rounded-[22px] border border-sky-200/80 bg-white/74 p-5 shadow-[0_18px_38px_rgba(59,130,246,0.10)]"
+          >
             <div class="flex items-start gap-3">
-              <div class="mt-0.5 rounded-2xl bg-emerald-500/12 p-2 text-emerald-700">
+              <div class="mt-0.5 rounded-2xl bg-primary/10 p-2 text-primary">
                 <svg
                   viewBox="0 0 24 24"
                   class="h-5 w-5 shrink-0"
@@ -95,14 +146,298 @@
                   stroke="currentColor"
                   stroke-width="2"
                 >
-                  <path d="M9 12.75 11.25 15 15 9.75" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 3v18"></path>
+                  <path d="M3 12h18"></path>
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-slate-900">Ingresa el PIN recibido</p>
+                <p class="mt-2 text-sm leading-6 text-slate-600">
+                  Usa el PIN de 6 digitos que llego a tu correo para registrar una contraseña nueva.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              (click)="resendPin()"
+              [disabled]="isRequestLoading || isResetLoading"
+              class="inline-flex items-center rounded-full border border-slate-200 bg-white/72 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              @if (isRequestLoading) {
+                Reenviando...
+              } @else {
+                Solicitar otro PIN
+              }
+            </button>
+
+            <button
+              type="button"
+              (click)="goBackToRequest()"
+              [disabled]="isRequestLoading || isResetLoading"
+              class="inline-flex items-center rounded-full border border-transparent px-1 py-2 text-sm font-semibold text-primary transition hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Cambiar correo
+            </button>
+          </div>
+
+          <form
+            [formGroup]="resetForm"
+            (ngSubmit)="confirmReset()"
+            class="mt-6 flex w-full flex-col gap-5"
+          >
+            <div class="flex flex-col gap-2">
+              <label class="ml-1 text-sm font-semibold text-slate-700">PIN de verificación</label>
+
+              <mat-form-field
+                appearance="outline"
+                subscriptSizing="dynamic"
+                class="auth-field w-full"
+              >
+                <span matPrefix class="ml-3 mr-3 inline-flex text-text-secondary">
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="h-[18px] w-[18px]"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                  >
+                    <rect x="4.5" y="6.5" width="15" height="11" rx="2.5"></rect>
+                    <path d="M8 12h.01M12 12h.01M16 12h.01" stroke-linecap="round"></path>
+                  </svg>
+                </span>
+                <input
+                  matInput
+                  type="text"
+                  inputmode="numeric"
+                  autocomplete="one-time-code"
+                  maxlength="6"
+                  placeholder="Ingresa el PIN de 6 digitos"
+                  formControlName="code"
+                  class="text-text-primary placeholder:text-text-secondary/40"
+                />
+
+                @if (
+                  resetForm.controls.code.touched && resetForm.controls.code.hasError('required')
+                ) {
+                  <mat-error>El PIN es obligatorio.</mat-error>
+                }
+
+                @if (
+                  resetForm.controls.code.touched && resetForm.controls.code.hasError('pattern')
+                ) {
+                  <mat-error>El PIN debe tener 6 digitos numericos.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="ml-1 text-sm font-semibold text-slate-700">Nueva contraseña</label>
+
+              <mat-form-field
+                appearance="outline"
+                subscriptSizing="dynamic"
+                class="auth-field w-full"
+              >
+                <span matPrefix class="ml-3 mr-3 inline-flex text-text-secondary">
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="h-[18px] w-[18px]"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                  >
+                    <path d="M6.5 10.5V8a5.5 5.5 0 0 1 11 0v2.5"></path>
+                    <rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect>
+                  </svg>
+                </span>
+                <input
+                  matInput
+                  [type]="showNewPassword ? 'text' : 'password'"
+                  placeholder="Minimo 8 caracteres"
+                  formControlName="newPassword"
+                  autocomplete="new-password"
+                  class="text-text-primary placeholder:text-text-secondary/40"
+                />
+
+                <button
+                  matSuffix
+                  type="button"
+                  (click)="toggleNewPasswordVisibility()"
+                  class="mr-2 inline-flex h-10 w-10 items-center justify-center rounded-full text-text-secondary transition-colors hover:text-brand"
+                  aria-label="Mostrar u ocultar nueva contraseña"
+                >
+                  @if (showNewPassword) {
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="h-[18px] w-[18px]"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                    >
+                      <path d="M3 12s3.5-6.5 9-6.5 9 6.5 9 6.5-3.5 6.5-9 6.5S3 12 3 12Z"></path>
+                      <circle cx="12" cy="12" r="2.5"></circle>
+                      <path d="M4 4l16 16"></path>
+                    </svg>
+                  } @else {
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="h-[18px] w-[18px]"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                    >
+                      <path d="M3 12s3.5-6.5 9-6.5 9 6.5 9 6.5-3.5 6.5-9 6.5S3 12 3 12Z"></path>
+                      <circle cx="12" cy="12" r="2.5"></circle>
+                    </svg>
+                  }
+                </button>
+
+                @if (
+                  resetForm.controls.newPassword.touched &&
+                  resetForm.controls.newPassword.hasError('required')
+                ) {
+                  <mat-error>La nueva contraseña es obligatoria.</mat-error>
+                }
+
+                @if (
+                  resetForm.controls.newPassword.touched &&
+                  resetForm.controls.newPassword.hasError('minlength')
+                ) {
+                  <mat-error>La nueva contraseña debe tener al menos 8 caracteres.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="ml-1 text-sm font-semibold text-slate-700"
+                >Confirmar nueva contraseña</label
+              >
+
+              <mat-form-field
+                appearance="outline"
+                subscriptSizing="dynamic"
+                class="auth-field w-full"
+              >
+                <span matPrefix class="ml-3 mr-3 inline-flex text-text-secondary">
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="h-[18px] w-[18px]"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                  >
+                    <path d="M6.5 10.5V8a5.5 5.5 0 0 1 11 0v2.5"></path>
+                    <rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect>
+                  </svg>
+                </span>
+                <input
+                  matInput
+                  [type]="showConfirmPassword ? 'text' : 'password'"
+                  placeholder="Repite la nueva contraseña"
+                  formControlName="confirmPassword"
+                  autocomplete="new-password"
+                  class="text-text-primary placeholder:text-text-secondary/40"
+                />
+
+                <button
+                  matSuffix
+                  type="button"
+                  (click)="toggleConfirmPasswordVisibility()"
+                  class="mr-2 inline-flex h-10 w-10 items-center justify-center rounded-full text-text-secondary transition-colors hover:text-brand"
+                  aria-label="Mostrar u ocultar confirmacion de contraseña"
+                >
+                  @if (showConfirmPassword) {
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="h-[18px] w-[18px]"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                    >
+                      <path d="M3 12s3.5-6.5 9-6.5 9 6.5 9 6.5-3.5 6.5-9 6.5S3 12 3 12Z"></path>
+                      <circle cx="12" cy="12" r="2.5"></circle>
+                      <path d="M4 4l16 16"></path>
+                    </svg>
+                  } @else {
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="h-[18px] w-[18px]"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                    >
+                      <path d="M3 12s3.5-6.5 9-6.5 9 6.5 9 6.5-3.5 6.5-9 6.5S3 12 3 12Z"></path>
+                      <circle cx="12" cy="12" r="2.5"></circle>
+                    </svg>
+                  }
+                </button>
+
+                @if (
+                  resetForm.controls.confirmPassword.touched &&
+                  resetForm.controls.confirmPassword.hasError('required')
+                ) {
+                  <mat-error>Debes confirmar la nueva contraseña.</mat-error>
+                }
+
+                @if (hasPasswordMismatch()) {
+                  <mat-error>Las contraseñas no coinciden.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <button
+              mat-raised-button
+              color="primary"
+              type="submit"
+              [disabled]="isResetLoading || isRequestLoading"
+              class="auth-submit-button mt-2 flex h-[54px] w-full items-center justify-center gap-2 rounded-[18px] !border-0 !bg-transparent font-semibold !text-white transition disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              @if (isResetLoading) {
+                <span
+                  class="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"
+                ></span>
+                <span>Restableciendo...</span>
+              } @else {
+                <span>Guardar nueva contraseña</span>
+              }
+            </button>
+          </form>
+
+          @if (verifyErrorMessage) {
+            <div
+              class="mt-5 rounded-[16px] border border-rose-200 bg-rose-50/88 px-4 py-3 text-sm font-medium text-rose-700"
+            >
+              {{ verifyErrorMessage }}
+            </div>
+          }
+        } @else {
+          <div
+            class="rounded-[22px] border border-sky-200/80 bg-white/74 p-5 shadow-[0_18px_38px_rgba(59,130,246,0.10)]"
+          >
+            <div class="flex items-start gap-3">
+              <div class="mt-0.5 rounded-2xl bg-primary/10 p-2 text-primary">
+                <svg
+                  viewBox="0 0 24 24"
+                  class="h-5 w-5 shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M9 12.75 11.25 15 15 9.75"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  ></path>
                   <circle cx="12" cy="12" r="9"></circle>
                 </svg>
               </div>
               <div>
-                <p class="text-sm font-semibold text-emerald-800">Solicitud enviada correctamente</p>
-                <p class="mt-2 text-sm leading-6 text-emerald-700">
-                  Hemos enviado las instrucciones a <span class="font-bold">{{ submittedEmail }}</span>.
+                <p class="text-sm font-semibold text-slate-900">Contraseña restablecida</p>
+                <p class="mt-2 text-sm leading-6 text-slate-600">
+                  {{ completionMessage }}
                 </p>
               </div>
             </div>
@@ -110,22 +445,21 @@
         }
 
         <div class="mt-8 flex items-center justify-between gap-4">
-          <a routerLink="/login" class="inline-flex items-center gap-2 text-sm font-semibold text-primary transition hover:underline">
-            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8">
+          <a
+            routerLink="/login"
+            class="inline-flex items-center gap-2 text-sm font-semibold text-primary transition hover:underline"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              class="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+            >
               <path d="M15 19 8 12l7-7" stroke-linecap="round" stroke-linejoin="round"></path>
             </svg>
             Volver al inicio de sesion
           </a>
-
-          @if (isSubmitted) {
-            <button
-              type="button"
-              (click)="resetForm()"
-              class="text-sm font-semibold text-[#5d6b86] transition hover:text-[#172033]"
-            >
-              Intentar de nuevo
-            </button>
-          }
         </div>
       </div>
     </section>
@@ -144,22 +478,30 @@
         ></div>
       }
 
-      <div class="absolute inset-0 bg-[linear-gradient(270deg,rgba(32,48,74,0.42)_0%,rgba(51,65,85,0.22)_44%,rgba(255,255,255,0)_100%)]"></div>
-      <div class="absolute inset-y-0 left-0 w-24 bg-gradient-to-l from-transparent to-white/55"></div>
+      <div
+        class="absolute inset-0 bg-[linear-gradient(270deg,rgba(32,48,74,0.42)_0%,rgba(51,65,85,0.22)_44%,rgba(255,255,255,0)_100%)]"
+      ></div>
+      <div
+        class="absolute inset-y-0 left-0 w-24 bg-gradient-to-l from-transparent to-white/55"
+      ></div>
 
       <div class="relative flex h-full flex-col justify-between p-6 sm:p-8 lg:p-10">
-        <div class="ml-auto inline-flex w-fit items-center gap-2 rounded-full border border-white/28 bg-white/12 px-4 py-2 text-sm font-medium text-white backdrop-blur-md">
+        <div
+          class="ml-auto inline-flex w-fit items-center gap-2 rounded-full border border-white/28 bg-white/12 px-4 py-2 text-sm font-medium text-white backdrop-blur-md"
+        >
           <span class="h-2.5 w-2.5 rounded-full bg-sky-300"></span>
           Restablecimiento de acceso
         </div>
 
-        <div class="max-w-[360px] rounded-[28px] border border-white/18 bg-black/12 p-6 text-white backdrop-blur-md">
+        <div
+          class="max-w-[360px] rounded-[28px] border border-white/18 bg-black/12 p-6 text-white backdrop-blur-md"
+        >
           <app-logo [className]="'[&_span]:!text-white'"></app-logo>
           <h2 class="mt-6 text-[2rem] font-semibold leading-[1.08] tracking-[-0.04em]">
-            Un flujo mas simple para volver a entrar.
+            Recupera el acceso sin salir de esta pantalla.
           </h2>
           <p class="mt-4 text-sm leading-7 text-white/82">
-            Mantuvimos la pantalla sobria, con una sola accion principal y mejor balance visual.
+            Solicita el PIN, validalo y registra tu nueva contraseña en un solo flujo.
           </p>
         </div>
       </div>
