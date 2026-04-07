@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnDestroy } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -18,6 +18,7 @@ import { LogoComponent } from '@app/logo/logo';
     LogoComponent,
   ],
   templateUrl: './recovery-page.component.html',
+  styleUrl: './recovery-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RecoveryPageComponent implements OnDestroy {
@@ -29,6 +30,7 @@ export class RecoveryPageComponent implements OnDestroy {
   protected heroImageFailed = false;
   protected isSubmitted = false;
   protected isLoading = false;
+  protected showValidationErrors = false;
   protected submittedEmail = '';
 
   protected readonly form = this.fb.nonNullable.group({
@@ -40,6 +42,8 @@ export class RecoveryPageComponent implements OnDestroy {
   }
 
   protected handleSubmit(): void {
+    this.showValidationErrors = true;
+
     if (this.form.invalid || this.isLoading) {
       this.form.markAllAsTouched();
       return;
@@ -57,7 +61,16 @@ export class RecoveryPageComponent implements OnDestroy {
 
   protected resetForm(): void {
     this.isSubmitted = false;
+    this.showValidationErrors = false;
     this.form.reset();
+  }
+
+  protected shouldShowError(control: AbstractControl | null): boolean {
+    if (!control) {
+      return false;
+    }
+
+    return control.invalid && (control.touched || this.showValidationErrors);
   }
 
   ngOnDestroy(): void {

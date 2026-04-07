@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -20,6 +20,7 @@ import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util'
     RouterLink,
   ],
   templateUrl: './login-form.component.html',
+  styleUrl: './login-form.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginFormComponent {
@@ -42,11 +43,15 @@ export class LoginFormComponent {
 
   protected isSubmitting = false;
   protected loginErrorMessage = '';
+  protected showValidationErrors = false;
   protected showPassword = false;
 
   protected submit(): void {
+    this.showValidationErrors = true;
+
     if (this.form.invalid || this.isSubmitting) {
       this.form.markAllAsTouched();
+      this.cdr.markForCheck();
       return;
     }
 
@@ -76,6 +81,14 @@ export class LoginFormComponent {
 
   protected togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
+  }
+
+  protected shouldShowError(control: AbstractControl | null): boolean {
+    if (!control) {
+      return false;
+    }
+
+    return control.invalid && (control.touched || this.showValidationErrors);
   }
 
   private resolveLoginErrorMessage(error: unknown): string {

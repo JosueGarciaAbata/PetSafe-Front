@@ -14,19 +14,19 @@
   <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(15,23,42,0.22)_0%,rgba(255,255,255,0.06)_42%,rgba(15,23,42,0.18)_100%)] backdrop-blur-[3px]"></div>
 
   <div
-    class="relative z-10 grid w-full max-w-[1180px] overflow-hidden rounded-[34px] border border-white/70 bg-white/38 shadow-[0_28px_80px_rgba(15,23,42,0.12)] backdrop-blur-[24px] lg:grid-cols-[0.9fr_1.1fr]"
+    class="relative z-10 grid w-full max-w-[1180px] overflow-hidden rounded-[34px] border border-white/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.28),rgba(255,246,240,0.16))] shadow-[0_28px_80px_rgba(15,23,42,0.12)] backdrop-blur-[24px] lg:grid-cols-[0.9fr_1.1fr]"
   >
-    <section class="relative flex items-center overflow-hidden bg-white/18 px-5 py-8 sm:px-8 lg:px-12 lg:py-12">
-      <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.14))]"></div>
-      <div class="absolute inset-y-8 right-0 hidden w-px bg-[linear-gradient(180deg,transparent,rgba(148,163,184,0.26),transparent)] lg:block"></div>
+    <section class="relative flex items-center overflow-visible bg-[linear-gradient(180deg,rgba(255,247,241,0.94),rgba(255,239,229,0.88))] px-5 py-8 sm:px-8 lg:px-12 lg:py-12">
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.48),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(233,167,112,0.14),transparent_28%)]"></div>
+      <div class="absolute inset-y-8 right-0 hidden w-px bg-[linear-gradient(180deg,transparent,rgba(176,127,89,0.22),transparent)] lg:block"></div>
 
       <div class="relative mx-auto w-full max-w-[390px]">
         <div class="mb-8">
-          <p class="text-sm font-semibold uppercase tracking-[0.32em] text-slate-400">Recuperacion</p>
-          <h2 class="mt-3 text-[2.05rem] font-semibold leading-[1.02] tracking-[-0.05em] text-slate-900">
-            Recuperar contraseña
+          <p class="text-sm font-semibold uppercase tracking-[0.32em] text-[#9a6a42]">Recuperacion</p>
+          <h2 class="mt-3 text-[2.05rem] font-semibold leading-[1.02] tracking-[-0.05em] text-[#172033]">
+            Recuperar contrasena
           </h2>
-          <p class="mt-4 text-[15px] leading-7 text-slate-500">
+          <p class="mt-4 text-[15px] leading-7 text-[#5d6b86]">
             Ingresa tu correo electronico y te enviaremos instrucciones para restablecer tu acceso.
           </p>
         </div>
@@ -34,9 +34,9 @@
         @if (!isSubmitted) {
           <form [formGroup]="form" (ngSubmit)="handleSubmit()" class="flex w-full flex-col gap-5">
             <div class="flex flex-col gap-2">
-              <label class="ml-1 text-sm font-semibold text-slate-700">Correo electronico</label>
+              <label class="ml-1 text-sm font-semibold text-[#37425a]">Correo electronico</label>
 
-              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="auth-field w-full">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="recovery-field w-full">
                 <span matPrefix class="ml-3 mr-3 inline-flex text-text-secondary">
                   <svg
                     viewBox="0 0 24 24"
@@ -59,11 +59,11 @@
                   class="text-text-primary placeholder:text-text-secondary/40"
                 />
 
-                @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+                @if (shouldShowError(form.controls.email) && form.controls.email.hasError('required')) {
                   <mat-error>El correo es obligatorio.</mat-error>
                 }
 
-                @if (form.controls.email.touched && form.controls.email.hasError('email')) {
+                @if (shouldShowError(form.controls.email) && form.controls.email.hasError('email')) {
                   <mat-error>Ingresa un correo valido.</mat-error>
                 }
               </mat-form-field>
@@ -121,7 +121,7 @@
             <button
               type="button"
               (click)="resetForm()"
-              class="text-sm font-semibold text-slate-500 transition hover:text-slate-900"
+              class="text-sm font-semibold text-[#5d6b86] transition hover:text-[#172033]"
             >
               Intentar de nuevo
             </button>
