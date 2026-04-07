@@ -350,6 +350,11 @@ body {
     transform 0.2s ease;
 }
 
+.auth-field {
+  --mat-form-field-container-height: 48px;
+  --mat-form-field-container-vertical-padding: 12px;
+}
+
 .auth-field .mdc-notched-outline__leading,
 .auth-field .mdc-notched-outline__notch,
 .auth-field .mdc-notched-outline__trailing {
@@ -387,11 +392,6 @@ body {
 .auth-field.mat-focused .mdc-notched-outline__notch,
 .auth-field.mat-focused .mdc-notched-outline__trailing {
   border-color: rgba(47, 96, 94, 0.5) !important;
-}
-
-.auth-field .mat-mdc-form-field-subscript-wrapper {
-  padding-left: 0.25rem;
-  padding-right: 0.25rem;
 }
 
 .auth-field .mat-mdc-form-field-error {

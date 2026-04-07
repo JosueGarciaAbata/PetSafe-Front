@@ -30,6 +30,7 @@ type RecoveryStep = 'request' | 'verify' | 'completed';
     LogoComponent,
   ],
   templateUrl: './recovery-page.component.html',
+  styleUrl: './recovery-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RecoveryPageComponent {

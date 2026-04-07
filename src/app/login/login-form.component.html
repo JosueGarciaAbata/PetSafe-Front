@@ -1,19 +1,19 @@
 <div class="w-full">
   <div class="mb-8">
-    <p class="text-sm font-semibold uppercase tracking-[0.32em] text-slate-400">Inicio de sesion</p>
-    <h2 class="mt-3 text-[2.1rem] font-semibold leading-[1.02] tracking-[-0.05em] text-slate-900">
+    <p class="text-sm font-semibold uppercase tracking-[0.32em] text-[#9a6a42]">Inicio de sesion</p>
+    <h2 class="mt-3 text-[2.1rem] font-semibold leading-[1.02] tracking-[-0.05em] text-[#172033]">
       Inicia sesion para continuar
     </h2>
-    <p class="mt-4 max-w-[28rem] text-[15px] leading-7 text-slate-500">
+    <p class="mt-4 max-w-[28rem] text-[15px] leading-7 text-[#5d6b86]">
       Usa tus credenciales para entrar al panel y continuar con la gestion clinica.
     </p>
   </div>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="flex w-full flex-col gap-5">
     <div class="flex flex-col gap-2">
-      <label class="ml-1 text-sm font-semibold text-slate-700">Correo electronico</label>
+      <label class="ml-1 text-sm font-semibold text-[#37425a]">Correo electronico</label>
 
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="auth-field w-full">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="login-field w-full">
         <span matPrefix class="ml-3 mr-3 inline-flex text-text-secondary">
           <svg
             viewBox="0 0 24 24"
@@ -35,20 +35,20 @@
           class="text-text-primary placeholder:text-text-secondary/40"
         />
 
-        @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+        @if (shouldShowError(form.controls.email) && form.controls.email.hasError('required')) {
           <mat-error>{{ validationMessages.emailRequired }}</mat-error>
         }
 
-        @if (form.controls.email.touched && form.controls.email.hasError('email')) {
+        @if (shouldShowError(form.controls.email) && form.controls.email.hasError('email')) {
           <mat-error>{{ validationMessages.emailInvalid }}</mat-error>
         }
       </mat-form-field>
     </div>
 
     <div class="flex flex-col gap-2">
-      <label class="ml-1 text-sm font-semibold text-slate-700">Contraseña</label>
+      <label class="ml-1 text-sm font-semibold text-[#37425a]">Contrasena</label>
 
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="auth-field w-full">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="login-field w-full">
         <span matPrefix class="ml-3 mr-3 inline-flex text-text-secondary">
           <svg
             viewBox="0 0 24 24"
@@ -64,7 +64,7 @@
         <input
           matInput
           [type]="showPassword ? 'text' : 'password'"
-          placeholder="Ingresa tu contraseña"
+          placeholder="Ingresa tu contrasena"
           formControlName="password"
           autocomplete="current-password"
           class="text-text-primary placeholder:text-text-secondary/40"
@@ -75,7 +75,7 @@
           type="button"
           (click)="togglePasswordVisibility()"
           class="mr-2 inline-flex h-10 w-10 items-center justify-center rounded-full text-text-secondary transition-colors hover:text-brand"
-          aria-label="Mostrar u ocultar contraseña"
+          aria-label="Mostrar u ocultar contrasena"
         >
           @if (showPassword) {
             <svg
@@ -103,7 +103,7 @@
           }
         </button>
 
-        @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+        @if (shouldShowError(form.controls.password) && form.controls.password.hasError('required')) {
           <mat-error>{{ validationMessages.passwordRequired }}</mat-error>
         }
       </mat-form-field>
@@ -111,7 +111,7 @@
 
     <div class="mt-1 flex items-center justify-end">
       <a routerLink="/recovery" class="text-sm font-semibold text-primary transition hover:underline">
-        Olvidaste tu contraseña?
+        Olvidaste tu contrasena?
       </a>
     </div>
 
