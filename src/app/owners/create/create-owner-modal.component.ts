@@ -16,6 +16,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { firstValueFrom } from 'rxjs';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
+import { AppToastService } from '@app/core/ui/app-toast.service';
 import { OwnersApiService } from '../api/owners-api.service';
 import {
   CLIENT_ADDRESS_MAX_LENGTH,
@@ -45,6 +46,7 @@ export class CreateOwnerModalComponent {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly fb = inject(FormBuilder);
   private readonly ownersApi = inject(OwnersApiService);
+  private readonly toast = inject(AppToastService);
 
   protected readonly addressMaxLength = CLIENT_ADDRESS_MAX_LENGTH;
   protected readonly documentIdMaxLength = CLIENT_DOCUMENT_ID_MAX_LENGTH;
@@ -59,7 +61,7 @@ export class CreateOwnerModalComponent {
   protected readonly form = this.fb.nonNullable.group({
     firstName: ['', [Validators.required, Validators.maxLength(CLIENT_NAME_MAX_LENGTH)]],
     lastName: ['', [Validators.required, Validators.maxLength(CLIENT_NAME_MAX_LENGTH)]],
-    documentId: ['', [Validators.maxLength(CLIENT_DOCUMENT_ID_MAX_LENGTH), ecuadorCedulaValidator()]],
+    documentId: ['', [Validators.required, Validators.maxLength(CLIENT_DOCUMENT_ID_MAX_LENGTH), ecuadorCedulaValidator()]],
     gender: ['F' as ClientGenderCode],
     birthDate: ['', [clientMinDateValidator(CLIENT_MIN_BIRTH_DATE)]],
     phone: ['', [Validators.pattern(CLIENT_PHONE_PATTERN)]],
@@ -90,6 +92,7 @@ export class CreateOwnerModalComponent {
     if (this.form.invalid) {
       this.errorMessage = null;
       this.form.markAllAsTouched();
+      this.toast.info('Completa los campos obligatorios del propietario.');
       this.cdr.markForCheck();
       return;
     }
@@ -101,12 +104,14 @@ export class CreateOwnerModalComponent {
     try {
       const payload = this.buildPayload(this.form.getRawValue() as CreateClientFormValue);
       await firstValueFrom(this.ownersApi.createClient(payload));
+      this.toast.success('Propietario creado correctamente.');
       this.saved.emit();
     } catch (error: unknown) {
       this.errorMessage = resolveApiErrorMessage(error, {
         defaultMessage: 'No se pudo crear el cliente. Intenta nuevamente.',
         clientErrorMessage: 'Revisa los datos ingresados.',
       });
+      this.toast.error(this.errorMessage);
     } finally {
       this.isSaving = false;
       this.cdr.markForCheck();
@@ -117,19 +122,15 @@ export class CreateOwnerModalComponent {
     const payload: CreateClientRequest = {
       firstName: value.firstName.trim(),
       lastName: value.lastName.trim(),
+      documentId: value.documentId.trim(),
       gender: value.gender,
     };
 
-    const documentId = value.documentId.trim();
     const phone = value.phone.trim();
     const address = value.address.trim();
     const birthDate = value.birthDate.trim();
     const notes = value.notes.trim();
     const email = value.email.trim();
-
-    if (documentId) {
-      payload.documentId = documentId;
-    }
 
     if (phone) {
       payload.phone = phone;

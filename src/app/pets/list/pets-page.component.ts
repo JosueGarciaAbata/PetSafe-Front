@@ -101,7 +101,7 @@ export class PetsPageComponent implements OnInit {
       return 'Edad no registrada';
     }
 
-    return `${pet.ageYears} ${pet.ageYears === 1 ? 'ano' : 'anos'}`;
+    return `${pet.ageYears} ${pet.ageYears === 1 ? 'año' : 'años'}`;
   }
 
   protected buildSexLabel(pet: PetListItemApiResponse): string {

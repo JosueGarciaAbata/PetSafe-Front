@@ -1,23 +1,33 @@
+import { PetImageApiResponse } from '@app/pets/models/pet-image.model';
 import { PaginationMeta } from '@app/shared/pagination/pagination.model';
+import { AdoptionTagSummaryApiResponse } from './adoption-tag.model';
 
 export interface AdoptionRecord {
   id: number;
   patientId: number;
   status: string;
+  contactPhone: string | null;
+  contactName: string | null;
+  contactEmail: string | null;
   story: string | null;
   requirements: string | null;
   adopterClientId: number | null;
   adoptionDate: string | null;
   notes: string | null;
+  tags?: AdoptionTagSummaryApiResponse[] | null;
   isActive: boolean;
   createdAt: string;
 }
 
 export interface AdoptionCreateRequest {
   patientId: number;
+  contactPhone: string;
   story?: string;
   requirements?: string;
   notes?: string;
+  contactName?: string;
+  contactEmail?: string;
+  tagIds?: number[];
 }
 
 export interface AdoptionUpdateRequest {
@@ -26,6 +36,34 @@ export interface AdoptionUpdateRequest {
   story?: string;
   requirements?: string;
   notes?: string;
+}
+
+export interface AdoptionBasicUpdateRequest {
+  contactPhone?: string;
+  story?: string;
+  requirements?: string;
+  notes?: string;
+  contactName?: string;
+  contactEmail?: string;
+  tagIds?: number[];
+  image?: File;
+}
+
+export interface AdoptionBasicUpdateResponse {
+  id: number;
+  patientId: number;
+  contactPhone: string | null;
+  contactName: string | null;
+  contactEmail: string | null;
+  story: string | null;
+  requirements: string | null;
+  notes: string | null;
+  tags?: AdoptionTagSummaryApiResponse[] | null;
+  patient: {
+    id: number;
+    name: string;
+    image: PetImageApiResponse | null;
+  };
 }
 
 export interface AdoptionBasicItemApiResponse {

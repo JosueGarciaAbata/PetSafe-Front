@@ -1,7 +1,7 @@
 export interface CreateClientRequest {
   firstName: string;
   lastName: string;
-  documentId?: string;
+  documentId: string;
   phone?: string;
   address?: string;
   gender?: ClientGenderCode;

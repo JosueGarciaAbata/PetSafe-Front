@@ -1,0 +1,391 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-6 pb-12">
+  <button
+    type="button"
+    routerLink="/adoption/new"
+    class="inline-flex cursor-pointer items-center gap-2 self-start text-sm font-medium text-text-secondary transition-colors hover:text-brand"
+  >
+    <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="m15 18-6-6 6-6"></path>
+    </svg>
+    <span>Volver a nueva adopcion</span>
+  </button>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="save()"
+    novalidate
+    class="overflow-hidden rounded-[24px] border border-border bg-card shadow-sm"
+  >
+    <div class="grid lg:grid-cols-[minmax(0,2fr)_minmax(360px,1fr)]">
+      <div class="flex flex-col gap-8 p-8">
+        <section class="grid gap-4">
+          <div class="flex items-start gap-4">
+            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-white shadow-sm">
+              <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 5v14M5 12h14"></path>
+              </svg>
+            </div>
+            <div class="flex flex-col gap-2">
+              <h2 class="text-[28px] font-bold text-text-primary">Nueva mascota</h2>
+              <p class="text-sm leading-6 text-text-secondary">
+                Registra al paciente para dejarlo disponible dentro del flujo de adopcion.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid gap-4">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Identificacion</h3>
+
+          <div class="grid gap-3 rounded-2xl border border-dashed border-border bg-background/50 p-4">
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex flex-col gap-1">
+                <span class="text-sm font-semibold text-text-primary">Foto de la mascota</span>
+                <p class="text-xs text-text-secondary">JPG, PNG o WEBP. Se optimiza antes del envio y se limita a 5 MB.</p>
+              </div>
+              <input
+                #petImageInput
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                class="hidden"
+                (change)="onImageSelected($event)"
+              />
+              <button
+                type="button"
+                (click)="petImageInput.click()"
+                class="rounded-xl border border-border bg-white px-4 py-2 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background"
+              >
+                {{ hasSelectedImage() ? 'Cambiar imagen' : 'Subir imagen' }}
+              </button>
+            </div>
+
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div class="pet-image-preview">
+                @if (selectedImagePreviewUrl(); as previewUrl) {
+                  <img
+                    [src]="previewUrl"
+                    [alt]="selectedImageName() || 'Vista previa de mascota'"
+                    class="h-full w-full object-cover"
+                  />
+                } @else {
+                  <span class="text-2xl font-bold uppercase text-brand">{{ form.controls.name.value.trim().charAt(0) || 'P' }}</span>
+                }
+              </div>
+              <div class="flex min-w-0 flex-1 flex-col gap-1">
+                <span class="text-sm font-semibold text-text-primary">{{ selectedImageName() || 'Sin imagen seleccionada' }}</span>
+                <span class="text-xs text-text-secondary">{{ selectedImageSizeLabel() || 'La imagen se convierte y comprime para mejorar velocidad y cache.' }}</span>
+                @if (imageSelectionError) {
+                  <span class="text-xs font-medium text-red-600">{{ imageSelectionError }}</span>
+                }
+              </div>
+              @if (hasSelectedImage()) {
+                <button
+                  type="button"
+                  (click)="clearImageSelection(petImageInput)"
+                  class="self-start rounded-xl px-3 py-2 text-xs font-bold text-text-secondary transition-all hover:bg-white"
+                >
+                  Quitar
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Nombre de la mascota</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                <input
+                  matInput
+                  formControlName="name"
+                  type="text"
+                  [attr.maxlength]="nameMaxLength"
+                  placeholder="Ej. Max"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                />
+                @if (shouldShowError(form.controls.name) && form.controls.name.hasError('required')) {
+                  <mat-error>Ingresa el nombre de la mascota.</mat-error>
+                }
+                @if (shouldShowError(form.controls.name) && form.controls.name.hasError('invalidPetName')) {
+                  <mat-error>Usa letras, numeros, espacios, apostrofes, puntos o guiones.</mat-error>
+                }
+                @if (shouldShowError(form.controls.name) && form.controls.name.hasError('maxlength')) {
+                  <mat-error>El nombre no puede superar los {{ nameMaxLength }} caracteres.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Especie</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                <mat-select formControlName="speciesId" (selectionChange)="onSpeciesChange()">
+                  <mat-option [value]="0">Selecciona una especie</mat-option>
+                  @for (speciesItem of species; track speciesItem.id) {
+                    <mat-option [value]="speciesItem.id">{{ speciesItem.name }}</mat-option>
+                  }
+                </mat-select>
+                @if (shouldShowError(form.controls.speciesId) && form.controls.speciesId.hasError('min')) {
+                  <mat-error>Selecciona una especie valida.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                <span>Raza</span>
+                <span class="text-xs font-medium text-text-secondary">Opcional</span>
+              </label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                <mat-select formControlName="breedId" [disabled]="breedOptions.length === 0">
+                  <mat-option [value]="0">
+                    {{ breedOptions.length === 0 ? 'Selecciona una especie primero' : 'Selecciona una raza' }}
+                  </mat-option>
+                  @for (breed of breedOptions; track breed.id) {
+                    <mat-option [value]="breed.id">{{ breed.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                <span>Microchip</span>
+                <span class="text-xs font-medium text-text-secondary">Opcional</span>
+              </label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                <input
+                  matInput
+                  formControlName="microchipCode"
+                  type="text"
+                  [attr.maxlength]="microchipMaxLength"
+                  placeholder="Codigo de microchip"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                />
+                @if (shouldShowError(form.controls.microchipCode) && form.controls.microchipCode.hasError('maxlength')) {
+                  <mat-error>El microchip no puede superar los {{ microchipMaxLength }} caracteres.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+        </section>
+
+        <div class="h-px bg-border"></div>
+
+        <section class="grid gap-4">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Informacion adicional</h3>
+
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div class="flex flex-col gap-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                <span>Rasgos distintivos</span>
+                <span class="text-xs font-medium text-text-secondary">Opcional</span>
+              </label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                <textarea
+                  matInput
+                  formControlName="distinguishingMarks"
+                  rows="3"
+                  [attr.maxlength]="textAreaMaxLength"
+                  placeholder="Manchas, cicatrices o detalles fisicos relevantes"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                ></textarea>
+                @if (shouldShowError(form.controls.distinguishingMarks) && form.controls.distinguishingMarks.hasError('maxlength')) {
+                  <mat-error>Los rasgos distintivos no pueden superar los {{ textAreaMaxLength }} caracteres.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                <span>Alergias generales</span>
+                <span class="text-xs font-medium text-text-secondary">Opcional</span>
+              </label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                <textarea
+                  matInput
+                  formControlName="generalAllergies"
+                  rows="3"
+                  [attr.maxlength]="textAreaMaxLength"
+                  placeholder="Ej. Ninguna"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                ></textarea>
+                @if (shouldShowError(form.controls.generalAllergies) && form.controls.generalAllergies.hasError('maxlength')) {
+                  <mat-error>Las alergias generales no pueden superar los {{ textAreaMaxLength }} caracteres.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2 md:col-span-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                <span>Historia general</span>
+                <span class="text-xs font-medium text-text-secondary">Opcional</span>
+              </label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                <textarea
+                  matInput
+                  formControlName="generalHistory"
+                  rows="4"
+                  [attr.maxlength]="textAreaMaxLength"
+                  placeholder="Ej. Rescatada hace 2 meses"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                ></textarea>
+                @if (shouldShowError(form.controls.generalHistory) && form.controls.generalHistory.hasError('maxlength')) {
+                  <mat-error>La historia general no puede superar los {{ textAreaMaxLength }} caracteres.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="border-t border-border bg-white/40 p-8 lg:border-t-0 lg:border-l">
+        <div class="flex flex-col gap-6">
+          <div class="flex flex-col gap-2">
+            <span class="text-sm font-bold uppercase tracking-wider text-brand">Datos basicos</span>
+            <p class="text-sm leading-6 text-text-secondary">
+              Completa aqui la informacion rapida del paciente antes de asociarlo a la adopcion.
+            </p>
+          </div>
+
+          <div class="flex flex-col gap-5">
+            <div class="flex flex-col gap-2">
+              <span class="text-sm font-semibold text-text-primary">Sexo</span>
+              <div class="flex h-11 rounded-xl bg-background p-1">
+                <button
+                  type="button"
+                  (click)="setSex('MACHO')"
+                  class="flex-1 rounded-lg text-xs font-bold transition-all"
+                  [class.bg-white]="form.controls.sex.value === 'MACHO'"
+                  [class.text-brand]="form.controls.sex.value === 'MACHO'"
+                  [class.shadow-sm]="form.controls.sex.value === 'MACHO'"
+                  [class.text-text-secondary]="form.controls.sex.value !== 'MACHO'"
+                >
+                  Macho
+                </button>
+                <button
+                  type="button"
+                  (click)="setSex('HEMBRA')"
+                  class="flex-1 rounded-lg text-xs font-bold transition-all"
+                  [class.bg-white]="form.controls.sex.value === 'HEMBRA'"
+                  [class.text-brand]="form.controls.sex.value === 'HEMBRA'"
+                  [class.shadow-sm]="form.controls.sex.value === 'HEMBRA'"
+                  [class.text-text-secondary]="form.controls.sex.value !== 'HEMBRA'"
+                >
+                  Hembra
+                </button>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <span class="text-sm font-semibold text-text-primary">Esterilizado</span>
+              <div class="flex h-11 rounded-xl bg-background p-1">
+                <button
+                  type="button"
+                  (click)="setSterilized(true)"
+                  class="flex-1 rounded-lg text-xs font-bold transition-all"
+                  [class.bg-white]="form.controls.sterilized.value === true"
+                  [class.text-brand]="form.controls.sterilized.value === true"
+                  [class.shadow-sm]="form.controls.sterilized.value === true"
+                  [class.text-text-secondary]="form.controls.sterilized.value !== true"
+                >
+                  Si
+                </button>
+                <button
+                  type="button"
+                  (click)="setSterilized(false)"
+                  class="flex-1 rounded-lg text-xs font-bold transition-all"
+                  [class.bg-white]="form.controls.sterilized.value === false"
+                  [class.text-brand]="form.controls.sterilized.value === false"
+                  [class.shadow-sm]="form.controls.sterilized.value === false"
+                  [class.text-text-secondary]="form.controls.sterilized.value !== false"
+                >
+                  No
+                </button>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                <span>Fecha de nacimiento</span>
+                <span class="text-xs font-medium text-text-secondary">Opcional</span>
+              </label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                <input
+                  matInput
+                  formControlName="birthDate"
+                  type="date"
+                  [attr.min]="minBirthDate"
+                  [attr.max]="maxBirthDate"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                />
+                @if (shouldShowError(form.controls.birthDate) && form.controls.birthDate.hasError('invalidPetBirthDate')) {
+                  <mat-error>Ingresa una fecha valida entre {{ minBirthDate }} y {{ maxBirthDate }}.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                <span>Peso</span>
+                <span class="text-xs font-medium text-text-secondary">Opcional</span>
+              </label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                <input
+                  matInput
+                  formControlName="currentWeight"
+                  type="number"
+                  min="0.01"
+                  [attr.max]="weightMax"
+                  [attr.step]="weightStep"
+                  placeholder="Peso"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                />
+                <span matTextSuffix class="text-xs font-bold text-text-secondary">kg</span>
+                @if (shouldShowError(form.controls.currentWeight) && form.controls.currentWeight.hasError('invalidPetWeight')) {
+                  <mat-error>Ingresa un peso mayor a 0 y con maximo 2 decimales.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                <span>Color</span>
+                <span class="text-xs font-medium text-text-secondary">Opcional</span>
+              </label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                <mat-select formControlName="colorId">
+                  <mat-option [value]="0">Selecciona un color</mat-option>
+                  @for (color of colors; track color.id) {
+                    <mat-option [value]="color.id">{{ color.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="border-t border-border bg-white/95 px-8 py-5 backdrop-blur">
+      <div class="flex items-center justify-end gap-3">
+        @if (errorMessage) {
+          <div class="mr-auto rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">
+            {{ errorMessage }}
+          </div>
+        }
+        <a
+          routerLink="/adoption/new"
+          class="rounded-xl px-5 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-background"
+        >
+          Cancelar
+        </a>
+        <button
+          type="submit"
+          [disabled]="isSaving || isLoadingCatalogs"
+          class="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {{ isSaving ? 'Guardando...' : 'Guardar mascota' }}
+        </button>
+      </div>
+    </div>
+  </form>
+</div>

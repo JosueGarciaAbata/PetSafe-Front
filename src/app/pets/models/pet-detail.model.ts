@@ -14,6 +14,7 @@ export interface PetBasicDetailApiResponse {
   generalAllergies: string | null;
   generalHistory: string | null;
   image: PetImageApiResponse | null;
+  tutors: PetTutorApiResponse[];
   clinicalObservations: PetClinicalObservationApiResponse[];
   recentActivity: unknown | null;
 }
@@ -29,4 +30,22 @@ export interface PetClinicalObservationApiResponse {
   name: string;
   description: string | null;
   active: boolean;
+}
+
+export interface PetTutorApiResponse {
+  clientId: number;
+  personId: number;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  documentId: string;
+  phone: string | null;
+  relationship: string | null;
+  isPrimary: boolean;
+}
+
+export interface AddPetTutorRequest {
+  clientId: number;
+  isPrimary?: boolean;
+  relationship?: string;
 }

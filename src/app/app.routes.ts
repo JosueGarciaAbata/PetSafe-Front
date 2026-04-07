@@ -102,6 +102,65 @@ export const routes: Routes = [
           import('@app/pets/create/pet-create-page.component').then((m) => m.PetCreatePageComponent),
       },
       {
+        path: 'vaccination',
+        redirectTo: 'vaccination/schemes',
+        pathMatch: 'full',
+      },
+      {
+        path: 'vaccination/schemes',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/vaccination/admin/pages/vaccination-schemes-page.component').then(
+            (m) => m.VaccinationSchemesPageComponent,
+          ),
+      },
+      {
+        path: 'vaccination/schemes/new',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/vaccination/admin/pages/vaccination-scheme-create-page.component').then(
+            (m) => m.VaccinationSchemeCreatePageComponent,
+          ),
+      },
+      {
+        path: 'vaccination/schemes/:id',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/vaccination/admin/pages/vaccination-scheme-detail-page.component').then(
+            (m) => m.VaccinationSchemeDetailPageComponent,
+          ),
+      },
+      {
+        path: 'vaccination/schemes/:id/versions/new',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/vaccination/admin/pages/vaccination-scheme-version-create-page.component').then(
+            (m) => m.VaccinationSchemeVersionCreatePageComponent,
+          ),
+      },
+      {
+        path: 'vaccination/products',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/vaccination/admin/pages/vaccination-products-page.component').then(
+            (m) => m.VaccinationProductsPageComponent,
+          ),
+      },
+      {
+        path: 'pets/:id/vaccination',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/pets/vaccination/pet-vaccination-page.component').then(
+            (m) => m.PetVaccinationPageComponent,
+          ),
+      },
+      {
         path: 'pets/:id',
         canActivate: [authGuard],
         data: { roles: staffRoles },
@@ -176,6 +235,33 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'adoption/new',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/adoptions/create/adoption-create-page.component').then(
+            (m) => m.AdoptionCreatePageComponent,
+          ),
+      },
+      {
+        path: 'adoption/new/pet',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/adoptions/create/adoption-pet-create-page.component').then(
+            (m) => m.AdoptionPetCreatePageComponent,
+          ),
+      },
+      {
+        path: 'adoption/:id/edit',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/adoptions/edit/adoption-edit-page.component').then(
+            (m) => m.AdoptionEditPageComponent,
+          ),
+      },
+      {
         path: 'reports',
         canActivate: [authGuard],
         data: { roles: staffRoles },
@@ -187,11 +273,9 @@ export const routes: Routes = [
       {
         path: 'settings',
         canActivate: [authGuard],
-        data: { roles: adminRoles },
+        data: { roles: staffRoles },
         loadComponent: () =>
-          import('@app/internal-section-page/internal-section-page.component').then(
-            (m) => m.InternalSectionPageComponent,
-          ),
+          import('@app/settings/settings-page.component').then((m) => m.SettingsPageComponent),
       },
       {
         path: '',

@@ -95,25 +95,34 @@
                   matInput
                   formControlName="documentId"
                   type="text"
-                  placeholder="Ej. 12345678A"
+                  placeholder="Ej. 1234567890"
                   class="text-sm text-text-primary placeholder:text-text-secondary/50"
                 />
+                @if (
+                  form.controls.documentId.touched && form.controls.documentId.hasError('required')
+                ) {
+                  <mat-error>La cédula es obligatoria.</mat-error>
+                }
                 @if (
                   form.controls.documentId.touched && form.controls.documentId.hasError('maxlength')
                 ) {
                   <mat-error>La cédula no puede superar los {{ documentIdMaxLength }} caracteres.</mat-error>
                 }
                 @if (
-                  form.controls.documentId.touched && form.controls.documentId.hasError('invalidCedulaFormat')
+                  form.controls.documentId.touched &&
+                  !form.controls.documentId.hasError('required') &&
+                  form.controls.documentId.hasError('invalidCedulaFormat')
                 ) {
                   <mat-error>La cédula debe tener exactamente 10 dígitos.</mat-error>
                 }
                 @if (
-                  form.controls.documentId.touched && form.controls.documentId.hasError('invalidCedula')
+                  form.controls.documentId.touched &&
+                  !form.controls.documentId.hasError('required') &&
+                  form.controls.documentId.hasError('invalidCedula')
                 ) {
                   <mat-error>Ingresa una cédula ecuatoriana válida.</mat-error>
                 }
-                <mat-hint>Opcional. Debe ser una cédula ecuatoriana válida.</mat-hint>
+                <mat-hint>Debe ser una cédula ecuatoriana válida.</mat-hint>
                 <mat-hint align="end">
                   {{ form.controls.documentId.value.length }}/{{ documentIdMaxLength }}
                 </mat-hint>

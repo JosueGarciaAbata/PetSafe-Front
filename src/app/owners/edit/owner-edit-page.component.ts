@@ -6,6 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { firstValueFrom } from 'rxjs';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
+import { AppToastService } from '@app/core/ui/app-toast.service';
 import { OwnersApiService } from '../api/owners-api.service';
 import { ClientResponseApiResponse } from '../models/client-detail.model';
 import {
@@ -50,6 +51,7 @@ export class OwnerEditPageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly ownersApi = inject(OwnersApiService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly toast = inject(AppToastService);
   private ownerId = '';
   private detailBackTarget: readonly (string | number)[] = ['/owners'];
   private detailBackLabel = 'Volver a propietarios';
@@ -97,6 +99,11 @@ export class OwnerEditPageComponent implements OnInit {
   protected async save(): Promise<void> {
     if (this.isSaving || this.form.invalid || !this.owner) {
       this.form.markAllAsTouched();
+      if (!this.owner) {
+        this.toast.error('No se pudo identificar el propietario a editar.');
+      } else {
+        this.toast.info('Revisa los campos obligatorios del propietario.');
+      }
       this.cdr.markForCheck();
       return;
     }
@@ -108,12 +115,14 @@ export class OwnerEditPageComponent implements OnInit {
     try {
       const payload = this.buildPayload(this.form.getRawValue() as EditOwnerFormValue);
       await firstValueFrom(this.ownersApi.updateClient(this.owner.id, payload));
+      this.toast.success('Propietario actualizado correctamente.');
       void this.navigateToOwnerDetail();
     } catch (error: unknown) {
       this.errorMessage = resolveApiErrorMessage(error, {
         defaultMessage: 'No se pudo actualizar el propietario.',
         clientErrorMessage: 'Revisa los datos ingresados.',
       });
+      this.toast.error(this.errorMessage);
     } finally {
       this.isSaving = false;
       this.cdr.markForCheck();

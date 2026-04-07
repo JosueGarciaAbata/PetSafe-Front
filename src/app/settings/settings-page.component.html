@@ -1,0 +1,149 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-8 pb-12">
+  <div class="flex flex-col gap-1">
+    <h1 class="text-[28px] font-bold text-text-primary">Configuracion</h1>
+    <p class="text-base text-text-secondary">
+      Administra los datos basicos de tu cuenta actual.
+    </p>
+  </div>
+
+  @if (!currentUser) {
+    <section class="rounded-[20px] border border-red-200 bg-red-50 px-6 py-5 text-sm text-red-700 shadow-sm">
+      {{ errorMessage }}
+    </section>
+  } @else {
+    <form
+      [formGroup]="form"
+      (ngSubmit)="save()"
+      novalidate
+      class="overflow-hidden rounded-[20px] border border-border bg-card shadow-sm"
+    >
+      <div class="p-6 sm:p-8">
+        <div class="flex flex-col gap-6">
+          <section class="flex flex-col gap-2">
+            <span class="text-xs font-bold uppercase tracking-[0.16em] text-text-secondary">
+              Cuenta actual
+            </span>
+            <h2 class="text-[24px] font-bold text-text-primary">Datos personales</h2>
+            <p class="max-w-[720px] text-sm leading-6 text-text-secondary">
+              Por ahora puedes actualizar correo, nombre, apellido y telefono desde esta seccion.
+            </p>
+          </section>
+
+          @if (successMessage) {
+            <div class="rounded-xl border border-[#A7F3D0] bg-[#ECFDF5] px-4 py-3 text-sm text-[#065F46]">
+              {{ successMessage }}
+            </div>
+          }
+
+          @if (errorMessage) {
+            <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {{ errorMessage }}
+            </div>
+          }
+
+          <section class="grid gap-5 border-t border-border/80 pt-6 md:grid-cols-2">
+            <div class="flex flex-col gap-2">
+              <label for="settings-first-name" class="text-sm font-semibold text-text-primary">
+                Nombre
+              </label>
+              <input
+                id="settings-first-name"
+                type="text"
+                formControlName="firstName"
+                [attr.maxlength]="nameMaxLength"
+                class="h-12 rounded-xl border border-border bg-white px-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+              />
+              @if (form.controls.firstName.touched && form.controls.firstName.hasError('required')) {
+                <p class="text-xs font-medium text-red-600">El nombre es obligatorio.</p>
+              } @else if (form.controls.firstName.touched && form.controls.firstName.hasError('minlength')) {
+                <p class="text-xs font-medium text-red-600">Ingresa al menos 2 caracteres.</p>
+              } @else if (form.controls.firstName.touched && form.controls.firstName.hasError('pattern')) {
+                <p class="text-xs font-medium text-red-600">
+                  Usa solo letras, espacios, apostrofes o guiones.
+                </p>
+              }
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label for="settings-last-name" class="text-sm font-semibold text-text-primary">
+                Apellido
+              </label>
+              <input
+                id="settings-last-name"
+                type="text"
+                formControlName="lastName"
+                [attr.maxlength]="nameMaxLength"
+                class="h-12 rounded-xl border border-border bg-white px-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+              />
+              @if (form.controls.lastName.touched && form.controls.lastName.hasError('required')) {
+                <p class="text-xs font-medium text-red-600">El apellido es obligatorio.</p>
+              } @else if (form.controls.lastName.touched && form.controls.lastName.hasError('minlength')) {
+                <p class="text-xs font-medium text-red-600">Ingresa al menos 2 caracteres.</p>
+              } @else if (form.controls.lastName.touched && form.controls.lastName.hasError('pattern')) {
+                <p class="text-xs font-medium text-red-600">
+                  Usa solo letras, espacios, apostrofes o guiones.
+                </p>
+              }
+            </div>
+
+            <div class="flex flex-col gap-2 md:col-span-2">
+              <label for="settings-email" class="text-sm font-semibold text-text-primary">
+                Correo
+              </label>
+              <input
+                id="settings-email"
+                type="email"
+                formControlName="email"
+                [attr.maxlength]="emailMaxLength"
+                class="h-12 rounded-xl border border-border bg-white px-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+              />
+              @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+                <p class="text-xs font-medium text-red-600">El correo es obligatorio.</p>
+              } @else if (form.controls.email.touched && form.controls.email.hasError('email')) {
+                <p class="text-xs font-medium text-red-600">Ingresa un correo valido.</p>
+              }
+            </div>
+
+            <div class="flex flex-col gap-2 md:col-span-2">
+              <label for="settings-phone" class="text-sm font-semibold text-text-primary">
+                Telefono
+                <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span>
+              </label>
+              <input
+                id="settings-phone"
+                type="tel"
+                formControlName="phone"
+                [attr.maxlength]="phoneMaxLength"
+                placeholder="Solo numeros"
+                class="h-12 rounded-xl border border-border bg-white px-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+              />
+              @if (form.controls.phone.touched && form.controls.phone.hasError('pattern')) {
+                <p class="text-xs font-medium text-red-600">
+                  El telefono debe tener entre 7 y 15 digitos.
+                </p>
+              }
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-end gap-3 border-t border-border bg-white/95 px-6 py-4 sm:px-8">
+        <button
+          type="button"
+          (click)="resetForm()"
+          class="rounded-xl px-5 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-background"
+        >
+          Restablecer
+        </button>
+
+        <button
+          type="submit"
+          [disabled]="isSaving"
+          class="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {{ isSaving ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>
