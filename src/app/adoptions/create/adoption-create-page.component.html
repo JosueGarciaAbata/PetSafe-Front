@@ -36,7 +36,7 @@
           <button
             type="button"
             (click)="openCreatePetPage()"
-            class="inline-flex cursor-pointer items-center gap-2 self-start rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-bold text-text-primary shadow-sm transition-all hover:border-brand/20 hover:bg-background md:self-auto"
+            class="inline-flex cursor-pointer items-center gap-2 self-start rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-bold text-text-primary shadow-sm transition-all hover:border-brand/20 hover:bg-background md:self-auto"
           >
             <svg
               viewBox="0 0 24 24"
@@ -81,16 +81,16 @@
                 [value]="patientSearchValue"
                 (input)="onSearchInput($any($event.target).value)"
                 placeholder="Buscar por nombre, tutor o especie"
-                class="h-12 w-full rounded-xl border border-border bg-white pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+                class="h-12 w-full rounded-xl border border-border bg-surface pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
               />
             </div>
           </div>
 
           <div class="-mx-6 border-y border-border/80 sm:-mx-6">
-            <div class="overflow-x-auto bg-white">
+            <div class="overflow-x-auto bg-surface">
               <table class="w-full min-w-[920px] text-left">
                 <thead>
-                  <tr class="border-b border-border bg-[#F8FAFC]">
+                  <tr class="border-b border-border bg-card">
                     <th class="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
                       Mascota
                     </th>
@@ -135,8 +135,8 @@
                   } @else {
                     @for (patient of patients; track patient.id) {
                       <tr
-                        class="bg-white transition-colors hover:bg-[#F8FAFC]"
-                        [class.bg-[#F8FAFC]]="selectedPatient?.id === patient.id"
+                        class="bg-surface transition-colors hover:bg-card"
+                        [class.bg-card]="selectedPatient?.id === patient.id"
                       >
                         <td class="px-8 py-6">
                           <button
@@ -145,7 +145,7 @@
                             (click)="selectPatient(patient)"
                           >
                             <div
-                              class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-white bg-active-soft text-sm font-bold text-brand shadow-sm"
+                              class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-surface bg-active-soft text-sm font-bold text-brand shadow-sm"
                             >
                               {{ getInitials(patient.name) }}
                             </div>
@@ -212,7 +212,7 @@
             <h2 class="text-lg font-bold text-text-primary">Detalles de adopcion</h2>
           </div>
 
-          <div class="rounded-[18px] border border-border bg-[#F8FAFC] px-5 py-4">
+          <div class="rounded-[18px] border border-border bg-card px-5 py-4">
             <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div class="flex min-w-0 items-center gap-4">
                 <div
@@ -235,7 +235,7 @@
               <button
                 type="button"
                 (click)="goToPatientSelection()"
-                class="inline-flex cursor-pointer items-center rounded-xl border border-border bg-white px-4 py-2 text-xs font-bold text-text-secondary transition-all hover:bg-background hover:text-text-primary"
+                class="inline-flex cursor-pointer items-center rounded-xl border border-border bg-surface px-4 py-2 text-xs font-bold text-text-secondary transition-all hover:bg-background hover:text-text-primary"
               >
                 Cambiar mascota
               </button>
@@ -330,7 +330,7 @@
               @if (selectedTags.length > 0) {
                 <div class="flex flex-wrap gap-2">
                   @for (tag of selectedTags; track tag.id) {
-                    <span class="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-bold text-text-primary shadow-sm">
+                    <span class="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs font-bold text-text-primary shadow-sm">
                       {{ tag.name }}
                       <button
                         type="button"
@@ -424,7 +424,7 @@
       }
     </div>
 
-    <div class="border-t border-border bg-white/95 px-6 py-4 backdrop-blur">
+    <div class="border-t border-border bg-surface/95 px-6 py-4 backdrop-blur">
       @if (submitError) {
         <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">
           {{ submitError }}

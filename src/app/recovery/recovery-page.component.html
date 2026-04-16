@@ -18,7 +18,7 @@
   ></div>
 
   <div
-    class="relative z-10 grid w-full max-w-[1180px] overflow-hidden rounded-[34px] border border-white/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.28),rgba(255,246,240,0.16))] shadow-[0_28px_80px_rgba(15,23,42,0.12)] backdrop-blur-[24px] lg:grid-cols-[0.9fr_1.1fr]"
+    class="relative z-10 grid w-full max-w-[1180px] overflow-hidden rounded-[34px] border border-surface/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.28),rgba(255,246,240,0.16))] shadow-[0_28px_80px_rgba(15,23,42,0.12)] backdrop-blur-[24px] lg:grid-cols-[0.9fr_1.1fr]"
   >
     <section
       class="relative flex items-center overflow-visible bg-[linear-gradient(180deg,rgba(255,247,241,0.94),rgba(255,239,229,0.88))] px-5 py-8 sm:px-8 lg:px-12 lg:py-12"
@@ -117,7 +117,7 @@
             >
               @if (isRequestLoading) {
                 <span
-                  class="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"
+                  class="h-5 w-5 animate-spin rounded-full border-2 border-surface/30 border-t-white"
                 ></span>
                 <span>Enviando PIN...</span>
               } @else {
@@ -397,7 +397,7 @@
             >
               @if (isResetLoading) {
                 <span
-                  class="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white"
+                  class="h-5 w-5 animate-spin rounded-full border-2 border-surface/30 border-t-white"
                 ></span>
                 <span>Restableciendo...</span>
               } @else {
@@ -487,14 +487,14 @@
 
       <div class="relative flex h-full flex-col justify-between p-6 sm:p-8 lg:p-10">
         <div
-          class="ml-auto inline-flex w-fit items-center gap-2 rounded-full border border-white/28 bg-white/12 px-4 py-2 text-sm font-medium text-white backdrop-blur-md"
+          class="ml-auto inline-flex w-fit items-center gap-2 rounded-full border border-surface/28 bg-white/12 px-4 py-2 text-sm font-medium text-white backdrop-blur-md"
         >
           <span class="h-2.5 w-2.5 rounded-full bg-sky-300"></span>
           Restablecimiento de acceso
         </div>
 
         <div
-          class="max-w-[360px] rounded-[28px] border border-white/18 bg-black/12 p-6 text-white backdrop-blur-md"
+          class="max-w-[360px] rounded-[28px] border border-surface/18 bg-black/12 p-6 text-white backdrop-blur-md"
         >
           <app-logo [className]="'[&_span]:!text-white'"></app-logo>
           <h2 class="mt-6 text-[2rem] font-semibold leading-[1.08] tracking-[-0.04em]">

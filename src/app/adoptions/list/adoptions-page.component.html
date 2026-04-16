@@ -53,7 +53,7 @@
         [value]="searchValue"
         (input)="onSearchInput($any($event.target).value)"
         placeholder="Buscar por nombre, especie o raza"
-        class="h-12 w-full rounded-xl border border-border bg-white pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+        class="h-12 w-full rounded-xl border border-border bg-surface pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
       />
     </div>
   </div>
@@ -62,7 +62,7 @@
     <div class="overflow-x-auto">
       <table class="w-full min-w-[980px] text-left">
         <thead>
-          <tr class="border-b border-border bg-[#F8FAFC]">
+          <tr class="border-b border-border bg-card">
             <th class="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
               Paciente
             </th>
@@ -112,13 +112,13 @@
           } @else {
             @for (adoption of adoptions; track adoption.id) {
               <tr
-                class="cursor-pointer bg-white transition-colors hover:bg-[#F8FAFC]"
+                class="cursor-pointer bg-surface transition-colors hover:bg-card"
                 (click)="openEditPage(adoption.id)"
               >
                 <td class="px-8 py-6">
                   <div class="flex items-center gap-4">
                     <div
-                      class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-white bg-active-soft text-sm font-bold text-brand shadow-sm"
+                      class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-surface bg-active-soft text-sm font-bold text-brand shadow-sm"
                     >
                       {{ getInitials(adoption.patientName) }}
                     </div>
@@ -167,7 +167,7 @@
                   <button
                     type="button"
                     (click)="$event.stopPropagation(); openEditPage(adoption.id)"
-                    class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#F1F5F9] text-text-secondary transition-all hover:bg-active-soft hover:text-brand"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-background text-text-secondary transition-all hover:bg-active-soft hover:text-brand"
                     aria-label="Editar adopcion"
                   >
                     <svg

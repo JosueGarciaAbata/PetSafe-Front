@@ -42,7 +42,7 @@
             } @else {
               @for (appointment of day.appointments; track trackByAppointment($index, appointment)) {
                 <article
-                  class="appointment-week-card cursor-pointer rounded-[18px] border border-border bg-white p-3 shadow-sm transition-all hover:ring-2 hover:ring-primary/20"
+                  class="appointment-week-card cursor-pointer rounded-[18px] border border-border bg-surface p-3 shadow-sm transition-all hover:ring-2 hover:ring-primary/20"
                   (click)="appointmentClick.emit(appointment)"
                   [class.opacity-70]="appointment.status === 'CANCELADA' || !appointment.isActive"
                 >

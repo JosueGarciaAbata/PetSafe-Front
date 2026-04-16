@@ -46,7 +46,7 @@
           type="text"
           [formControl]="searchControl"
           placeholder="Buscar por nombre, correo o mascota"
-          class="h-12 w-full rounded-xl border border-border bg-white pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+          class="h-12 w-full rounded-xl border border-border bg-surface pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
         />
       </div>
     </div>
@@ -55,7 +55,7 @@
       <div class="overflow-x-auto">
         <table class="w-full min-w-[880px] text-left">
           <thead>
-            <tr class="border-b border-border bg-[#F8FAFC]">
+            <tr class="border-b border-border bg-card">
               <th class="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
                 Propietario
               </th>
@@ -102,13 +102,13 @@
             } @else {
               @for (owner of owners; track owner.id) {
                 <tr
-                  class="cursor-pointer bg-white transition-colors hover:bg-[#F8FAFC]"
+                  class="cursor-pointer bg-surface transition-colors hover:bg-card"
                   (click)="openOwnerDetail(owner)"
                 >
                   <td class="px-8 py-6">
                     <div class="flex items-center gap-4">
                       <div
-                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-white bg-active-soft text-sm font-bold text-brand shadow-sm"
+                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-surface bg-active-soft text-sm font-bold text-brand shadow-sm"
                       >
                         {{ buildInitials(owner) }}
                       </div>
@@ -160,7 +160,7 @@
                       @if (owner.pets.length > 0) {
                         @for (pet of owner.pets.slice(0, 2); track pet.id) {
                           <div
-                            class="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-2.5 py-1.5 shadow-sm"
+                            class="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-2.5 py-1.5 shadow-sm"
                           >
                           <div
                             class="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-[#F4E7BF] text-[10px] font-bold text-[#7A5A00]"
@@ -204,7 +204,7 @@
                     <button
                       type="button"
                       (click)="$event.stopPropagation(); openOwnerDetail(owner)"
-                      class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#F1F5F9] text-text-secondary transition-all hover:bg-active-soft hover:text-brand"
+                      class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-background text-text-secondary transition-all hover:bg-active-soft hover:text-brand"
                       aria-label="Ver detalle del propietario"
                     >
                       <svg

@@ -20,7 +20,10 @@ export type ShellIconName =
   | 'search'
   | 'bell'
   | 'user'
-  | 'chevronDown';
+  | 'chevronDown'
+  | 'sun'
+  | 'moon'
+  | 'sidebarToggle';
 
 @Component({
   selector: 'app-shell-icon',
