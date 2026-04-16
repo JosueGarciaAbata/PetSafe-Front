@@ -30,6 +30,7 @@ export type ShellIconName =
   standalone: true,
   imports: [NgClass],
   templateUrl: './shell-icon.component.html',
+  styles: [':host { display: inline-flex; align-items: center; justify-content: center; }'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ShellIconComponent {
