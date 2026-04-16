@@ -59,7 +59,6 @@ export class VaccinationProductsPageComponent implements OnInit {
   protected hideTarget: VaccinationProductItem | null = null;
 
   ngOnInit(): void {
-    void this.loadSpecies();
     void this.loadProducts();
   }
 
@@ -156,12 +155,16 @@ export class VaccinationProductsPageComponent implements OnInit {
     this.editingProduct = null;
     this.modalError = null;
     this.isModalOpen = true;
+    this.cdr.detectChanges();
+    void this.loadSpeciesForModal();
   }
 
   protected openEditModal(product: VaccinationProductItem): void {
     this.editingProduct = product;
     this.modalError = null;
     this.isModalOpen = true;
+    this.cdr.detectChanges();
+    void this.loadSpeciesForModal();
   }
 
   protected closeModal(): void {
@@ -271,7 +274,11 @@ export class VaccinationProductsPageComponent implements OnInit {
     }
   }
 
-  private async loadSpecies(): Promise<void> {
+  private async loadSpeciesForModal(): Promise<void> {
+    if (this.isLoadingSpecies || this.speciesOptions.length > 0) {
+      return;
+    }
+
     this.isLoadingSpecies = true;
     this.cdr.detectChanges();
 
@@ -279,7 +286,7 @@ export class VaccinationProductsPageComponent implements OnInit {
       const response = await firstValueFrom(this.speciesApi.list({ page: 1, limit: 100 }));
       this.speciesOptions.splice(0, this.speciesOptions.length, ...response.data);
     } catch {
-      this.toast.error('No se pudo cargar la lista de especies.');
+      this.modalError = 'No se pudo cargar la lista de especies.';
     } finally {
       this.isLoadingSpecies = false;
       this.cdr.detectChanges();
@@ -297,10 +304,8 @@ export class VaccinationProductsPageComponent implements OnInit {
       );
       this.products.splice(0, this.products.length, ...response);
       this.syncPagination();
-    } catch (error: unknown) {
-      this.loadError = resolveApiErrorMessage(error, {
-        defaultMessage: 'No se pudo cargar el catalogo de productos.',
-      });
+    } catch {
+      this.loadError = 'No se pudieron cargar los productos biologicos.';
     } finally {
       this.isLoading = false;
       this.cdr.detectChanges();

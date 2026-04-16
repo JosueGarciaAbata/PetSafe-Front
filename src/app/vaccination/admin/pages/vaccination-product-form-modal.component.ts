@@ -39,6 +39,7 @@ export class VaccinationProductFormModalComponent implements OnChanges {
 
   @Input() open = false;
   @Input() speciesOptions: SpeciesApiResponse[] = [];
+  @Input() isLoadingSpecies = false;
   @Input() product: VaccinationProductItem | null = null;
   @Input() isSaving = false;
   @Input() errorMessage: string | null = null;
@@ -137,7 +138,14 @@ export class VaccinationProductFormModalComponent implements OnChanges {
     this.showValidationErrors = false;
     this.name = this.product?.name ?? '';
     this.selectedSpecies =
-      this.speciesOptions.find((species) => species.id === this.product?.species.id) ?? null;
+      this.speciesOptions.find((species) => species.id === this.product?.species.id)
+      ?? (this.product
+        ? {
+            id: this.product.species.id,
+            name: this.product.species.name,
+            breeds: [],
+          }
+        : null);
     this.speciesSearch = this.selectedSpecies?.name ?? '';
     this.isRevaccination = this.product?.isRevaccination ?? false;
   }
