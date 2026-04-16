@@ -1,0 +1,45 @@
+:host {
+  display: block;
+}
+
+.encounter-workspace-theme textarea::placeholder,
+.encounter-workspace-theme input::placeholder {
+  color: color-mix(in srgb, var(--ps-text-secondary) 84%, transparent);
+  opacity: 1;
+}
+
+.encounter-workspace-theme .border-slate-200,
+.encounter-workspace-theme .border-slate-200\/80,
+.encounter-workspace-theme .border-slate-300 {
+  border-color: var(--ps-border) !important;
+}
+
+.encounter-workspace-theme .ring-slate-200 {
+  --tw-ring-color: var(--ps-border) !important;
+}
+
+.encounter-workspace-theme .bg-slate-50,
+.encounter-workspace-theme .bg-slate-100,
+.encounter-workspace-theme .bg-slate-50\/70 {
+  background-color: var(--ps-background) !important;
+}
+
+.encounter-workspace-theme .text-slate-400,
+.encounter-workspace-theme .text-slate-500,
+.encounter-workspace-theme .text-slate-600,
+.encounter-workspace-theme .text-slate-700 {
+  color: var(--ps-text-secondary) !important;
+}
+
+.encounter-workspace-theme .hover\:bg-slate-100:hover {
+  background-color: var(--ps-background) !important;
+}
+
+.encounter-workspace-theme .encounter-workspace__overlay {
+  background: var(--ps-overlay-bg);
+}
+
+.encounter-workspace-theme .encounter-workspace__modal {
+  border-color: color-mix(in srgb, var(--ps-border) 78%, transparent);
+  background: var(--ps-modal-bg);
+}

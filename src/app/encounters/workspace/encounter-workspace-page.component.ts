@@ -78,6 +78,7 @@ import {
     CreateVaccineApplicationModalComponent,
   ],
   templateUrl: './encounter-workspace-page.component.html',
+  styleUrl: './encounter-workspace-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EncounterWorkspacePageComponent implements OnInit {
@@ -962,7 +963,7 @@ export class EncounterWorkspacePageComponent implements OnInit {
 
   protected vaccinationCoverageClass(): string {
     if (!this.patientVaccinationPlan) {
-      return 'text-slate-600';
+      return 'text-text-secondary';
     }
 
     if (

@@ -27,6 +27,24 @@
   --ps-badge-blue-text: #3b82f6;
   --ps-badge-purple-bg: #f5f0ff;
   --ps-badge-purple-text: #8b5cf6;
+  --ps-tone-success-bg: #f0fdf4;
+  --ps-tone-success-border: #dcfce7;
+  --ps-tone-success-text: #166534;
+  --ps-tone-info-bg: #eff6ff;
+  --ps-tone-info-border: #dbeafe;
+  --ps-tone-info-text: #1d4ed8;
+  --ps-tone-warning-bg: #fffbeb;
+  --ps-tone-warning-border: #fef3c7;
+  --ps-tone-warning-text: #b45309;
+  --ps-tone-attention-bg: #fff7ed;
+  --ps-tone-attention-border: #ffedd5;
+  --ps-tone-attention-text: #c2410c;
+  --ps-tone-neutral-bg: #f1f5f9;
+  --ps-tone-neutral-border: #dce3e8;
+  --ps-tone-neutral-text: #475569;
+  --ps-tone-danger-bg: #fff1f2;
+  --ps-tone-danger-border: #fecaca;
+  --ps-tone-danger-text: #9f1239;
 
   /* Sidebar */
   --ps-sidebar-bg: #eaeeed;
@@ -78,6 +96,24 @@
   --ps-badge-blue-text: #93bbfd;
   --ps-badge-purple-bg: rgba(139, 92, 246, 0.12);
   --ps-badge-purple-text: #c4b5fd;
+  --ps-tone-success-bg: rgba(34, 197, 94, 0.12);
+  --ps-tone-success-border: rgba(74, 222, 128, 0.24);
+  --ps-tone-success-text: #86efac;
+  --ps-tone-info-bg: rgba(59, 130, 246, 0.14);
+  --ps-tone-info-border: rgba(96, 165, 250, 0.24);
+  --ps-tone-info-text: #93c5fd;
+  --ps-tone-warning-bg: rgba(245, 158, 11, 0.12);
+  --ps-tone-warning-border: rgba(251, 191, 36, 0.22);
+  --ps-tone-warning-text: #fbbf24;
+  --ps-tone-attention-bg: rgba(249, 115, 22, 0.12);
+  --ps-tone-attention-border: rgba(251, 146, 60, 0.24);
+  --ps-tone-attention-text: #fdba74;
+  --ps-tone-neutral-bg: rgba(148, 163, 184, 0.12);
+  --ps-tone-neutral-border: rgba(148, 163, 184, 0.2);
+  --ps-tone-neutral-text: #cbd5e1;
+  --ps-tone-danger-bg: rgba(244, 63, 94, 0.12);
+  --ps-tone-danger-border: rgba(251, 113, 133, 0.22);
+  --ps-tone-danger-text: #fda4af;
 
   /* Sidebar */
   --ps-sidebar-bg: linear-gradient(180deg, #1a3a38 0%, #15302f 40%, #122726 100%);
@@ -194,6 +230,60 @@ body {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* ─── Semantic Tones ─────────────────────────────────────────────── */
+.ps-tone {
+  --ps-tone-bg-current: transparent;
+  --ps-tone-border-current: transparent;
+  --ps-tone-text-current: inherit;
+}
+
+.ps-tone--success {
+  --ps-tone-bg-current: var(--ps-tone-success-bg);
+  --ps-tone-border-current: var(--ps-tone-success-border);
+  --ps-tone-text-current: var(--ps-tone-success-text);
+}
+
+.ps-tone--info {
+  --ps-tone-bg-current: var(--ps-tone-info-bg);
+  --ps-tone-border-current: var(--ps-tone-info-border);
+  --ps-tone-text-current: var(--ps-tone-info-text);
+}
+
+.ps-tone--warning {
+  --ps-tone-bg-current: var(--ps-tone-warning-bg);
+  --ps-tone-border-current: var(--ps-tone-warning-border);
+  --ps-tone-text-current: var(--ps-tone-warning-text);
+}
+
+.ps-tone--attention {
+  --ps-tone-bg-current: var(--ps-tone-attention-bg);
+  --ps-tone-border-current: var(--ps-tone-attention-border);
+  --ps-tone-text-current: var(--ps-tone-attention-text);
+}
+
+.ps-tone--neutral {
+  --ps-tone-bg-current: var(--ps-tone-neutral-bg);
+  --ps-tone-border-current: var(--ps-tone-neutral-border);
+  --ps-tone-text-current: var(--ps-tone-neutral-text);
+}
+
+.ps-tone--danger {
+  --ps-tone-bg-current: var(--ps-tone-danger-bg);
+  --ps-tone-border-current: var(--ps-tone-danger-border);
+  --ps-tone-text-current: var(--ps-tone-danger-text);
+}
+
+.ps-tone-surface {
+  border-color: var(--ps-tone-border-current) !important;
+  background-color: var(--ps-tone-bg-current) !important;
+  color: var(--ps-tone-text-current) !important;
+}
+
+.ps-tone-fill {
+  background-color: var(--ps-tone-bg-current) !important;
+  color: var(--ps-tone-text-current) !important;
 }
 
 /* ─── Queue Buttons ──────────────────────────────────────────────── */
