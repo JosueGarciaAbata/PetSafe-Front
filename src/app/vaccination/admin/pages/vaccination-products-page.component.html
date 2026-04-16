@@ -33,7 +33,7 @@
         (ngModelChange)="onFilterTermChange()"
         name="productsSearch"
         placeholder="Buscar por nombre, especie o tipo"
-        class="h-12 w-full rounded-xl border border-border bg-white pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+        class="h-12 w-full rounded-xl border border-border bg-surface pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
       />
     </div>
   </div>
@@ -45,7 +45,7 @@
       class="rounded-full px-4 py-2 text-xs font-bold transition-all"
       [class.bg-primary]="filter.status === 'ALL'"
       [class.text-white]="filter.status === 'ALL'"
-      [class.bg-white]="filter.status !== 'ALL'"
+      [class.bg-surface]="filter.status !== 'ALL'"
       [class.text-text-secondary]="filter.status !== 'ALL'"
       [class.border]="filter.status !== 'ALL'"
       [class.border-border]="filter.status !== 'ALL'"
@@ -58,7 +58,7 @@
       class="rounded-full px-4 py-2 text-xs font-bold transition-all"
       [class.bg-[#ecfdf3]]="filter.status === 'ACTIVE'"
       [class.text-[#166534]]="filter.status === 'ACTIVE'"
-      [class.bg-white]="filter.status !== 'ACTIVE'"
+      [class.bg-surface]="filter.status !== 'ACTIVE'"
       [class.text-text-secondary]="filter.status !== 'ACTIVE'"
       [class.border]="filter.status !== 'ACTIVE'"
       [class.border-border]="filter.status !== 'ACTIVE'"
@@ -71,7 +71,7 @@
       class="rounded-full px-4 py-2 text-xs font-bold transition-all"
       [class.bg-[#fff7ed]]="filter.status === 'INACTIVE'"
       [class.text-[#c2410c]]="filter.status === 'INACTIVE'"
-      [class.bg-white]="filter.status !== 'INACTIVE'"
+      [class.bg-surface]="filter.status !== 'INACTIVE'"
       [class.text-text-secondary]="filter.status !== 'INACTIVE'"
       [class.border]="filter.status !== 'INACTIVE'"
       [class.border-border]="filter.status !== 'INACTIVE'"
@@ -115,7 +115,7 @@
 
             <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               @for (product of group.products; track product.id) {
-                <article class="rounded-[18px] border border-border bg-white p-4 shadow-sm transition hover:border-[#dbeafe] hover:shadow-md">
+                <article class="rounded-[18px] border border-border bg-surface p-4 shadow-sm transition hover:border-[#dbeafe] hover:shadow-md">
                   <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0 flex-1">
                       <h3 class="truncate text-sm font-bold text-text-primary">{{ product.name }}</h3>
@@ -143,7 +143,7 @@
                       <button
                         type="button"
                         (click)="openEditModal(product)"
-                        class="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-[11px] font-semibold text-text-primary transition hover:bg-[#F8FAFC]"
+                        class="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-[11px] font-semibold text-text-primary transition hover:bg-card"
                       >
                         <span>Editar</span>
                       </button>

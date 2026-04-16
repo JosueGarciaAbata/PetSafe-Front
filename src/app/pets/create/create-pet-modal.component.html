@@ -24,7 +24,7 @@
     [style.max-height]="pageMode ? null : '90vh'"
   >
     @if (!pageMode) {
-      <div class="shrink-0 border-b border-border bg-white px-5 py-4">
+      <div class="shrink-0 border-b border-border bg-surface px-5 py-4">
         <div class="flex items-start justify-between gap-4">
           <div class="flex flex-col gap-1">
             <h2 class="text-lg font-bold text-text-primary">Nueva mascota</h2>
@@ -75,7 +75,7 @@
                       <p class="text-xs text-text-secondary">JPG, PNG o WEBP. Se optimiza antes del envio y se limita a 5 MB.</p>
                     </div>
                     <input #petImageInput type="file" accept="image/jpeg,image/png,image/webp" class="hidden" (change)="onImageSelected($event)" />
-                    <button type="button" (click)="petImageInput.click()" class="rounded-xl border border-border bg-white px-4 py-2 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background">
+                    <button type="button" (click)="petImageInput.click()" class="rounded-xl border border-border bg-surface px-4 py-2 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background">
                       {{ hasSelectedImage() ? 'Cambiar imagen' : 'Subir imagen' }}
                     </button>
                   </div>
@@ -96,7 +96,7 @@
                       }
                     </div>
                     @if (hasSelectedImage()) {
-                      <button type="button" (click)="clearImageSelection(petImageInput)" class="self-start rounded-xl px-3 py-2 text-xs font-bold text-text-secondary transition-all hover:bg-white">Quitar</button>
+                      <button type="button" (click)="clearImageSelection(petImageInput)" class="self-start rounded-xl px-3 py-2 text-xs font-bold text-text-secondary transition-all hover:bg-surface">Quitar</button>
                     }
                   </div>
                 </div>
@@ -105,7 +105,7 @@
                   <div class="flex flex-col gap-2">
                     <label class="text-sm font-semibold text-text-primary">Tutor</label>
                     @if (initialTutor) {
-                      <div class="rounded-2xl border border-border bg-white px-4 py-3">
+                      <div class="rounded-2xl border border-border bg-surface px-4 py-3">
                         <p class="text-sm font-semibold text-text-primary">{{ tutorValue }}</p>
                         <p class="mt-1 text-xs text-text-secondary">{{ buildTutorPhone(initialTutor) }}</p>
                       </div>
@@ -238,16 +238,16 @@
                   <div class="flex flex-col gap-2">
                     <span class="text-sm font-semibold text-text-primary">Sexo</span>
                     <div class="flex h-11 rounded-xl bg-background p-1">
-                      <button type="button" (click)="setSex('Macho')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-white]="sex === 'Macho'" [class.text-brand]="sex === 'Macho'" [class.shadow-sm]="sex === 'Macho'" [class.text-text-secondary]="sex !== 'Macho'">Macho</button>
-                      <button type="button" (click)="setSex('Hembra')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-white]="sex === 'Hembra'" [class.text-brand]="sex === 'Hembra'" [class.shadow-sm]="sex === 'Hembra'" [class.text-text-secondary]="sex !== 'Hembra'">Hembra</button>
+                      <button type="button" (click)="setSex('Macho')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-surface]="sex === 'Macho'" [class.text-brand]="sex === 'Macho'" [class.shadow-sm]="sex === 'Macho'" [class.text-text-secondary]="sex !== 'Macho'">Macho</button>
+                      <button type="button" (click)="setSex('Hembra')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-surface]="sex === 'Hembra'" [class.text-brand]="sex === 'Hembra'" [class.shadow-sm]="sex === 'Hembra'" [class.text-text-secondary]="sex !== 'Hembra'">Hembra</button>
                     </div>
                   </div>
 
                   <div class="flex flex-col gap-2">
                     <span class="text-sm font-semibold text-text-primary">Esterilizado</span>
                     <div class="flex h-11 rounded-xl bg-background p-1">
-                      <button type="button" (click)="setSterilized('Si')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-white]="sterilized === 'Si'" [class.text-brand]="sterilized === 'Si'" [class.shadow-sm]="sterilized === 'Si'" [class.text-text-secondary]="sterilized !== 'Si'">Si</button>
-                      <button type="button" (click)="setSterilized('No')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-white]="sterilized === 'No'" [class.text-brand]="sterilized === 'No'" [class.shadow-sm]="sterilized === 'No'" [class.text-text-secondary]="sterilized !== 'No'">No</button>
+                      <button type="button" (click)="setSterilized('Si')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-surface]="sterilized === 'Si'" [class.text-brand]="sterilized === 'Si'" [class.shadow-sm]="sterilized === 'Si'" [class.text-text-secondary]="sterilized !== 'Si'">Si</button>
+                      <button type="button" (click)="setSterilized('No')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-surface]="sterilized === 'No'" [class.text-brand]="sterilized === 'No'" [class.shadow-sm]="sterilized === 'No'" [class.text-text-secondary]="sterilized !== 'No'">No</button>
                     </div>
                   </div>
 
@@ -324,7 +324,7 @@
                               <path d="M12 7.5h.01"></path>
                             </svg>
                           </button>
-                          <div class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden w-[320px] -translate-x-1/2 rounded-2xl border border-[#dbeafe] bg-white px-4 py-3 text-left text-xs leading-5 text-[#35507f] shadow-xl group-hover:block">
+                          <div class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden w-[320px] -translate-x-1/2 rounded-2xl border border-[#dbeafe] bg-surface px-4 py-3 text-left text-xs leading-5 text-[#35507f] shadow-xl group-hover:block">
                             <p class="font-semibold text-primary">Vacunación posterior al alta</p>
                             <p class="mt-1">
                               Puedes dejar preseleccionado un esquema vacunal según la especie elegida. Si el paciente ya tiene vacunas aplicadas, se registran luego desde la vista vacunal de la mascota como aplicaciones reales o historial previo.
@@ -370,7 +370,7 @@
             </aside>
           </div>
 
-          <div class="border-t border-border bg-white/95 px-8 py-5 backdrop-blur">
+          <div class="border-t border-border bg-surface/95 px-8 py-5 backdrop-blur">
             <div class="flex items-center justify-end gap-3">
               @if (submitError) {
                 <div class="mr-auto rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">
@@ -392,7 +392,7 @@
     </div>
 
     @if (!pageMode) {
-      <div class="sticky bottom-0 z-10 shrink-0 border-t border-border bg-white/95 px-5 py-4 backdrop-blur">
+      <div class="sticky bottom-0 z-10 shrink-0 border-t border-border bg-surface/95 px-5 py-4 backdrop-blur">
         <div class="flex items-center justify-end gap-3">
           @if (submitError) {
             <div class="mr-auto rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">

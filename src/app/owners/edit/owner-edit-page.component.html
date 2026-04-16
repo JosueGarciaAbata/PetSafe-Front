@@ -154,14 +154,14 @@
               </p>
             </div>
 
-            <div class="rounded-2xl border border-border bg-white p-4">
+            <div class="rounded-2xl border border-border bg-surface p-4">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Cédula</span>
               <p class="mt-2 text-sm font-semibold text-text-primary">
                 {{ owner.person.identification || owner.person.documentId || 'No registrada' }}
               </p>
             </div>
 
-            <div class="rounded-2xl border border-border bg-white p-4">
+            <div class="rounded-2xl border border-border bg-surface p-4">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Correo</span>
               <p class="mt-2 text-sm font-semibold text-text-primary">{{ owner.email || 'Sin correo registrado' }}</p>
             </div>
@@ -173,7 +173,7 @@
         </aside>
       </div>
 
-      <div class="border-t border-border bg-white/95 px-6 py-4 backdrop-blur">
+      <div class="border-t border-border bg-surface/95 px-6 py-4 backdrop-blur">
         @if (errorMessage) {
           <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">
             {{ errorMessage }}

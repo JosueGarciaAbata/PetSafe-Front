@@ -6,7 +6,7 @@
   --mat-form-field-container-height: 48px;
   --mat-form-field-container-vertical-padding: 12px;
   --mdc-outlined-text-field-container-shape: 14px;
-  --mdc-outlined-text-field-container-color: #ffffff;
+  --mdc-outlined-text-field-container-color: var(--ps-surface);
   --mdc-outlined-text-field-outline-color: var(--ps-border);
   --mdc-outlined-text-field-hover-outline-color: var(--ps-border);
   --mdc-outlined-text-field-focus-outline-color: var(--ps-brand);

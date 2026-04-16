@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
-import { NgClass } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { LogoComponent } from '@app/logo/logo';
 import { ShellIconComponent, ShellIconName } from './shell-icon.component';
@@ -20,8 +19,9 @@ interface SidebarChildItem {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [NgClass, LogoComponent, RouterLink, RouterLinkActive, ShellIconComponent],
+  imports: [LogoComponent, RouterLink, RouterLinkActive, ShellIconComponent],
   templateUrl: './sidebar.component.html',
+  styleUrl: './sidebar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SidebarComponent {

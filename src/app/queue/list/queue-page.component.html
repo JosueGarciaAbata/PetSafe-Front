@@ -47,7 +47,7 @@
           [formControl]="searchControl"
           type="text"
           placeholder="Buscar paciente, tutor o motivo"
-          class="h-12 w-full rounded-xl border border-border bg-white pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+          class="h-12 w-full rounded-xl border border-border bg-surface pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
         />
       </div>
     </div>
@@ -77,7 +77,7 @@
             [ngClass]="
               activeStatusFilter === filter.value
                 ? 'border-transparent bg-active-soft text-brand shadow-sm'
-                : 'border-border bg-white text-text-secondary hover:border-brand/20 hover:text-text-primary'
+                : 'border-border bg-surface text-text-secondary hover:border-brand/20 hover:text-text-primary'
             "
             (click)="selectStatusFilter(filter.value)"
           >
@@ -90,14 +90,14 @@
 
   <!-- Table -->
   <section class="overflow-hidden rounded-[16px] border border-border bg-card shadow-sm">
-    <div class="border-b border-border bg-white px-8 py-5">
+    <div class="border-b border-border bg-surface px-8 py-5">
       <p class="text-sm font-semibold text-text-primary">Lista operativa del {{ todayLabel }}</p>
     </div>
 
     <div class="overflow-x-auto">
       <table class="w-full min-w-[1080px] text-left">
         <thead>
-          <tr class="border-b border-border bg-[#F8FAFC]">
+          <tr class="border-b border-border bg-card">
             <th class="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
               Paciente / Tutor
             </th>
@@ -146,7 +146,7 @@
           } @else {
             @for (entry of entries; track entry.id) {
               <tr
-                class="cursor-pointer bg-white transition-colors hover:bg-[#F8FAFC]"
+                class="cursor-pointer bg-surface transition-colors hover:bg-card"
                 [class.bg-[#fef2f2]]="isEmergency(entry)"
                 tabindex="0"
                 (click)="selectEntry(entry)"
@@ -155,7 +155,7 @@
                 <td class="px-8 py-6">
                   <div class="flex items-center gap-4">
                     <div
-                      class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-active-soft text-sm font-bold text-brand shadow-sm"
+                      class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-surface bg-active-soft text-sm font-bold text-brand shadow-sm"
                     >
                       @if (patientImageUrl(entry); as imageUrl) {
                         <img
@@ -213,7 +213,7 @@
                 <td class="px-8 py-6 text-right">
                   <button
                     type="button"
-                    class="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-[#F1F5F9] text-text-secondary transition-all hover:bg-active-soft hover:text-brand"
+                    class="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-background text-text-secondary transition-all hover:bg-active-soft hover:text-brand"
                     aria-label="Ver detalle"
                   >
                     <svg
@@ -251,10 +251,10 @@
       (click)="closeDetailPanel()"
     >
       <section
-        class="flex max-h-[90vh] w-full max-w-[680px] flex-col overflow-hidden rounded-[24px] border border-border bg-white shadow-2xl"
+        class="flex max-h-[90vh] w-full max-w-[680px] flex-col overflow-hidden rounded-[24px] border border-border bg-surface shadow-2xl"
         (click)="$event.stopPropagation()"
       >
-        <header class="border-b border-border bg-white px-6 py-5 sm:px-8">
+        <header class="border-b border-border bg-surface px-6 py-5 sm:px-8">
           <div class="flex items-start justify-between gap-4">
             <div class="flex flex-col gap-1">
               <p class="text-xs font-bold uppercase tracking-wider text-brand">Detalle operativo</p>
@@ -277,7 +277,7 @@
             <section class="pb-5">
               <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-text-secondary">Paciente</p>
               <div
-                class="mt-3 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-active-soft text-base font-bold text-brand shadow-sm"
+                class="mt-3 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border-2 border-surface bg-active-soft text-base font-bold text-brand shadow-sm"
               >
                 @if (patientImageUrl(selectedEntry); as imageUrl) {
                   <img
@@ -339,12 +339,12 @@
           </div>
         </div>
 
-        <footer class="border-t border-border bg-white px-6 py-5 sm:px-8">
+        <footer class="border-t border-border bg-surface px-6 py-5 sm:px-8">
           <div class="flex flex-wrap items-center justify-end gap-3">
             @if (selectedEntry.queueStatus === 'EN_ESPERA') {
               <button
                 type="button"
-                class="cursor-pointer rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+                class="cursor-pointer rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
                 (click)="openCancelModal(selectedEntry)"
               >
                 Cancelar ingreso
@@ -361,7 +361,7 @@
             @if (selectedEntry.queueStatus === 'EN_ATENCION') {
               <button
                 type="button"
-                class="cursor-pointer rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+                class="cursor-pointer rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
                 (click)="startAttention(selectedEntry)"
               >
                 Continuar consulta
@@ -395,7 +395,7 @@
         class="flex w-full max-w-[520px] flex-col overflow-hidden rounded-[16px] border border-border bg-card shadow-2xl"
         (click)="$event.stopPropagation()"
       >
-        <header class="border-b border-border bg-white px-5 py-4">
+        <header class="border-b border-border bg-surface px-5 py-4">
           <div class="flex items-start justify-between gap-4">
             <div class="min-w-0">
               <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-brand">
@@ -448,11 +448,11 @@
           </div>
         </div>
 
-        <footer class="border-t border-border bg-white px-5 py-4">
+        <footer class="border-t border-border bg-surface px-5 py-4">
           <div class="flex flex-wrap items-center justify-end gap-3">
             <button
               type="button"
-              class="cursor-pointer rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+              class="cursor-pointer rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
               (click)="closeActionModal()"
             >
               Volver

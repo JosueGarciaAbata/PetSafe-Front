@@ -36,7 +36,7 @@
           class="cursor-pointer rounded-[10px] px-4 text-sm font-semibold transition-colors"
           [class.bg-background]="currentView !== 'month'"
           [class.text-text-secondary]="currentView !== 'month'"
-          [class.bg-white]="currentView === 'month'"
+          [class.bg-surface]="currentView === 'month'"
           [class.text-text-primary]="currentView === 'month'"
           [class.shadow-sm]="currentView === 'month'"
         >
@@ -48,7 +48,7 @@
           class="cursor-pointer rounded-[10px] px-4 text-sm font-semibold transition-colors"
           [class.bg-background]="currentView !== 'week'"
           [class.text-text-secondary]="currentView !== 'week'"
-          [class.bg-white]="currentView === 'week'"
+          [class.bg-surface]="currentView === 'week'"
           [class.text-text-primary]="currentView === 'week'"
           [class.shadow-sm]="currentView === 'week'"
         >
@@ -66,7 +66,7 @@
       <button
         type="button"
         (click)="retryLoadAppointments()"
-        class="cursor-pointer rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.1em] transition-colors hover:bg-red-50"
+        class="cursor-pointer rounded-lg border border-red-200 bg-surface px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.1em] transition-colors hover:bg-red-50"
       >
         Reintentar
       </button>
@@ -113,7 +113,7 @@
         <button
           type="button"
           (click)="goToPreviousRange()"
-          class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-white text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+          class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
           [attr.aria-label]="currentView === 'week' ? 'Semana anterior' : 'Mes anterior'"
           [title]="currentView === 'week' ? 'Semana anterior' : 'Mes anterior'"
         >
@@ -143,7 +143,7 @@
         <button
           type="button"
           (click)="goToNextRange()"
-          class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-white text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+          class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
           [attr.aria-label]="currentView === 'week' ? 'Semana siguiente' : 'Mes siguiente'"
           [title]="currentView === 'week' ? 'Semana siguiente' : 'Mes siguiente'"
         >
@@ -167,7 +167,7 @@
           type="button"
           (click)="goToToday()"
           [disabled]="isCurrentRangeActive()"
-          class="inline-flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-60"
+          class="inline-flex h-10 cursor-pointer items-center justify-center rounded-lg border border-border bg-surface px-4 text-sm font-medium text-text-primary transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-60"
         >
           Hoy
         </button>

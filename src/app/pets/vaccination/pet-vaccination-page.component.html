@@ -155,7 +155,7 @@
 
           <div class="mt-5 flex flex-col gap-4">
             @for (dose of doses(); track dose.id) {
-              <article class="rounded-2xl border border-border bg-white p-4 shadow-sm">
+              <article class="rounded-2xl border border-border bg-surface p-4 shadow-sm">
                 <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <div class="min-w-0 space-y-2">
                     <div class="flex flex-wrap items-center gap-2">
@@ -211,7 +211,7 @@
           @if (plan.applications.length > 0) {
             <div class="mt-5 flex flex-col gap-3">
               @for (application of plan.applications; track application.id) {
-                <article class="rounded-xl border border-border bg-white px-3 py-3 shadow-sm">
+                <article class="rounded-xl border border-border bg-surface px-3 py-3 shadow-sm">
                   <div class="space-y-1.5">
                     <div class="flex flex-wrap items-center justify-between gap-2">
                       <h3 class="text-sm font-bold text-text-primary">{{ application.vaccineName }}</h3>

@@ -33,7 +33,7 @@
         (ngModelChange)="onFilterTermChange()"
         name="schemesSearch"
         placeholder="Buscar por nombre, especie o descripción"
-        class="h-12 w-full rounded-xl border border-border bg-white pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+        class="h-12 w-full rounded-xl border border-border bg-surface pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
       />
     </div>
   </div>
@@ -42,7 +42,7 @@
     <div class="overflow-x-auto">
       <table class="w-full min-w-[980px] text-left">
         <thead>
-          <tr class="border-b border-border bg-[#F8FAFC]">
+          <tr class="border-b border-border bg-card">
             <th class="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">Esquema</th>
             <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">Especie</th>
             <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">Versión activa</th>
@@ -72,7 +72,7 @@
             </tr>
           } @else {
             @for (scheme of pagedSchemes(); track scheme.id) {
-              <tr class="group cursor-pointer bg-white transition-colors hover:bg-[#F8FAFC]" (click)="openSchemeDetail(scheme)">
+              <tr class="group cursor-pointer bg-surface transition-colors hover:bg-card" (click)="openSchemeDetail(scheme)">
                 <td class="px-8 py-5">
                   <div class="flex flex-col gap-1">
                     <span class="text-sm font-bold text-text-primary">{{ scheme.name }}</span>
@@ -88,7 +88,7 @@
                   <button
                     type="button"
                     (click)="$event.stopPropagation(); openSchemeDetail(scheme)"
-                    class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#F1F5F9] text-text-secondary transition-all hover:bg-active-soft hover:text-brand"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-background text-text-secondary transition-all hover:bg-active-soft hover:text-brand"
                     aria-label="Ver detalle del esquema"
                   >
                     <svg viewBox="0 0 24 24" class="h-4.5 w-4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
