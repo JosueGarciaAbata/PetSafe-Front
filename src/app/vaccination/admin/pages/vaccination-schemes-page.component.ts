@@ -49,6 +49,10 @@ export class VaccinationSchemesPageComponent implements OnInit {
     return this.authService.hasAnyRole(['ADMIN', 'MVZ']);
   }
 
+  protected retryLoadSchemes(): void {
+    void this.loadSchemes();
+  }
+
   protected visibleSchemes(): VaccinationScheme[] {
     const term = this.filter.term.trim().toLowerCase();
     if (!term) {

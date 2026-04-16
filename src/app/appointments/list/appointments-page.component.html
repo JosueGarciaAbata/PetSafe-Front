@@ -58,20 +58,6 @@
     </div>
   </section>
 
-  @if (loadError) {
-    <div
-      class="flex items-center justify-between gap-3 rounded-[18px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-    >
-      <span>{{ loadError }}</span>
-      <button
-        type="button"
-        (click)="retryLoadAppointments()"
-        class="cursor-pointer rounded-lg border border-red-200 bg-surface px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.1em] transition-colors hover:bg-red-50"
-      >
-        Reintentar
-      </button>
-    </div>
-  }
 
   <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
     <article class="summary-card rounded-[18px] border border-border/70 bg-card px-5 py-4">
@@ -183,6 +169,19 @@
         }
       </div>
       <div class="mt-6 h-[520px] animate-pulse rounded-[24px] bg-background"></div>
+    </section>
+  } @else if (loadError) {
+    <section class="rounded-[24px] border border-border bg-card p-8 shadow-sm">
+      <div class="flex flex-col items-center gap-3 py-16 text-center">
+        <p class="text-sm font-semibold text-text-primary">{{ loadError }}</p>
+        <button
+          type="button"
+          (click)="retryLoadAppointments()"
+          class="inline-flex cursor-pointer items-center rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:opacity-90"
+        >
+          Reintentar
+        </button>
+      </div>
     </section>
   } @else {
     @if (currentView === 'week') {

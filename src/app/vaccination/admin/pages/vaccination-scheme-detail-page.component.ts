@@ -30,6 +30,7 @@ export class VaccinationSchemeDetailPageComponent implements OnInit {
   private readonly toast = inject(AppToastService);
   private readonly cdr = inject(ChangeDetectorRef);
 
+  private schemeId = 0;
   protected scheme: VaccinationScheme | null = null;
   protected isLoading = false;
   protected loadError: string | null = null;
@@ -47,12 +48,17 @@ export class VaccinationSchemeDetailPageComponent implements OnInit {
         return;
       }
 
+      this.schemeId = id;
       void this.loadScheme(id);
     });
   }
 
   protected canManageSchemes(): boolean {
     return this.authService.hasAnyRole(['ADMIN', 'MVZ']);
+  }
+
+  protected retryLoad(): void {
+    void this.loadScheme(this.schemeId);
   }
 
   protected goBack(): void {

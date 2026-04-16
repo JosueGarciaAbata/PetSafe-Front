@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
+import { AppToastService } from '@app/core/ui/app-toast.service';
 import { AppointmentsApiService } from '../api/appointments-api.service';
 import { QueueApiService } from '@app/queue/api/queue-api.service';
 import {
@@ -36,6 +37,7 @@ export class AppointmentDetailModalComponent {
   private readonly queueApi = inject(QueueApiService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly toast = inject(AppToastService);
 
   @Input({ required: true }) appointment!: AppointmentRecord;
   @Output() readonly closed = new EventEmitter<void>();
@@ -198,6 +200,7 @@ export class AppointmentDetailModalComponent {
       this.submitError = resolveApiErrorMessage(error, {
         defaultMessage: 'No se pudo confirmar la cita.',
       });
+      this.toast.error(this.submitError);
       this.activeAction = null;
       this.isSaving = false;
       this.cdr.markForCheck();
@@ -222,6 +225,7 @@ export class AppointmentDetailModalComponent {
       this.submitError = resolveApiErrorMessage(error, {
         defaultMessage: 'No se pudo cancelar la cita.',
       });
+      this.toast.error(this.submitError);
       this.activeAction = null;
       this.isSaving = false;
       this.cdr.markForCheck();
@@ -256,6 +260,7 @@ export class AppointmentDetailModalComponent {
       this.submitError = resolveApiErrorMessage(error, {
         defaultMessage: 'No se pudo registrar la llegada en la cola de atencion.',
       });
+      this.toast.error(this.submitError);
       this.activeAction = null;
       this.isSaving = false;
       this.cdr.markForCheck();
@@ -280,6 +285,7 @@ export class AppointmentDetailModalComponent {
       this.submitError = resolveApiErrorMessage(error, {
         defaultMessage: 'No se pudo marcar la cita como no asistio.',
       });
+      this.toast.error(this.submitError);
       this.activeAction = null;
       this.isSaving = false;
       this.cdr.markForCheck();

@@ -67,6 +67,10 @@ export class VaccinationProductsPageComponent implements OnInit {
     return this.authService.hasAnyRole(['ADMIN', 'MVZ']);
   }
 
+  protected retryLoadProducts(): void {
+    void this.loadProducts();
+  }
+
   protected canHideProducts(): boolean {
     return this.authService.hasAnyRole(['ADMIN']);
   }
