@@ -39,12 +39,6 @@
 
     <div class="flex-1 overflow-y-auto px-5 py-5">
       <div class="flex flex-col gap-6">
-        @if (submitError) {
-          <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {{ submitError }}
-          </div>
-        }
-
         <section class="appointment-detail-section appointment-detail-section--patient">
           <p class="appointment-detail-label">Paciente</p>
           <h3 class="appointment-detail-patient-name">{{ patientNameLabel }}</h3>

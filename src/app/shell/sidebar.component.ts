@@ -44,7 +44,7 @@ export class SidebarComponent {
     },
     { id: 'appointments', icon: 'calendar', label: 'Citas agendadas', path: '/appointments' },
     { id: 'queue', icon: 'clock', label: 'Atención del día', path: '/queue' },
-    { id: 'history', icon: 'clipboard', label: 'Historial Medico', path: '/history' },
+    { id: 'history', icon: 'clipboard', label: 'Historial clínico', path: '/history' },
     { id: 'adoption', icon: 'heart', label: 'Adopcion', path: '/adoption' },
     { id: 'reports', icon: 'barChart', label: 'Reportes', path: '/reports' },
     { id: 'settings', icon: 'settings', label: 'Configuracion', path: '/settings' },
