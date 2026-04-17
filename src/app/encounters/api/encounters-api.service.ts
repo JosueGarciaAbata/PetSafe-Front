@@ -41,6 +41,10 @@ export class EncountersApiService {
     });
   }
 
+  reactivate(id: number): Observable<EncounterDetail> {
+    return this.http.patch<EncounterDetail>(`${this.baseUrl}/${id}/reactivate`, {});
+  }
+
   // PESTAÑAS (TABS) ACTUALIZAR
   updateReason(id: number, payload: EncounterReason): Observable<EncounterDetail> {
     return this.http.put<EncounterDetail>(`${this.baseUrl}/${id}/consultation-reason`, payload);
@@ -79,12 +83,87 @@ export class EncountersApiService {
     return this.http.post<EncounterDetail>(`${this.baseUrl}/${id}/vaccinations`, payload);
   }
 
+  createVaccinationDraft(
+    id: number,
+    payload: CreateEncounterVaccinationRequest,
+  ): Observable<EncounterDetail> {
+    return this.http.post<EncounterDetail>(`${this.baseUrl}/${id}/vaccination-drafts`, payload);
+  }
+
+  updateVaccinationDraft(
+    id: number,
+    draftId: number,
+    payload: CreateEncounterVaccinationRequest,
+  ): Observable<EncounterDetail> {
+    return this.http.put<EncounterDetail>(
+      `${this.baseUrl}/${id}/vaccination-drafts/${draftId}`,
+      payload,
+    );
+  }
+
+  deleteVaccinationDraft(id: number, draftId: number): Observable<EncounterDetail> {
+    return this.http.patch<EncounterDetail>(
+      `${this.baseUrl}/${id}/vaccination-drafts/${draftId}/delete`,
+      {},
+    );
+  }
+
   addTreatment(id: number, payload: CreateEncounterTreatmentRequest): Observable<EncounterDetail> {
     return this.http.post<EncounterDetail>(`${this.baseUrl}/${id}/treatments`, payload);
   }
 
+  createTreatmentDraft(
+    id: number,
+    payload: CreateEncounterTreatmentRequest,
+  ): Observable<EncounterDetail> {
+    return this.http.post<EncounterDetail>(`${this.baseUrl}/${id}/treatment-drafts`, payload);
+  }
+
+  updateTreatmentDraft(
+    id: number,
+    draftId: number,
+    payload: CreateEncounterTreatmentRequest,
+  ): Observable<EncounterDetail> {
+    return this.http.put<EncounterDetail>(
+      `${this.baseUrl}/${id}/treatment-drafts/${draftId}`,
+      payload,
+    );
+  }
+
+  deleteTreatmentDraft(id: number, draftId: number): Observable<EncounterDetail> {
+    return this.http.patch<EncounterDetail>(
+      `${this.baseUrl}/${id}/treatment-drafts/${draftId}/delete`,
+      {},
+    );
+  }
+
   addProcedure(id: number, payload: CreateEncounterProcedureRequest): Observable<EncounterDetail> {
     return this.http.post<EncounterDetail>(`${this.baseUrl}/${id}/procedures`, payload);
+  }
+
+  createProcedureDraft(
+    id: number,
+    payload: CreateEncounterProcedureRequest,
+  ): Observable<EncounterDetail> {
+    return this.http.post<EncounterDetail>(`${this.baseUrl}/${id}/procedure-drafts`, payload);
+  }
+
+  updateProcedureDraft(
+    id: number,
+    draftId: number,
+    payload: CreateEncounterProcedureRequest,
+  ): Observable<EncounterDetail> {
+    return this.http.put<EncounterDetail>(
+      `${this.baseUrl}/${id}/procedure-drafts/${draftId}`,
+      payload,
+    );
+  }
+
+  deleteProcedureDraft(id: number, draftId: number): Observable<EncounterDetail> {
+    return this.http.patch<EncounterDetail>(
+      `${this.baseUrl}/${id}/procedure-drafts/${draftId}/delete`,
+      {},
+    );
   }
 
   listProcedureCatalog(includeInactive = false): Observable<ProcedureCatalogItem[]> {

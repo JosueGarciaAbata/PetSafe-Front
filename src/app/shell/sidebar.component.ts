@@ -43,6 +43,24 @@ export class SidebarComponent {
     { id: 'dashboard', icon: 'dashboard', label: 'Dashboard', path: '/dashboard' },
     { id: 'owners', icon: 'users', label: 'Propietarios', path: '/owners' },
     { id: 'pets', icon: 'dog', label: 'Mascotas', path: '/pets' },
+    {
+      id: 'vaccination',
+      icon: 'syringe',
+      label: 'Vacunación',
+      children: [
+        { label: 'Esquemas', path: '/vaccination/schemes' },
+        { label: 'Productos', path: '/vaccination/products' },
+      ],
+    },
+    {
+      id: 'catalogs',
+      icon: 'folder',
+      label: 'Catálogos',
+      children: [
+        { label: 'Procedimientos', path: '/catalogs/procedures' },
+        { label: 'Cirugías', path: '/catalogs/surgeries' },
+      ],
+    },
     { id: 'appointments', icon: 'calendar', label: 'Citas agendadas', path: '/appointments' },
     { id: 'queue', icon: 'clock', label: 'Atención del día', path: '/queue' },
     { id: 'history', icon: 'clipboard', label: 'Historial clínico', path: '/history' },

@@ -1,9 +1,3 @@
-import {
-  CreateEncounterProcedureRequest,
-  CreateEncounterTreatmentRequest,
-  CreateEncounterVaccinationRequest,
-} from '../models/encounter.model';
-
 export type TabView =
   | 'REASON'
   | 'ANAMNESIS'
@@ -29,31 +23,4 @@ export interface TreatmentItemDraft {
   durationDays: number | null;
   administrationRoute: string;
   notes: string;
-}
-
-export interface PendingVaccinationDraft {
-  id: string;
-  vaccineName: string;
-  applicationDate: string;
-  suggestedNextDate?: string;
-  notes?: string;
-  payload: CreateEncounterVaccinationRequest;
-}
-
-export interface PendingTreatmentDraft {
-  id: string;
-  summary: string;
-  startDate: string;
-  endDate?: string;
-  notes?: string;
-  payload: CreateEncounterTreatmentRequest;
-}
-
-export interface PendingProcedureDraft {
-  id: string;
-  procedureName: string;
-  performedDate: string;
-  result?: string;
-  notes?: string;
-  payload: CreateEncounterProcedureRequest;
 }

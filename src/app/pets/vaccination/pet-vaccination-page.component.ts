@@ -32,6 +32,10 @@ import {
   VaccineCatalogItem,
 } from './models/patient-vaccination-plan.model';
 import { PatientVaccinationApiService } from './services/patient-vaccination-api.service';
+import {
+  buildVaccinationCoverageToneClasses,
+  buildVaccinationDoseToneClasses,
+} from './vaccination-tone.util';
 
 @Component({
   selector: 'app-pet-vaccination-page',
@@ -329,6 +333,10 @@ export class PetVaccinationPageComponent implements OnInit {
     return Math.round(this.plan?.coverage.coveragePercent ?? 0);
   }
 
+  protected coverageToneClasses(): string {
+    return buildVaccinationCoverageToneClasses(this.plan);
+  }
+
   protected alerts(): string[] {
     return this.plan?.alerts ?? [];
   }
@@ -383,20 +391,7 @@ export class PetVaccinationPageComponent implements OnInit {
   }
 
   protected doseStatusClasses(status: PatientVaccinationDoseStatus): string {
-    switch (status) {
-      case 'APLICADA':
-        return 'border-[#dcfce7] bg-[#f0fdf4] text-[#166534]';
-      case 'NO_APLICADA':
-        return 'border-[#dbeafe] bg-[#eff6ff] text-[#1d4ed8]';
-      case 'DESCONOCIDA':
-        return 'border-[#fef3c7] bg-[#fffbeb] text-[#b45309]';
-      case 'REQUIERE_REVISION':
-        return 'border-[#ffedd5] bg-[#fff7ed] text-[#c2410c]';
-      case 'BLOQUEADA':
-        return 'border-slate-200 bg-slate-100 text-slate-700';
-      default:
-        return 'border-border bg-background text-text-secondary';
-    }
+    return buildVaccinationDoseToneClasses(status);
   }
 
   private async loadPet(petId: string, requestToken: number): Promise<void> {
