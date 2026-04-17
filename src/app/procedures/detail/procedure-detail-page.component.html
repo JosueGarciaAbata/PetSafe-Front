@@ -1,0 +1,153 @@
+<div class="ps-page">
+  <button
+    type="button"
+    (click)="goBack()"
+    class="inline-flex items-center gap-2 self-start text-sm font-medium text-text-secondary transition-colors hover:text-brand"
+  >
+    <svg
+      viewBox="0 0 24 24"
+      class="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="m15 18-6-6 6-6"></path>
+    </svg>
+    <span>{{ backLabel }}</span>
+  </button>
+
+  @if (isLoading && !procedure) {
+    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <header class="flex flex-col gap-2">
+        <div class="h-8 w-60 animate-pulse rounded-lg bg-background"></div>
+        <div class="h-4 w-72 animate-pulse rounded-lg bg-background"></div>
+      </header>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <section class="rounded-[16px] border border-border bg-card p-6 shadow-sm">
+        <div class="h-48 animate-pulse rounded-[16px] bg-background"></div>
+      </section>
+      <section class="rounded-[16px] border border-border bg-card p-6 shadow-sm lg:col-span-2">
+        <div class="h-48 animate-pulse rounded-[16px] bg-background"></div>
+      </section>
+    </div>
+  } @else if (loadError) {
+    <div class="rounded-[16px] border border-border bg-card p-8 text-sm text-text-secondary shadow-sm">
+      {{ loadError }}
+    </div>
+  } @else if (procedure) {
+    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <header class="flex flex-col gap-1">
+        <h1 class="text-[28px] font-bold text-text-primary">Procedimiento #{{ procedure.id }}</h1>
+        <p class="text-base text-text-secondary">Detalle del procedimiento registrado.</p>
+      </header>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div class="flex flex-col gap-6 lg:col-span-1">
+        <section class="flex flex-col gap-6 rounded-[16px] border border-border bg-card p-6 shadow-sm">
+          <div class="flex flex-col items-center gap-3 text-center">
+            <div
+              class="flex h-24 w-24 items-center justify-center rounded-full border-4 border-surface bg-active-soft shadow-md"
+            >
+              <span class="text-2xl font-bold uppercase text-brand">
+                {{ buildPatientName().slice(0, 1) }}
+              </span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-xl font-bold text-text-primary">{{ buildPatientName() }}</span>
+              <span class="text-sm text-text-secondary">{{ buildEncounterLabel() }}</span>
+            </div>
+          </div>
+
+          <div class="h-px bg-border"></div>
+
+          <div class="flex flex-col gap-4">
+            <div class="flex items-center gap-3">
+              <div
+                class="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-text-secondary"
+              >
+                P
+              </div>
+              <div class="flex flex-col">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+                  Procedimiento
+                </span>
+                <span class="text-sm font-semibold text-text-primary">{{ buildProcedureType() }}</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <div
+                class="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-text-secondary"
+              >
+                F
+              </div>
+              <div class="flex flex-col">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+                  Fecha
+                </span>
+                <span class="text-sm font-semibold text-text-primary">{{ buildPerformedDateLabel() }}</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <div
+                class="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-text-secondary"
+              >
+                C
+              </div>
+              <div class="flex flex-col">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+                  Catalogo
+                </span>
+                <span class="text-sm font-semibold text-text-primary">{{ buildCatalogLabel() }}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="flex flex-col gap-6 lg:col-span-2">
+        <section class="flex flex-col gap-4 rounded-[16px] border border-border bg-card p-6 shadow-sm">
+          <div class="flex items-center gap-2">
+            <h3 class="text-[17px] font-bold text-text-primary">Descripcion</h3>
+          </div>
+
+          <div class="rounded-xl border border-dashed border-border bg-background/70 p-4">
+            <p class="text-sm leading-6 text-text-secondary">
+              {{ buildDescription() }}
+            </p>
+          </div>
+        </section>
+
+        <section class="flex flex-col gap-4 rounded-[16px] border border-border bg-card p-6 shadow-sm">
+          <div class="flex items-center gap-2">
+            <h3 class="text-[17px] font-bold text-text-primary">Resultado</h3>
+          </div>
+
+          <div class="rounded-xl border border-dashed border-border bg-background/70 p-4">
+            <p class="text-sm leading-6 text-text-secondary">
+              {{ buildResult() }}
+            </p>
+          </div>
+        </section>
+
+        <section class="flex flex-col gap-4 rounded-[16px] border border-border bg-card p-6 shadow-sm">
+          <div class="flex items-center gap-2">
+            <h3 class="text-[17px] font-bold text-text-primary">Notas</h3>
+          </div>
+
+          <div class="rounded-xl border border-dashed border-border bg-background/70 p-4">
+            <p class="text-sm leading-6 text-text-secondary">
+              {{ buildNotes() }}
+            </p>
+          </div>
+        </section>
+      </div>
+    </div>
+  }
+</div>

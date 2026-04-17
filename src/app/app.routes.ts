@@ -152,6 +152,29 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'catalogs',
+        redirectTo: 'catalogs/procedures',
+        pathMatch: 'full',
+      },
+      {
+        path: 'catalogs/procedures',
+        canActivate: [authGuard],
+        data: { roles: staffRoles, catalogKind: 'PROCEDURE' },
+        loadComponent: () =>
+          import('@app/catalogs/admin/pages/catalog-items-page.component').then(
+            (m) => m.CatalogItemsPageComponent,
+          ),
+      },
+      {
+        path: 'catalogs/surgeries',
+        canActivate: [authGuard],
+        data: { roles: staffRoles, catalogKind: 'SURGERY' },
+        loadComponent: () =>
+          import('@app/catalogs/admin/pages/catalog-items-page.component').then(
+            (m) => m.CatalogItemsPageComponent,
+          ),
+      },
+      {
         path: 'pets/:id/vaccination',
         canActivate: [authGuard],
         data: { roles: staffRoles },
@@ -228,8 +251,35 @@ export const routes: Routes = [
         canActivate: [authGuard],
         data: { roles: staffRoles },
         loadComponent: () =>
-          import('@app/internal-section-page/internal-section-page.component').then(
-            (m) => m.InternalSectionPageComponent,
+          import('@app/treatments/list/treatments-page.component').then(
+            (m) => m.TreatmentsPageComponent,
+          ),
+      },
+      {
+        path: 'treatments/:id',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/treatments/detail/treatment-detail-page.component').then(
+            (m) => m.TreatmentDetailPageComponent,
+          ),
+      },
+      {
+        path: 'procedures',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/procedures/list/procedures-page.component').then(
+            (m) => m.ProceduresPageComponent,
+          ),
+      },
+      {
+        path: 'procedures/:id',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/procedures/detail/procedure-detail-page.component').then(
+            (m) => m.ProcedureDetailPageComponent,
           ),
       },
       {

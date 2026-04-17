@@ -41,20 +41,59 @@
 
           @if (isExpanded(item)) {
             <div class="sidebar-children">
-              @for (child of item.children; track child.path) {
-                <a
-                  [routerLink]="child.path"
-                  routerLinkActive="sidebar-child--active"
-                  [routerLinkActiveOptions]="{ exact: child.path === '/vaccination' }"
-                  #childRla="routerLinkActive"
-                  class="sidebar-child"
-                >
-                  <span
-                    class="sidebar-child__dot"
-                    [class.sidebar-child__dot--active]="childRla.isActive"
-                  ></span>
-                  <span class="sidebar-child__label">{{ child.label }}</span>
-                </a>
+              @for (child of item.children; track child.label) {
+                @if (isChildGroup(child)) {
+                  <div class="sidebar-subgroup">
+                    <button
+                      type="button"
+                      (click)="toggleChildGroup(child)"
+                      class="sidebar-child sidebar-child--toggle"
+                      [class.sidebar-child--expanded]="isChildExpanded(child)"
+                    >
+                      <span
+                        class="sidebar-child__dot"
+                        [class.sidebar-child__dot--active]="hasActiveGrandchild(child)"
+                      ></span>
+                      <span class="sidebar-child__label">{{ child.label }}</span>
+                      <app-shell-icon
+                        name="chevronDown"
+                        [size]="14"
+                        [className]="'sidebar-child__chevron ' + (isChildExpanded(child) ? 'sidebar-child__chevron--open' : '')"
+                      ></app-shell-icon>
+                    </button>
+                    @if (isChildExpanded(child)) {
+                      <div class="sidebar-grandchildren">
+                        @for (gc of child.children; track gc.path) {
+                          <a
+                            [routerLink]="gc.path"
+                            routerLinkActive="sidebar-grandchild--active"
+                            #gcRla="routerLinkActive"
+                            class="sidebar-grandchild"
+                          >
+                            <span
+                              class="sidebar-grandchild__dot"
+                              [class.sidebar-grandchild__dot--active]="gcRla.isActive"
+                            ></span>
+                            <span class="sidebar-grandchild__label">{{ gc.label }}</span>
+                          </a>
+                        }
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <a
+                    [routerLink]="child.path"
+                    routerLinkActive="sidebar-child--active"
+                    #childRla="routerLinkActive"
+                    class="sidebar-child"
+                  >
+                    <span
+                      class="sidebar-child__dot"
+                      [class.sidebar-child__dot--active]="childRla.isActive"
+                    ></span>
+                    <span class="sidebar-child__label">{{ child.label }}</span>
+                  </a>
+                }
               }
             </div>
           }

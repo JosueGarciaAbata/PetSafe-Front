@@ -1,4 +1,4 @@
-<div class="mx-auto flex max-w-[1400px] flex-col gap-6 pb-12">
+<div class="ps-page">
   <button
     type="button"
     (click)="goBack()"
@@ -187,7 +187,7 @@
                     <span class="rounded-full bg-background px-2.5 py-1 text-[11px] font-semibold text-text-secondary">
                       v{{ vaccinationPlan.version.version }}
                     </span>
-                    <span class="rounded-full bg-[#ecfdf3] px-2.5 py-1 text-[11px] font-semibold text-[#166534]">
+                    <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold" [ngClass]="vaccinationCoverageToneClasses()">
                       {{ vaccinationCoveragePercent() }}% cobertura
                     </span>
                   </div>
@@ -198,25 +198,25 @@
                 </div>
 
                 <div class="mt-5 grid grid-cols-2 gap-3 md:grid-cols-5">
-                  <div class="rounded-xl border border-[#dcfce7] bg-[#f0fdf4] p-3">
-                    <span class="text-[11px] font-semibold uppercase tracking-wider text-[#166534]">Aplicadas</span>
-                    <p class="mt-1 text-xl font-bold text-[#166534]">{{ vaccinationPlan.coverage.applied }}</p>
+                  <div class="ps-tone ps-tone--success ps-tone-surface rounded-xl border p-3">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider">Aplicadas</span>
+                    <p class="mt-1 text-xl font-bold">{{ vaccinationPlan.coverage.applied }}</p>
                   </div>
-                  <div class="rounded-xl border border-[#dbeafe] bg-[#eff6ff] p-3">
-                    <span class="text-[11px] font-semibold uppercase tracking-wider text-[#1d4ed8]">Pendientes</span>
-                    <p class="mt-1 text-xl font-bold text-[#1d4ed8]">{{ vaccinationPlan.coverage.notApplied }}</p>
+                  <div class="ps-tone ps-tone--info ps-tone-surface rounded-xl border p-3">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider">Pendientes</span>
+                    <p class="mt-1 text-xl font-bold">{{ vaccinationPlan.coverage.notApplied }}</p>
                   </div>
-                  <div class="rounded-xl border border-[#fef3c7] bg-[#fffbeb] p-3">
-                    <span class="text-[11px] font-semibold uppercase tracking-wider text-[#b45309]">Desconocidas</span>
-                    <p class="mt-1 text-xl font-bold text-[#b45309]">{{ vaccinationPlan.coverage.unknown }}</p>
+                  <div class="ps-tone ps-tone--warning ps-tone-surface rounded-xl border p-3">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider">Desconocidas</span>
+                    <p class="mt-1 text-xl font-bold">{{ vaccinationPlan.coverage.unknown }}</p>
                   </div>
-                  <div class="rounded-xl border border-[#ffedd5] bg-[#fff7ed] p-3">
-                    <span class="text-[11px] font-semibold uppercase tracking-wider text-[#c2410c]">Revisión</span>
-                    <p class="mt-1 text-xl font-bold text-[#c2410c]">{{ vaccinationPlan.coverage.requiresReview }}</p>
+                  <div class="ps-tone ps-tone--attention ps-tone-surface rounded-xl border p-3">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider">Revisión</span>
+                    <p class="mt-1 text-xl font-bold">{{ vaccinationPlan.coverage.requiresReview }}</p>
                   </div>
-                  <div class="rounded-xl border border-slate-200 bg-slate-100 p-3">
-                    <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-700">Bloqueadas</span>
-                    <p class="mt-1 text-xl font-bold text-slate-700">{{ vaccinationPlan.coverage.blocked }}</p>
+                  <div class="ps-tone ps-tone--neutral ps-tone-surface rounded-xl border p-3">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider">Bloqueadas</span>
+                    <p class="mt-1 text-xl font-bold">{{ vaccinationPlan.coverage.blocked }}</p>
                   </div>
                 </div>
               </div>
@@ -232,7 +232,7 @@
                 @if (vaccinationAlerts().length > 0) {
                   <div class="mt-4 flex flex-col gap-3">
                     @for (alert of vaccinationAlerts().slice(0, 3); track alert) {
-                      <div class="rounded-xl border border-[#ffedd5] bg-[#fff7ed] px-3 py-2 text-sm leading-6 text-[#9a3412]">
+                      <div class="ps-tone ps-tone--attention ps-tone-surface rounded-xl border px-3 py-2 text-sm leading-6">
                         {{ alert }}
                       </div>
                     }
@@ -245,11 +245,11 @@
               </div>
             </div>
           } @else if (hasMissingVaccinationPlan) {
-            <div class="rounded-2xl border border-[#fef3c7] bg-[#fffbeb] px-5 py-5">
+            <div class="ps-tone ps-tone--warning ps-tone-surface rounded-2xl border px-5 py-5">
               <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div class="flex flex-col gap-1">
-                  <span class="text-sm font-bold text-[#92400e]">Sin plan vacunal generado</span>
-                  <p class="text-sm leading-6 text-[#92400e]">
+                  <span class="text-sm font-bold">Sin plan vacunal generado</span>
+                  <p class="text-sm leading-6">
                     Esta mascota aún no tiene un plan vacunal asignado. Puedes generarlo ahora si ya existe un esquema utilizable para su especie.
                   </p>
                 </div>
@@ -267,13 +267,13 @@
               </div>
 
               @if (vaccinationLoadError) {
-                <div class="rounded-xl border border-[#fecaca] bg-[#fff1f2] px-4 py-3 text-sm leading-6 text-[#9f1239]">
+                <div class="ps-tone ps-tone--danger ps-tone-surface rounded-xl border px-4 py-3 text-sm leading-6">
                   {{ vaccinationLoadError }}
                 </div>
               }
             </div>
           } @else if (vaccinationLoadError) {
-            <div class="rounded-2xl border border-[#fecaca] bg-[#fff1f2] px-5 py-4 text-sm leading-6 text-[#9f1239]">
+            <div class="ps-tone ps-tone--danger ps-tone-surface rounded-2xl border px-5 py-4 text-sm leading-6">
               {{ vaccinationLoadError }}
             </div>
           }

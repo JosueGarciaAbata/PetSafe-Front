@@ -8,6 +8,7 @@ import {
   CreateVaccinationSchemeVersionRequest,
   UpdateVaccinationProductRequest,
   UpdateVaccinationSchemeVersionStatusRequest,
+  VaccinationRecordListResponse,
   VaccinationProductItem,
   VaccinationScheme,
   VaccinationSchemeVersion,
@@ -17,6 +18,32 @@ import {
 export class VaccinationAdminApiService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = buildApiUrl('vaccinations');
+
+  listBasic(options?: {
+    page?: number | null;
+    limit?: number | null;
+    search?: string | null;
+    isExternal?: 'true' | 'false' | null;
+  }): Observable<VaccinationRecordListResponse> {
+    let params = new HttpParams();
+    if (options?.page) {
+      params = params.set('page', String(options.page));
+    }
+
+    if (options?.limit) {
+      params = params.set('limit', String(options.limit));
+    }
+
+    if (options?.search?.trim()) {
+      params = params.set('search', options.search.trim());
+    }
+
+    if (options?.isExternal !== undefined && options?.isExternal !== null) {
+      params = params.set('isExternal', options.isExternal);
+    }
+
+    return this.http.get<VaccinationRecordListResponse>(`${this.baseUrl}/basic`, { params });
+  }
 
   listProducts(options?: {
     speciesId?: number | null;
