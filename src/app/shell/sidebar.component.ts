@@ -28,6 +28,7 @@ export class SidebarComponent {
   private readonly router = inject(Router);
   @Input() isOpen = true;
   protected readonly expandedItemIds = new Set<string>();
+  protected readonly collapsedItemIds = new Set<string>();
 
   protected readonly navItems: readonly SidebarItem[] = [
     { id: 'dashboard', icon: 'dashboard', label: 'Dashboard', path: '/dashboard' },
@@ -59,7 +60,15 @@ export class SidebarComponent {
       return false;
     }
 
-    return this.expandedItemIds.has(item.id) || this.isItemActive(item);
+    if (this.expandedItemIds.has(item.id)) {
+      return true;
+    }
+
+    if (this.collapsedItemIds.has(item.id)) {
+      return false;
+    }
+
+    return this.hasActiveChild(item);
   }
 
   protected toggleGroup(item: SidebarItem): void {
@@ -69,9 +78,11 @@ export class SidebarComponent {
 
     if (this.expandedItemIds.has(item.id)) {
       this.expandedItemIds.delete(item.id);
+      this.collapsedItemIds.add(item.id);
       return;
     }
 
+    this.collapsedItemIds.delete(item.id);
     this.expandedItemIds.add(item.id);
   }
 
@@ -81,6 +92,12 @@ export class SidebarComponent {
     if (item.path && (currentUrl === item.path || currentUrl.startsWith(`${item.path}/`))) {
       return true;
     }
+
+    return false;
+  }
+
+  protected hasActiveChild(item: SidebarItem): boolean {
+    const currentUrl = this.router.url;
 
     return item.children?.some((child) =>
       currentUrl === child.path || currentUrl.startsWith(`${child.path}/`),

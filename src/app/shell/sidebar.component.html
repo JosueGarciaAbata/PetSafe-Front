@@ -23,12 +23,13 @@
             type="button"
             (click)="toggleGroup(item)"
             class="sidebar-item"
-            [class.sidebar-item--active]="isItemActive(item)"
+            [class.sidebar-item--expanded]="isExpanded(item)"
+            [attr.aria-expanded]="isExpanded(item)"
           >
             <app-shell-icon
               [name]="item.icon"
               [size]="20"
-              [className]="isItemActive(item) ? 'sidebar-item__icon--active' : 'sidebar-item__icon'"
+              [className]="isExpanded(item) ? 'sidebar-item__icon sidebar-item__icon--expanded' : 'sidebar-item__icon'"
             ></app-shell-icon>
             <span class="sidebar-item__label">{{ item.label }}</span>
             <app-shell-icon
