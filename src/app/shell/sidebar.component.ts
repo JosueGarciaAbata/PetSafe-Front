@@ -42,6 +42,15 @@ export class SidebarComponent {
         { label: 'Productos', path: '/vaccination/products' },
       ],
     },
+    {
+      id: 'catalogs',
+      icon: 'folder',
+      label: 'Catálogos',
+      children: [
+        { label: 'Procedimientos', path: '/catalogs/procedures' },
+        { label: 'Cirugías', path: '/catalogs/surgeries' },
+      ],
+    },
     { id: 'appointments', icon: 'calendar', label: 'Citas agendadas', path: '/appointments' },
     { id: 'queue', icon: 'clock', label: 'Atención del día', path: '/queue' },
     { id: 'history', icon: 'clipboard', label: 'Historial Medico', path: '/history' },

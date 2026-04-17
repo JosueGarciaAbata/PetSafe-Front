@@ -12,6 +12,7 @@ export type ShellIconName =
   | 'menu'
   | 'clock'
   | 'clipboard'
+  | 'folder'
   | 'syringe'
   | 'heart'
   | 'barChart'

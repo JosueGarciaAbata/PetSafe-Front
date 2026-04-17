@@ -336,6 +336,34 @@
                 {{ selectedEntry.notes || 'Sin motivo registrado por recepcion al momento del ingreso.' }}
               </p>
             </section>
+
+            <section class="border-t border-border/80 py-5">
+              <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-text-secondary">Consulta clínica</p>
+              @if (selectedEntry.encounter) {
+                <div class="mt-2 flex flex-wrap items-center gap-2">
+                  <p class="text-[17px] font-bold text-text-primary">
+                    Consulta #{{ selectedEntry.encounter.id }}
+                  </p>
+                  <span
+                    class="inline-flex items-center rounded-lg px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide"
+                    [ngClass]="
+                      selectedEntry.encounter.status === 'ACTIVA' || selectedEntry.encounter.status === 'REACTIVADA'
+                        ? 'bg-[#E5F5E0] text-[#1D7A04] border border-[#BDE8B4]'
+                        : selectedEntry.encounter.status === 'FINALIZADA'
+                          ? 'bg-[#E8F7F1] text-[#1F7A5A] border border-[#BFE7D6]'
+                          : 'bg-[#FFE0E0] text-[#990000] border border-[#FFB8B8]'
+                    "
+                  >
+                    {{ selectedEntry.encounter.status }}
+                  </span>
+                </div>
+              } @else {
+                <p class="mt-2 text-[14px] leading-6 text-text-primary">Sin consulta vinculada.</p>
+              }
+              <p class="mt-1 text-[13px] leading-6 text-text-secondary">
+                {{ buildEncounterHelpText(selectedEntry) }}
+              </p>
+            </section>
           </div>
         </div>
 
@@ -374,11 +402,31 @@
                 Finalizar atencion
               </button>
             }
+
+            @if (selectedEntry.queueStatus === 'FINALIZADA' && canReactivateEncounter(selectedEntry)) {
+              <button
+                type="button"
+                class="cursor-pointer rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90"
+                (click)="reactivateEncounter(selectedEntry)"
+              >
+                Reactivar atención
+              </button>
+            }
+
+            @if (selectedEntry.queueStatus === 'FINALIZADA' && selectedEntry.encounter) {
+              <button
+                type="button"
+                class="cursor-pointer rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+                (click)="viewEncounter(selectedEntry)"
+              >
+                Ver cita finalizada
+              </button>
+            }
           </div>
 
-          @if (selectedEntry.queueStatus === 'FINALIZADA' || selectedEntry.queueStatus === 'CANCELADA') {
+          @if (selectedEntry.queueStatus === 'CANCELADA') {
             <p class="text-sm text-text-secondary">
-              Esta cita no tiene acciones disponibles en este momento.
+              Esta cita fue cancelada y no tiene acciones disponibles.
             </p>
           }
         </footer>

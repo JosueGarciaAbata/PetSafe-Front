@@ -1,5 +1,6 @@
 import { PetImageApiResponse } from '@app/pets/models/pet-image.model';
 import { PaginationMeta } from '@app/shared/pagination/pagination.model';
+import { EncounterStatus } from '@app/encounters/models/encounter.model';
 
 export type QueueEntryType = 'CON_CITA' | 'SIN_CITA' | 'EMERGENCIA';
 export type QueueEntryStatus = 'EN_ESPERA' | 'EN_ATENCION' | 'FINALIZADA' | 'CANCELADA';
@@ -22,6 +23,13 @@ export interface QueuePatientSummary {
   image: PetImageApiResponse | null;
 }
 
+export interface QueueEncounterSummary {
+  id: number;
+  status: EncounterStatus;
+  canReactivate: boolean;
+  reactivationGraceEndsAt: string | null;
+}
+
 export interface QueueEntryRecord {
   id: number;
   date: string;
@@ -33,6 +41,7 @@ export interface QueueEntryRecord {
   scheduledTime: string | null;
   queueStatus: QueueEntryStatus;
   notes: string | null;
+  encounter: QueueEncounterSummary | null;
   waitMinutes: number;
   createdAt: string;
   updatedAt: string;

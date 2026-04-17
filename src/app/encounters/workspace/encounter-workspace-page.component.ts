@@ -4,19 +4,24 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  OnDestroy,
   OnInit,
   inject,
 } from '@angular/core';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import {
   AbstractControl,
   FormControl,
+  FormsModule,
   FormGroup,
   ReactiveFormsModule,
   ValidationErrors,
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
@@ -43,6 +48,9 @@ import {
   EncounterDetail,
   EncounterEnvironmentalData,
   EncounterPlan,
+  EncounterProcedureDraft,
+  EncounterTreatmentDraft,
+  EncounterVaccinationDraft,
   HydrationStatus,
   MucosaStatus,
   ProcedureCatalogItem,
@@ -50,6 +58,8 @@ import {
 } from '../models/encounter.model';
 import {
   CLINICAL_SHORT_TEXT_MAX_LENGTH,
+  CLINICAL_TEMPERATURE_MAX,
+  CLINICAL_TEMPERATURE_MIN,
   CLINICAL_TEXT_MAX_LENGTH,
   ENCOUNTER_TAB_LABELS,
   ENCOUNTER_TAB_ORDER,
@@ -58,21 +68,32 @@ import {
 import {
   ClinicalBlock,
   ClinicalTabView,
-  PendingProcedureDraft,
-  PendingTreatmentDraft,
-  PendingVaccinationDraft,
   TabMeta,
   TabStatus,
   TabView,
   TreatmentItemDraft,
 } from './encounter-workspace.types';
 
+type PatientSummarySectionKey = 'overview' | 'vaccination' | 'notes' | 'history';
+type EncounterActionPanel = 'VACCINATIONS' | 'TREATMENTS' | 'PROCEDURES';
+
+interface PatientSummaryContext {
+  title: string;
+  description: string;
+  sections: readonly PatientSummarySectionKey[];
+}
+
 @Component({
   selector: 'app-encounter-workspace-page',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
+    MatAutocompleteModule,
+    MatFormFieldModule,
+    MatInputModule,
+    RouterLink,
     ShellIconComponent,
     ConfirmDialogComponent,
     CreateVaccineApplicationModalComponent,
@@ -81,7 +102,7 @@ import {
   styleUrl: './encounter-workspace-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EncounterWorkspacePageComponent implements OnInit {
+export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
   private readonly encountersApi = inject(EncountersApiService);
   private readonly petsApi = inject(PetsApiService);
   private readonly patientVaccinationApi = inject(PatientVaccinationApiService);
@@ -91,6 +112,8 @@ export class EncounterWorkspacePageComponent implements OnInit {
 
   private readonly tabByBlock = TAB_BY_BLOCK;
   private readonly suppressFormTracking = { value: false };
+  private reactivationGraceTimerId: ReturnType<typeof setInterval> | null = null;
+  private autoTriggerValidation = false;
 
   protected encounter: EncounterDetail | null = null;
   protected patientDetail: PetBasicDetailApiResponse | null = null;
@@ -105,6 +128,7 @@ export class EncounterWorkspacePageComponent implements OnInit {
   protected isFinishConfirmOpen = false;
   protected isSubmittingAction = false;
   protected isSavingAll = false;
+  protected isPatientSummaryOpen = false;
   protected savingSection: ClinicalBlock | null = null;
   protected activeTab: TabView = 'REASON';
   protected loadError: string | null = null;
@@ -118,13 +142,57 @@ export class EncounterWorkspacePageComponent implements OnInit {
   protected isVaccinationModalOpen = false;
   protected isTreatmentModalOpen = false;
   protected isProcedureModalOpen = false;
-  protected pendingVaccinations: PendingVaccinationDraft[] = [];
-  protected pendingTreatments: PendingTreatmentDraft[] = [];
-  protected pendingProcedures: PendingProcedureDraft[] = [];
+  protected expandedActionPanel: EncounterActionPanel | null = 'VACCINATIONS';
+  protected procedureCatalogSearch = '';
+  protected pendingVaccinations: EncounterVaccinationDraft[] = [];
+  protected pendingTreatments: EncounterTreatmentDraft[] = [];
+  protected pendingProcedures: EncounterProcedureDraft[] = [];
+  protected editingVaccinationDraftId: number | null = null;
+  protected editingTreatmentDraftId: number | null = null;
+  protected editingProcedureDraftId: number | null = null;
   protected readonly clinicalTextMaxLength = CLINICAL_TEXT_MAX_LENGTH;
   protected readonly clinicalShortTextMaxLength = CLINICAL_SHORT_TEXT_MAX_LENGTH;
+  protected readonly clinicalTemperatureMin = CLINICAL_TEMPERATURE_MIN;
+  protected readonly clinicalTemperatureMax = CLINICAL_TEMPERATURE_MAX;
   protected readonly tabOrder = ENCOUNTER_TAB_ORDER;
   protected readonly tabLabels = ENCOUNTER_TAB_LABELS;
+  private readonly patientSummaryContextByTab: Record<TabView, PatientSummaryContext> = {
+    REASON: {
+      title: 'Contexto inicial',
+      description: 'Antecedentes y referencias generales para orientar el motivo de consulta.',
+      sections: ['overview', 'notes', 'history'],
+    },
+    ANAMNESIS: {
+      title: 'Antecedentes del paciente',
+      description: 'Información longitudinal e histórico relacionado para profundizar la anamnesis.',
+      sections: ['overview', 'notes', 'history'],
+    },
+    EXAM: {
+      title: 'Referencia clínica rápida',
+      description: 'Datos base y estado vacunal útiles mientras registras el examen físico.',
+      sections: ['overview', 'vaccination'],
+    },
+    ENVIRONMENT: {
+      title: 'Contexto del entorno',
+      description: 'Referencia general e histórico útil para interpretar hábitos, convivencia y ambiente.',
+      sections: ['overview', 'notes', 'history'],
+    },
+    IMPRESSION: {
+      title: 'Apoyo diagnóstico',
+      description: 'Resumen de datos base, vacunas y antecedentes para sostener la impresión clínica.',
+      sections: ['overview', 'vaccination', 'notes', 'history'],
+    },
+    ACTIONS: {
+      title: 'Seguimiento operativo',
+      description: 'Vista concentrada en vacunas e histórico útil para ejecutar acciones clínicas.',
+      sections: ['vaccination', 'history'],
+    },
+    PLAN: {
+      title: 'Contexto para el plan',
+      description: 'Datos de referencia y notas longitudinales para definir seguimiento y próximos pasos.',
+      sections: ['overview', 'vaccination', 'notes'],
+    },
+  };
   protected readonly tabState: Record<TabView, TabMeta> = {
     REASON: { status: 'clean', error: null },
     ANAMNESIS: { status: 'clean', error: null },
@@ -143,21 +211,21 @@ export class EncounterWorkspacePageComponent implements OnInit {
   ];
   protected readonly waterIntakeOptions: readonly WaterIntakeStatus[] = [
     'NORMAL',
-    'POLIDIPSIA',
-    'ADIPSIA',
+    'AUMENTADO',
+    'DISMINUIDO',
   ];
   protected readonly mucosaOptions: readonly MucosaStatus[] = [
-    'ROSADAS',
-    'PALIDAS',
-    'ICTERICAS',
-    'CIANOTICAS',
-    'CONGESTIVAS',
+    'NORMAL',
+    'PALIDA',
+    'ICTERICA',
+    'CIANOTICA',
+    'HIPEREMICA',
   ];
   protected readonly hydrationOptions: readonly HydrationStatus[] = [
     'NORMAL',
-    'DESHIDRATACION_LEVE',
-    'DESHIDRATACION_MODERADA',
-    'DESHIDRATACION_SEVERA',
+    'LEVE_DESHIDRATACION',
+    'MODERADA_DESHIDRATACION',
+    'SEVERA_DESHIDRATACION',
   ];
 
   protected readonly reasonForm = new FormGroup({
@@ -224,7 +292,9 @@ export class EncounterWorkspacePageComponent implements OnInit {
     weightKg: new FormControl<number | null>(null, {
       validators: [Validators.min(0.01)],
     }),
-    temperatureC: new FormControl<number | null>(null),
+    temperatureC: new FormControl<number | null>(null, {
+      validators: [Validators.min(CLINICAL_TEMPERATURE_MIN), Validators.max(CLINICAL_TEMPERATURE_MAX)],
+    }),
     pulse: new FormControl<number | null>(null, {
       validators: [Validators.min(0)],
     }),
@@ -328,6 +398,12 @@ export class EncounterWorkspacePageComponent implements OnInit {
   ngOnInit(): void {
     this.configurePlanValidation();
     this.setupFormTracking();
+
+    if (history.state?.autoFinishActionError) {
+      this.actionError = history.state.autoFinishActionError;
+      this.autoTriggerValidation = true;
+    }
+
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!Number.isFinite(id)) {
       this.loadError = 'ID de consulta no proporcionado.';
@@ -338,8 +414,24 @@ export class EncounterWorkspacePageComponent implements OnInit {
     void this.loadEncounter(id);
   }
 
+  ngOnDestroy(): void {
+    this.clearReactivationGraceTimer();
+  }
+
   protected setTab(tab: TabView): void {
     this.activeTab = tab;
+  }
+
+  protected togglePatientSummary(): void {
+    this.isPatientSummaryOpen = !this.isPatientSummaryOpen;
+  }
+
+  protected isEncounterEditable(): boolean {
+    return this.isEncounterStatusEditable(this.encounter?.status);
+  }
+
+  protected canReactivateEncounter(): boolean {
+    return this.hasReactivationGraceRemaining(this.encounter);
   }
 
   protected async saveReason(): Promise<void> {
@@ -415,11 +507,10 @@ export class EncounterWorkspacePageComponent implements OnInit {
   }
 
   protected async saveAllSections(): Promise<void> {
-    if (!this.encounter || this.isSavingAll || this.isSubmittingAction) {
+    if (!this.encounter || this.isSavingAll || this.isSubmittingAction || !this.isEncounterEditable()) {
       return;
     }
 
-    this.persistPendingActions();
     await this.saveAllProgress(false);
   }
 
@@ -439,7 +530,21 @@ export class EncounterWorkspacePageComponent implements OnInit {
 
     try {
       for (const step of this.buildClinicalSaveSequence()) {
+        const mustValidateBlock = fromFinishFlow && step.block === 'reason';
+
         if (!this.sectionHasChanges(step.block)) {
+          if (mustValidateBlock) {
+            const validationMessage = this.validateClinicalStep(step.block);
+            if (validationMessage) {
+              this.setTabMeta(step.tab, {
+                status: 'dirty',
+                error: validationMessage,
+              });
+              firstErrorTab ??= step.tab;
+              continue;
+            }
+          }
+
           this.setTabMeta(step.tab, {
             status: 'clean',
             error: null,
@@ -501,6 +606,23 @@ export class EncounterWorkspacePageComponent implements OnInit {
   }
 
   protected openVaccinationModal(): void {
+    if (!this.isEncounterEditable()) {
+      return;
+    }
+
+    this.expandedActionPanel = 'VACCINATIONS';
+    this.editingVaccinationDraftId = null;
+    this.vaccinationError = null;
+    this.isVaccinationModalOpen = true;
+  }
+
+  protected editPendingVaccination(draft: EncounterVaccinationDraft): void {
+    if (!this.isEncounterEditable()) {
+      return;
+    }
+
+    this.expandedActionPanel = 'VACCINATIONS';
+    this.editingVaccinationDraftId = draft.id;
     this.vaccinationError = null;
     this.isVaccinationModalOpen = true;
   }
@@ -510,10 +632,17 @@ export class EncounterWorkspacePageComponent implements OnInit {
       return;
     }
 
+    this.editingVaccinationDraftId = null;
     this.isVaccinationModalOpen = false;
   }
 
-  protected submitVaccinationDraft(payload: CreatePatientVaccineApplicationRequest): void {
+  protected async submitVaccinationDraft(
+    payload: CreatePatientVaccineApplicationRequest,
+  ): Promise<void> {
+    if (!this.encounter || this.isSubmittingAction) {
+      return;
+    }
+
     const selectedVaccine = this.availableVaccines.find((item) => item.id === payload.vaccineId);
     if (!selectedVaccine || !payload.applicationDate?.trim()) {
       this.vaccinationError = 'Selecciona una vacuna y una fecha de aplicación válida.';
@@ -521,29 +650,50 @@ export class EncounterWorkspacePageComponent implements OnInit {
       return;
     }
 
-    this.pendingVaccinations = [
-      ...this.pendingVaccinations,
-      {
-        id: this.buildDraftId('vac'),
-        vaccineName: selectedVaccine.name,
-        applicationDate: payload.applicationDate.trim(),
-        suggestedNextDate: payload.nextDoseDate?.trim() || undefined,
-        notes: payload.notes?.trim() || undefined,
-        payload: {
-          vaccineId: payload.vaccineId,
-          applicationDate: payload.applicationDate.trim(),
-          suggestedNextDate: payload.nextDoseDate?.trim() || undefined,
-          notes: payload.notes?.trim() || undefined,
-        },
-      },
-    ];
-    this.persistPendingActions();
-    this.isVaccinationModalOpen = false;
+    const editingDraft = this.pendingVaccinations.find(
+      (item) => item.id === this.editingVaccinationDraftId,
+    );
+    const request: CreateEncounterVaccinationRequest = {
+      planDoseId: editingDraft?.planDoseId ?? undefined,
+      vaccineId: payload.vaccineId,
+      applicationDate: payload.applicationDate.trim(),
+      suggestedNextDate: payload.nextDoseDate?.trim() || undefined,
+      notes: payload.notes?.trim() || undefined,
+    };
+
+    this.isSubmittingAction = true;
     this.vaccinationError = null;
     this.cdr.detectChanges();
+
+    try {
+      const updated = await firstValueFrom(
+        this.editingVaccinationDraftId
+          ? this.encountersApi.updateVaccinationDraft(
+              this.encounter.id,
+              this.editingVaccinationDraftId,
+              request,
+            )
+          : this.encountersApi.createVaccinationDraft(this.encounter.id, request),
+      );
+      this.applyEncounter(updated);
+      this.isVaccinationModalOpen = false;
+    } catch (error) {
+      this.vaccinationError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo guardar la vacunación pendiente.',
+      });
+    } finally {
+      this.isSubmittingAction = false;
+      this.cdr.detectChanges();
+    }
   }
 
   protected openTreatmentModal(): void {
+    if (!this.isEncounterEditable()) {
+      return;
+    }
+
+    this.expandedActionPanel = 'TREATMENTS';
+    this.editingTreatmentDraftId = null;
     this.treatmentError = null;
     this.treatmentForm.reset({
       startDate: this.todayDate(),
@@ -554,11 +704,39 @@ export class EncounterWorkspacePageComponent implements OnInit {
     this.isTreatmentModalOpen = true;
   }
 
+  protected editPendingTreatment(draft: EncounterTreatmentDraft): void {
+    if (!this.isEncounterEditable()) {
+      return;
+    }
+
+    this.expandedActionPanel = 'TREATMENTS';
+    this.editingTreatmentDraftId = draft.id;
+    this.treatmentError = null;
+    this.treatmentForm.reset({
+      startDate: draft.startDate,
+      endDate: draft.endDate ?? '',
+      generalInstructions: draft.generalInstructions ?? '',
+    });
+    this.treatmentItems =
+      draft.items.length > 0
+        ? draft.items.map((item) => ({
+            medication: item.medication,
+            dose: item.dose,
+            frequency: item.frequency,
+            durationDays: item.durationDays,
+            administrationRoute: item.administrationRoute,
+            notes: item.notes ?? '',
+          }))
+        : [this.createEmptyTreatmentItem()];
+    this.isTreatmentModalOpen = true;
+  }
+
   protected closeTreatmentModal(): void {
     if (this.isSubmittingAction) {
       return;
     }
 
+    this.editingTreatmentDraftId = null;
     this.isTreatmentModalOpen = false;
   }
 
@@ -584,7 +762,11 @@ export class EncounterWorkspacePageComponent implements OnInit {
     );
   }
 
-  protected submitTreatment(): void {
+  protected async submitTreatment(): Promise<void> {
+    if (!this.encounter || this.isSubmittingAction) {
+      return;
+    }
+
     const raw = this.treatmentForm.getRawValue();
     const items = this.treatmentItems
       .map((item) => ({
@@ -641,24 +823,39 @@ export class EncounterWorkspacePageComponent implements OnInit {
       })),
     };
 
-    this.pendingTreatments = [
-      ...this.pendingTreatments,
-      {
-        id: this.buildDraftId('trt'),
-        summary: items.map((item) => item.medication).join(', '),
-        startDate: payload.startDate,
-        endDate: payload.endDate,
-        notes: payload.generalInstructions,
-        payload,
-      },
-    ];
-    this.persistPendingActions();
+    this.isSubmittingAction = true;
     this.treatmentError = null;
-    this.isTreatmentModalOpen = false;
     this.cdr.detectChanges();
+
+    try {
+      const updated = await firstValueFrom(
+        this.editingTreatmentDraftId
+          ? this.encountersApi.updateTreatmentDraft(
+              this.encounter.id,
+              this.editingTreatmentDraftId,
+              payload,
+            )
+          : this.encountersApi.createTreatmentDraft(this.encounter.id, payload),
+      );
+      this.applyEncounter(updated);
+      this.isTreatmentModalOpen = false;
+    } catch (error) {
+      this.treatmentError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo guardar el tratamiento pendiente.',
+      });
+    } finally {
+      this.isSubmittingAction = false;
+      this.cdr.detectChanges();
+    }
   }
 
   protected openProcedureModal(): void {
+    if (!this.isEncounterEditable()) {
+      return;
+    }
+
+    this.expandedActionPanel = 'PROCEDURES';
+    this.editingProcedureDraftId = null;
     this.procedureError = null;
     this.procedureForm.reset({
       catalogId: null,
@@ -668,6 +865,31 @@ export class EncounterWorkspacePageComponent implements OnInit {
       result: '',
       notes: '',
     });
+    this.procedureCatalogSearch = '';
+    this.isProcedureModalOpen = true;
+  }
+
+  protected editPendingProcedure(draft: EncounterProcedureDraft): void {
+    if (!this.isEncounterEditable()) {
+      return;
+    }
+
+    this.expandedActionPanel = 'PROCEDURES';
+    this.editingProcedureDraftId = draft.id;
+    this.procedureError = null;
+    this.procedureForm.reset({
+      catalogId: draft.catalogId,
+      procedureType: draft.procedureType ?? '',
+      performedDate: this.toDateTimeLocalValue(draft.performedDate),
+      description: draft.description ?? '',
+      result: draft.result ?? '',
+      notes: draft.notes ?? '',
+    });
+    this.syncProcedureCatalogSelection(
+      draft.catalogId
+        ? (this.procedureCatalog.find((item) => item.id === draft.catalogId) ?? null)
+        : null,
+    );
     this.isProcedureModalOpen = true;
   }
 
@@ -676,6 +898,7 @@ export class EncounterWorkspacePageComponent implements OnInit {
       return;
     }
 
+    this.editingProcedureDraftId = null;
     this.isProcedureModalOpen = false;
   }
 
@@ -690,7 +913,66 @@ export class EncounterWorkspacePageComponent implements OnInit {
     });
   }
 
-  protected submitProcedure(): void {
+  protected toggleActionPanel(panel: EncounterActionPanel): void {
+    this.expandedActionPanel = this.expandedActionPanel === panel ? null : panel;
+  }
+
+  protected isActionPanelOpen(panel: EncounterActionPanel): boolean {
+    return this.expandedActionPanel === panel;
+  }
+
+  protected onProcedureCatalogSearchChanged(value: string): void {
+    this.procedureCatalogSearch = value;
+
+    const normalizedValue = value.trim().toLowerCase();
+    const matchedCatalogItem =
+      this.procedureCatalog.find((item) =>
+        this.buildProcedureCatalogLabel(item).trim().toLowerCase() === normalizedValue,
+      ) ?? null;
+
+    this.syncProcedureCatalogSelection(matchedCatalogItem, {
+      preserveSearchText: true,
+    });
+  }
+
+  protected onProcedureCatalogOptionSelection(
+    isUserInput: boolean,
+    item: ProcedureCatalogItem,
+  ): void {
+    if (!isUserInput) {
+      return;
+    }
+
+    this.syncProcedureCatalogSelection(item);
+  }
+
+  protected procedureCatalogOptions(): ProcedureCatalogItem[] {
+    const normalizedSearch = this.procedureCatalogSearch.trim().toLowerCase();
+    if (!normalizedSearch) {
+      return this.procedureCatalog;
+    }
+
+    return this.procedureCatalog.filter((item) =>
+      [
+        item.name,
+        item.description ?? '',
+      ].join(' ').toLowerCase().includes(normalizedSearch),
+    );
+  }
+
+  protected buildProcedureCatalogLabel(item: ProcedureCatalogItem): string {
+    return item.name.trim();
+  }
+
+  protected buildProcedureCatalogMeta(item: ProcedureCatalogItem): string {
+    return item.description?.trim() || 'Sin descripción adicional en catálogo.';
+  }
+
+  protected async submitProcedure(): Promise<void> {
+    if (!this.encounter || this.isSubmittingAction) {
+      return;
+    }
+
     const raw = this.procedureForm.getRawValue();
     const performedDate = this.toIsoString(raw.performedDate);
     const procedureType = raw.procedureType?.trim() || undefined;
@@ -716,25 +998,34 @@ export class EncounterWorkspacePageComponent implements OnInit {
       notes: raw.notes?.trim() || undefined,
     };
 
-    this.pendingProcedures = [
-      ...this.pendingProcedures,
-      {
-        id: this.buildDraftId('prc'),
-        procedureName: this.selectedProcedureCatalog()?.name || procedureType || 'Procedimiento',
-        performedDate,
-        result: payload.result,
-        notes: payload.notes || payload.description,
-        payload,
-      },
-    ];
-    this.persistPendingActions();
+    this.isSubmittingAction = true;
     this.procedureError = null;
-    this.isProcedureModalOpen = false;
     this.cdr.detectChanges();
+
+    try {
+      const updated = await firstValueFrom(
+        this.editingProcedureDraftId
+          ? this.encountersApi.updateProcedureDraft(
+              this.encounter.id,
+              this.editingProcedureDraftId,
+              payload,
+            )
+          : this.encountersApi.createProcedureDraft(this.encounter.id, payload),
+      );
+      this.applyEncounter(updated);
+      this.isProcedureModalOpen = false;
+    } catch (error) {
+      this.procedureError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo guardar el procedimiento pendiente.',
+      });
+    } finally {
+      this.isSubmittingAction = false;
+      this.cdr.detectChanges();
+    }
   }
 
   protected finishEncounter(): void {
-    if (!this.encounter) {
+    if (!this.encounter || !this.isEncounterEditable()) {
       return;
     }
 
@@ -752,7 +1043,7 @@ export class EncounterWorkspacePageComponent implements OnInit {
   }
 
   protected async confirmFinishEncounter(): Promise<void> {
-    if (!this.encounter) {
+    if (!this.encounter || !this.isEncounterEditable()) {
       return;
     }
 
@@ -767,14 +1058,9 @@ export class EncounterWorkspacePageComponent implements OnInit {
         return;
       }
 
-      const executed = await this.executePendingClinicalActions();
-      if (!executed) {
-        return;
-      }
-
-      await firstValueFrom(this.encountersApi.finish(this.encounter.id));
-      this.clearPendingActions();
-      void this.router.navigate(['/queue']);
+      const updated = await firstValueFrom(this.encountersApi.finish(this.encounter.id));
+      this.applyEncounter(updated);
+      await this.loadPatientContext(updated.patientId);
     } catch (error) {
       this.actionError = resolveApiErrorMessage(error, {
         defaultMessage: 'No se pudo finalizar la atención médica.',
@@ -787,6 +1073,29 @@ export class EncounterWorkspacePageComponent implements OnInit {
 
   protected goBack(): void {
     void this.router.navigate(['/queue']);
+  }
+
+  protected async reactivateEncounter(): Promise<void> {
+    if (!this.encounter || !this.canReactivateEncounter() || this.isSubmittingAction || this.isSavingAll) {
+      return;
+    }
+
+    this.isSubmittingAction = true;
+    this.actionError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const updated = await firstValueFrom(this.encountersApi.reactivate(this.encounter.id));
+      this.applyEncounter(updated);
+      await this.loadPatientContext(updated.patientId);
+    } catch (error) {
+      this.actionError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo reactivar la atención médica.',
+      });
+    } finally {
+      this.isSubmittingAction = false;
+      this.cdr.detectChanges();
+    }
   }
 
   protected goToPatientVaccination(): void {
@@ -866,6 +1175,22 @@ export class EncounterWorkspacePageComponent implements OnInit {
     return this.tabLabels[tab];
   }
 
+  protected patientSummaryToggleLabel(): string {
+    return this.isPatientSummaryOpen ? 'Ocultar resumen del paciente' : 'Mostrar resumen del paciente';
+  }
+
+  protected patientSummaryTitle(): string {
+    return this.patientSummaryContextByTab[this.activeTab].title;
+  }
+
+  protected patientSummaryDescription(): string {
+    return this.patientSummaryContextByTab[this.activeTab].description;
+  }
+
+  protected shouldShowPatientSummarySection(section: PatientSummarySectionKey): boolean {
+    return this.patientSummaryContextByTab[this.activeTab].sections.includes(section);
+  }
+
   protected tabStatus(tab: TabView): TabStatus {
     return this.tabState[tab].status;
   }
@@ -921,7 +1246,17 @@ export class EncounterWorkspacePageComponent implements OnInit {
       if (tab === 'EXAM' && controlName === 'weightKg') {
         return 'El peso debe ser mayor a 0.';
       }
+      if (tab === 'EXAM' && controlName === 'temperatureC') {
+        return `La temperatura debe estar entre ${this.clinicalTemperatureMin} y ${this.clinicalTemperatureMax} °C.`;
+      }
       return 'El valor debe ser mayor o igual a 0.';
+    }
+
+    if (control.errors['max']) {
+      if (tab === 'EXAM' && controlName === 'temperatureC') {
+        return `La temperatura debe estar entre ${this.clinicalTemperatureMin} y ${this.clinicalTemperatureMax} °C.`;
+      }
+      return 'El valor supera el máximo permitido.';
     }
 
     if (control.errors['maxlength']) {
@@ -1000,6 +1335,8 @@ export class EncounterWorkspacePageComponent implements OnInit {
     switch (this.encounter?.status) {
       case 'ACTIVA':
         return 'En atención';
+      case 'REACTIVADA':
+        return 'Reactivada';
       case 'FINALIZADA':
         return 'Finalizada';
       case 'ANULADA':
@@ -1018,6 +1355,31 @@ export class EncounterWorkspacePageComponent implements OnInit {
     return this.procedureCatalog.find((item) => item.id === catalogId) ?? null;
   }
 
+  protected currentVaccinationDraft(): EncounterVaccinationDraft | null {
+    return this.editingVaccinationDraftId !== null
+      ? (this.pendingVaccinations.find((item) => item.id === this.editingVaccinationDraftId) ?? null)
+      : null;
+  }
+
+  protected currentVaccinationDraftProduct(): VaccineCatalogItem | null {
+    const currentDraft = this.currentVaccinationDraft();
+    return currentDraft
+      ? (this.availableVaccines.find((item) => item.id === currentDraft.vaccineId) ?? null)
+      : null;
+  }
+
+  protected currentTreatmentDraft(): EncounterTreatmentDraft | null {
+    return this.editingTreatmentDraftId !== null
+      ? (this.pendingTreatments.find((item) => item.id === this.editingTreatmentDraftId) ?? null)
+      : null;
+  }
+
+  protected currentProcedureDraft(): EncounterProcedureDraft | null {
+    return this.editingProcedureDraftId !== null
+      ? (this.pendingProcedures.find((item) => item.id === this.editingProcedureDraftId) ?? null)
+      : null;
+  }
+
   protected buildAppetiteLabel(value: AppetiteStatus | null | undefined): string {
     switch (value) {
       case 'AUMENTADO':
@@ -1033,10 +1395,10 @@ export class EncounterWorkspacePageComponent implements OnInit {
 
   protected buildWaterIntakeLabel(value: WaterIntakeStatus | null | undefined): string {
     switch (value) {
-      case 'POLIDIPSIA':
-        return 'Polidipsia';
-      case 'ADIPSIA':
-        return 'Adipsia';
+      case 'AUMENTADO':
+        return 'Aumentado';
+      case 'DISMINUIDO':
+        return 'Disminuido';
       default:
         return 'Normal';
     }
@@ -1044,26 +1406,26 @@ export class EncounterWorkspacePageComponent implements OnInit {
 
   protected buildMucosaLabel(value: MucosaStatus | null | undefined): string {
     switch (value) {
-      case 'PALIDAS':
+      case 'PALIDA':
         return 'Pálidas';
-      case 'ICTERICAS':
+      case 'ICTERICA':
         return 'Ictéricas';
-      case 'CIANOTICAS':
+      case 'CIANOTICA':
         return 'Cianóticas';
-      case 'CONGESTIVAS':
-        return 'Congestivas';
+      case 'HIPEREMICA':
+        return 'Hiperémicas';
       default:
-        return 'Rosadas';
+        return 'Normales';
     }
   }
 
   protected buildHydrationLabel(value: HydrationStatus | null | undefined): string {
     switch (value) {
-      case 'DESHIDRATACION_LEVE':
+      case 'LEVE_DESHIDRATACION':
         return 'Deshidratación leve';
-      case 'DESHIDRATACION_MODERADA':
+      case 'MODERADA_DESHIDRATACION':
         return 'Deshidratación moderada';
-      case 'DESHIDRATACION_SEVERA':
+      case 'SEVERA_DESHIDRATACION':
         return 'Deshidratación severa';
       default:
         return 'Normal';
@@ -1132,25 +1494,90 @@ export class EncounterWorkspacePageComponent implements OnInit {
     }).format(parsed);
   }
 
+  protected treatmentDraftSummary(draft: EncounterTreatmentDraft): string {
+    const medications = draft.items
+      .map((item) => item.medication.trim())
+      .filter((value) => value.length > 0);
+
+    return medications.length > 0 ? medications.join(', ') : 'Tratamiento pendiente';
+  }
+
+  protected procedureDraftLabel(draft: EncounterProcedureDraft): string {
+    return draft.procedureType?.trim() || 'Procedimiento pendiente';
+  }
+
   protected pendingActionsCount(): number {
     return (
       this.pendingVaccinations.length + this.pendingTreatments.length + this.pendingProcedures.length
     );
   }
 
-  protected removePendingVaccination(id: string): void {
-    this.pendingVaccinations = this.pendingVaccinations.filter((item) => item.id !== id);
-    this.persistPendingActions();
+  protected async removePendingVaccination(id: number): Promise<void> {
+    if (!this.encounter || this.isSubmittingAction) {
+      return;
+    }
+
+    this.isSubmittingAction = true;
+    this.vaccinationError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const updated = await firstValueFrom(
+        this.encountersApi.deleteVaccinationDraft(this.encounter.id, id),
+      );
+      this.applyEncounter(updated);
+    } catch (error) {
+      this.vaccinationError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo quitar la vacunación pendiente.',
+      });
+    } finally {
+      this.isSubmittingAction = false;
+      this.cdr.detectChanges();
+    }
   }
 
-  protected removePendingTreatment(id: string): void {
-    this.pendingTreatments = this.pendingTreatments.filter((item) => item.id !== id);
-    this.persistPendingActions();
+  protected async removePendingTreatment(id: number): Promise<void> {
+    if (!this.encounter || this.isSubmittingAction) {
+      return;
+    }
+
+    this.isSubmittingAction = true;
+    this.treatmentError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const updated = await firstValueFrom(this.encountersApi.deleteTreatmentDraft(this.encounter.id, id));
+      this.applyEncounter(updated);
+    } catch (error) {
+      this.treatmentError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo quitar el tratamiento pendiente.',
+      });
+    } finally {
+      this.isSubmittingAction = false;
+      this.cdr.detectChanges();
+    }
   }
 
-  protected removePendingProcedure(id: string): void {
-    this.pendingProcedures = this.pendingProcedures.filter((item) => item.id !== id);
-    this.persistPendingActions();
+  protected async removePendingProcedure(id: number): Promise<void> {
+    if (!this.encounter || this.isSubmittingAction) {
+      return;
+    }
+
+    this.isSubmittingAction = true;
+    this.procedureError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const updated = await firstValueFrom(this.encountersApi.deleteProcedureDraft(this.encounter.id, id));
+      this.applyEncounter(updated);
+    } catch (error) {
+      this.procedureError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo quitar el procedimiento pendiente.',
+      });
+    } finally {
+      this.isSubmittingAction = false;
+      this.cdr.detectChanges();
+    }
   }
 
   private configurePlanValidation(): void {
@@ -1173,13 +1600,13 @@ export class EncounterWorkspacePageComponent implements OnInit {
       tab: ClinicalTabView;
       form: FormGroup;
     }> = [
-      { tab: 'REASON', form: this.reasonForm },
-      { tab: 'ANAMNESIS', form: this.anamnesisForm },
-      { tab: 'EXAM', form: this.examForm },
-      { tab: 'ENVIRONMENT', form: this.environmentForm },
-      { tab: 'IMPRESSION', form: this.impressionForm },
-      { tab: 'PLAN', form: this.planForm },
-    ];
+        { tab: 'REASON', form: this.reasonForm },
+        { tab: 'ANAMNESIS', form: this.anamnesisForm },
+        { tab: 'EXAM', form: this.examForm },
+        { tab: 'ENVIRONMENT', form: this.environmentForm },
+        { tab: 'IMPRESSION', form: this.impressionForm },
+        { tab: 'PLAN', form: this.planForm },
+      ];
 
     for (const item of subscriptions) {
       item.form.valueChanges.subscribe(() => {
@@ -1269,6 +1696,7 @@ export class EncounterWorkspacePageComponent implements OnInit {
       case 'EXAM':
         return (
           this.controlErrorMessage(tab, 'weightKg')
+          ?? this.controlErrorMessage(tab, 'temperatureC')
           ?? this.controlErrorMessage(tab, 'pulse')
           ?? this.controlErrorMessage(tab, 'heartRate')
           ?? this.controlErrorMessage(tab, 'respiratoryRate')
@@ -1347,7 +1775,6 @@ export class EncounterWorkspacePageComponent implements OnInit {
     try {
       const encounter = await firstValueFrom(this.encountersApi.getById(id));
       this.applyEncounter(encounter);
-      this.restorePendingActions(encounter.id);
 
       await Promise.all([this.loadPatientContext(encounter.patientId), this.loadReferenceData()]);
     } catch (error) {
@@ -1357,6 +1784,15 @@ export class EncounterWorkspacePageComponent implements OnInit {
     } finally {
       this.isLoading = false;
       this.cdr.detectChanges();
+
+      if (this.autoTriggerValidation) {
+        this.autoTriggerValidation = false;
+        setTimeout(() => {
+          if (this.encounter && this.isEncounterEditable()) {
+            this.saveAllProgress(true).catch(() => {});
+          }
+        }, 100);
+      }
     }
   }
 
@@ -1385,6 +1821,7 @@ export class EncounterWorkspacePageComponent implements OnInit {
       this.patientContextError = resolveApiErrorMessage(error, {
         defaultMessage: 'No se pudo cargar el contexto del paciente.',
       });
+      this.isPatientSummaryOpen = true;
     } finally {
       this.isLoadingPatientContext = false;
       this.cdr.detectChanges();
@@ -1429,6 +1866,12 @@ export class EncounterWorkspacePageComponent implements OnInit {
 
   private applyEncounter(encounter: EncounterDetail): void {
     this.encounter = encounter;
+    this.pendingVaccinations = encounter.vaccinationDrafts ?? [];
+    this.pendingTreatments = encounter.treatmentDrafts ?? [];
+    this.pendingProcedures = encounter.procedureDrafts ?? [];
+    this.editingVaccinationDraftId = null;
+    this.editingTreatmentDraftId = null;
+    this.editingProcedureDraftId = null;
     this.suppressFormTracking.value = true;
 
     this.reasonForm.patchValue({
@@ -1500,50 +1943,11 @@ export class EncounterWorkspacePageComponent implements OnInit {
     this.impressionForm.markAsPristine();
     this.planForm.markAsPristine();
     this.suppressFormTracking.value = false;
+    this.syncEncounterEditability();
+    this.configureReactivationGraceTimer();
 
     this.sectionError = null;
     this.actionError = null;
-  }
-
-  private async executePendingClinicalActions(): Promise<boolean> {
-    if (!this.encounter) {
-      return false;
-    }
-
-    try {
-      for (const draft of this.pendingVaccinations) {
-        const updated = await firstValueFrom(
-          this.encountersApi.addVaccination(this.encounter.id, draft.payload),
-        );
-        this.applyEncounter(updated);
-      }
-
-      for (const draft of this.pendingTreatments) {
-        const updated = await firstValueFrom(
-          this.encountersApi.addTreatment(this.encounter.id, draft.payload),
-        );
-        this.applyEncounter(updated);
-      }
-
-      for (const draft of this.pendingProcedures) {
-        const updated = await firstValueFrom(
-          this.encountersApi.addProcedure(this.encounter.id, draft.payload),
-        );
-        this.applyEncounter(updated);
-      }
-
-      if (this.pendingVaccinations.length > 0) {
-        await this.refreshVaccinationPlan();
-      }
-
-      return true;
-    } catch (error) {
-      this.actionError = resolveApiErrorMessage(error, {
-        defaultMessage:
-          'No se pudieron ejecutar las acciones clínicas pendientes. La atención sigue abierta para que revises los datos.',
-      });
-      return false;
-    }
   }
 
   private async persistSection(
@@ -1864,6 +2268,21 @@ export class EncounterWorkspacePageComponent implements OnInit {
     return local.toISOString().slice(0, 16);
   }
 
+  private toDateTimeLocalValue(value: string | null | undefined): string {
+    if (!value) {
+      return this.nowDateTimeLocal();
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return this.nowDateTimeLocal();
+    }
+
+    const offset = parsed.getTimezoneOffset();
+    const local = new Date(parsed.getTime() - offset * 60_000);
+    return local.toISOString().slice(0, 16);
+  }
+
   private toIsoString(value: string | null | undefined): string | null {
     if (!value?.trim()) {
       return null;
@@ -1884,65 +2303,104 @@ export class EncounterWorkspacePageComponent implements OnInit {
     };
   }
 
-  private buildDraftId(prefix: string): string {
-    return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  private isEncounterStatusEditable(status: EncounterDetail['status'] | null | undefined): boolean {
+    return status === 'ACTIVA' || status === 'REACTIVADA';
   }
 
-  private pendingActionsStorageKey(encounterId: number): string {
-    return `safe-pet:encounter:${encounterId}:pending-actions`;
+  private hasReactivationGraceRemaining(encounter: EncounterDetail | null): boolean {
+    if (!encounter || encounter.status !== 'FINALIZADA' || !encounter.canReactivate) {
+      return false;
+    }
+
+    const graceEndsAt = this.toIsoString(encounter.reactivationGraceEndsAt);
+    if (!graceEndsAt) {
+      return false;
+    }
+
+    return new Date(graceEndsAt).getTime() >= Date.now();
   }
 
-  private persistPendingActions(): void {
-    if (!this.encounter || typeof localStorage === 'undefined') {
+  private syncEncounterEditability(): void {
+    const forms = [
+      this.reasonForm,
+      this.anamnesisForm,
+      this.examForm,
+      this.environmentForm,
+      this.impressionForm,
+      this.planForm,
+      this.vaccinationForm,
+      this.treatmentForm,
+      this.procedureForm,
+    ];
+    const editable = this.isEncounterEditable();
+
+    for (const form of forms) {
+      if (editable) {
+        form.enable({ emitEvent: false });
+      } else {
+        form.disable({ emitEvent: false });
+      }
+    }
+
+    if (!editable) {
+      this.isVaccinationModalOpen = false;
+      this.isTreatmentModalOpen = false;
+      this.isProcedureModalOpen = false;
+    }
+  }
+
+  private configureReactivationGraceTimer(): void {
+    this.clearReactivationGraceTimer();
+
+    if (!this.encounter || this.encounter.status !== 'FINALIZADA' || !this.encounter.reactivationGraceEndsAt) {
       return;
     }
 
-    localStorage.setItem(
-      this.pendingActionsStorageKey(this.encounter.id),
-      JSON.stringify({
-        vaccinations: this.pendingVaccinations,
-        treatments: this.pendingTreatments,
-        procedures: this.pendingProcedures,
-      }),
-    );
-  }
+    const syncGraceWindow = (): void => {
+      if (!this.encounter) {
+        this.clearReactivationGraceTimer();
+        return;
+      }
 
-  private restorePendingActions(encounterId: number): void {
-    if (typeof localStorage === 'undefined') {
-      return;
-    }
+      const canReactivate = this.hasReactivationGraceRemaining(this.encounter);
+      if (this.encounter.canReactivate !== canReactivate) {
+        this.encounter = {
+          ...this.encounter,
+          canReactivate,
+        };
+        this.cdr.markForCheck();
+      }
 
-    const raw = localStorage.getItem(this.pendingActionsStorageKey(encounterId));
-    if (!raw) {
-      this.pendingVaccinations = [];
-      this.pendingTreatments = [];
-      this.pendingProcedures = [];
-      return;
-    }
+      if (!canReactivate) {
+        this.clearReactivationGraceTimer();
+      }
+    };
 
-    try {
-      const parsed = JSON.parse(raw) as {
-        vaccinations?: PendingVaccinationDraft[];
-        treatments?: PendingTreatmentDraft[];
-        procedures?: PendingProcedureDraft[];
-      };
-      this.pendingVaccinations = parsed.vaccinations ?? [];
-      this.pendingTreatments = parsed.treatments ?? [];
-      this.pendingProcedures = parsed.procedures ?? [];
-    } catch {
-      this.pendingVaccinations = [];
-      this.pendingTreatments = [];
-      this.pendingProcedures = [];
+    syncGraceWindow();
+    if (this.encounter.canReactivate) {
+      this.reactivationGraceTimerId = setInterval(syncGraceWindow, 1000);
     }
   }
 
-  private clearPendingActions(): void {
-    if (this.encounter && typeof localStorage !== 'undefined') {
-      localStorage.removeItem(this.pendingActionsStorageKey(this.encounter.id));
+  private clearReactivationGraceTimer(): void {
+    if (this.reactivationGraceTimerId !== null) {
+      clearInterval(this.reactivationGraceTimerId);
+      this.reactivationGraceTimerId = null;
+    }
+  }
+
+  private syncProcedureCatalogSelection(
+    item: ProcedureCatalogItem | null,
+    options?: { preserveSearchText?: boolean },
+  ): void {
+    this.procedureForm.controls.catalogId.setValue(item?.id ?? null);
+
+    if (!options?.preserveSearchText) {
+      this.procedureCatalogSearch = item ? this.buildProcedureCatalogLabel(item) : '';
     }
 
-    this.pendingVaccinations = [];
-    this.pendingTreatments = [];
-    this.pendingProcedures = [];
+    if (item) {
+      this.onProcedureCatalogSelected();
+    }
   }
 }

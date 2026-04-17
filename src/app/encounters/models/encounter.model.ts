@@ -1,17 +1,17 @@
 export type AppetiteStatus = 'NORMAL' | 'AUMENTADO' | 'DISMINUIDO' | 'ANOREXIA';
-export type WaterIntakeStatus = 'NORMAL' | 'POLIDIPSIA' | 'ADIPSIA';
+export type WaterIntakeStatus = 'NORMAL' | 'AUMENTADO' | 'DISMINUIDO';
 export type MucosaStatus =
-  | 'ROSADAS'
-  | 'PALIDAS'
-  | 'ICTERICAS'
-  | 'CIANOTICAS'
-  | 'CONGESTIVAS';
+  | 'NORMAL'
+  | 'PALIDA'
+  | 'ICTERICA'
+  | 'CIANOTICA'
+  | 'HIPEREMICA';
 export type HydrationStatus =
   | 'NORMAL'
-  | 'DESHIDRATACION_LEVE'
-  | 'DESHIDRATACION_MODERADA'
-  | 'DESHIDRATACION_SEVERA';
-export type EncounterStatus = 'ACTIVA' | 'FINALIZADA' | 'ANULADA';
+  | 'LEVE_DESHIDRATACION'
+  | 'MODERADA_DESHIDRATACION'
+  | 'SEVERA_DESHIDRATACION';
+export type EncounterStatus = 'ACTIVA' | 'REACTIVADA' | 'FINALIZADA' | 'ANULADA';
 export type TreatmentStatus = 'ACTIVO' | 'FINALIZADO' | 'SUSPENDIDO' | 'CANCELADO';
 export type TreatmentItemStatus = 'ACTIVO' | 'SUSPENDIDO' | 'FINALIZADO' | 'CANCELADO';
 
@@ -93,6 +93,16 @@ export interface EncounterVaccinationEvent {
   notes: string | null;
 }
 
+export interface EncounterVaccinationDraft {
+  id: number;
+  planDoseId: number | null;
+  vaccineId: number;
+  vaccineName: string | null;
+  applicationDate: string;
+  suggestedNextDate: string | null;
+  notes: string | null;
+}
+
 export interface EncounterDewormingEvent {
   id: number;
   productId: number;
@@ -122,9 +132,38 @@ export interface EncounterTreatment {
   items: EncounterTreatmentItem[];
 }
 
+export interface EncounterTreatmentDraftItem {
+  id: number;
+  medication: string;
+  dose: string;
+  frequency: string;
+  durationDays: number;
+  administrationRoute: string;
+  notes: string | null;
+  status: TreatmentItemStatus;
+}
+
+export interface EncounterTreatmentDraft {
+  id: number;
+  startDate: string;
+  endDate: string | null;
+  generalInstructions: string | null;
+  items: EncounterTreatmentDraftItem[];
+}
+
 export interface EncounterProcedure {
   id: number;
   procedureType: string;
+  performedDate: string;
+  description: string | null;
+  result: string | null;
+  notes: string | null;
+}
+
+export interface EncounterProcedureDraft {
+  id: number;
+  catalogId: number | null;
+  procedureType: string | null;
   performedDate: string;
   description: string | null;
   result: string | null;
@@ -158,6 +197,7 @@ export interface CreateEncounterRequest {
 }
 
 export interface CreateEncounterVaccinationRequest {
+  planDoseId?: number;
   vaccineId: number;
   applicationDate: string;
   suggestedNextDate?: string;
@@ -199,6 +239,8 @@ export interface EncounterDetail {
   startTime: string;
   endTime: string | null;
   status: EncounterStatus;
+  canReactivate: boolean;
+  reactivationGraceEndsAt: string | null;
   generalNotes: string | null;
   createdByUserId: number | null;
   createdAt: string;
@@ -211,10 +253,13 @@ export interface EncounterDetail {
   clinicalImpression?: EncounterClinicalImpression | null;
   plan?: EncounterPlan | null;
   vaccinationEvents: EncounterVaccinationEvent[];
+  vaccinationDrafts: EncounterVaccinationDraft[];
   dewormingEvents: EncounterDewormingEvent[];
   treatments: EncounterTreatment[];
+  treatmentDrafts: EncounterTreatmentDraft[];
   surgeries: EncounterSurgery[];
   procedures: EncounterProcedure[];
+  procedureDrafts: EncounterProcedureDraft[];
   treatmentsCount: number;
   vaccinesCount: number;
   dewormingCount: number;

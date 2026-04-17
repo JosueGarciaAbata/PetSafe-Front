@@ -72,6 +72,7 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
   @Input() initialProductSelection: VaccineCatalogItem | null = null;
   @Input() initialApplicationDate: string | null = null;
   @Input() initialNextDoseDate: string | null = null;
+  @Input() initialNotes: string | null = null;
   @Input() isLoadingProducts = false;
   @Input() isLoadingDoctors = false;
   @Input() loadError: string | null = null;
@@ -405,7 +406,7 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
       isExternal: this.showExternalToggle ? false : false,
       batchNumber: '',
       nextDoseDate: this.initialNextDoseDate?.trim() || '',
-      notes: '',
+      notes: this.initialNotes?.trim() || '',
     });
 
     if (!this.showExternalToggle) {

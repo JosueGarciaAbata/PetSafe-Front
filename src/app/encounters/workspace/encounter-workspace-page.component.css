@@ -2,6 +2,18 @@
   display: block;
 }
 
+.encounter-workspace__content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1024px) {
+  .encounter-workspace__content--with-summary {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    align-items: start;
+  }
+}
+
 .encounter-workspace-theme textarea::placeholder,
 .encounter-workspace-theme input::placeholder {
   color: color-mix(in srgb, var(--ps-text-secondary) 84%, transparent);

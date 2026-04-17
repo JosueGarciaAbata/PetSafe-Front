@@ -154,6 +154,13 @@ export class QueuePageComponent implements OnInit {
     this.closeActionModal();
   }
 
+  protected viewEncounter(entry: QueueEntryRecord): void {
+    if (entry.encounter) {
+      this.closeDetailPanel();
+      void this.router.navigate(['/encounters', entry.encounter.id]);
+    }
+  }
+
   protected buildPatientSubtitle(entry: QueueEntryRecord): string {
     const species = entry.patient.species?.trim();
     const breed = entry.patient.breed?.trim();
@@ -219,6 +226,41 @@ export class QueuePageComponent implements OnInit {
     }
   }
 
+  protected canReactivateEncounter(entry: QueueEntryRecord): boolean {
+    if (entry.queueStatus !== 'FINALIZADA' || !entry.encounter?.canReactivate) {
+      return false;
+    }
+
+    if (!entry.encounter.reactivationGraceEndsAt) {
+      return false;
+    }
+
+    return new Date(entry.encounter.reactivationGraceEndsAt).getTime() >= Date.now();
+  }
+
+  protected buildEncounterHelpText(entry: QueueEntryRecord): string {
+    if (!entry.encounter) {
+      return 'Esta entrada no tiene una consulta clínica vinculada en este momento.';
+    }
+
+    if (this.canReactivateEncounter(entry) && entry.encounter.reactivationGraceEndsAt) {
+      return `La consulta clínica puede reactivarse hasta ${this.formatDateTime(entry.encounter.reactivationGraceEndsAt)}.`;
+    }
+
+    switch (entry.encounter.status) {
+      case 'ACTIVA':
+        return 'La consulta clínica está actualmente abierta.';
+      case 'REACTIVADA':
+        return 'La consulta clínica fue reactivada y sigue editable.';
+      case 'FINALIZADA':
+        return 'La consulta clínica vinculada ya fue cerrada y su ventana de reactivación terminó.';
+      case 'ANULADA':
+        return 'La consulta clínica vinculada fue anulada y no puede retomarse.';
+      default:
+        return 'La consulta clínica vinculada no tiene acciones adicionales disponibles.';
+    }
+  }
+
   protected buildEntryTypeClass(entryType: QueueEntryType): string {
     switch (entryType) {
       case 'CON_CITA':
@@ -256,6 +298,25 @@ export class QueuePageComponent implements OnInit {
 
   protected patientImageAlt(entry: QueueEntryRecord): string {
     return `Foto de ${entry.patient.name}`;
+  }
+
+  protected formatDateTime(value: string | null | undefined): string {
+    if (!value) {
+      return 'Sin fecha';
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat('es-EC', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(parsed);
   }
 
   protected isSelected(entry: QueueEntryRecord): boolean {
@@ -312,12 +373,56 @@ export class QueuePageComponent implements OnInit {
     }
 
     try {
-      await firstValueFrom(this.queueApi.finishAttention(entry.id));
+      if (entry.encounter) {
+        await firstValueFrom(this.encountersApi.finish(entry.encounter.id));
+      } else {
+        await firstValueFrom(this.queueApi.finishAttention(entry.id));
+      }
+      
       await this.loadQueue(this.paginationMeta.currentPage);
       this.selectedEntryId = entry.id;
     } catch (error) {
+      if (entry.encounter) {
+        this.closeActionModal();
+        this.closeDetailPanel();
+        
+        const errorMessage = resolveApiErrorMessage(error, {
+          defaultMessage: 'No se pudo finalizar la atención desde la cola operativa. Por favor, revisa y completa los registros médicos requeridos aquí.',
+        });
+        
+        void this.router.navigate(['/encounters', entry.encounter.id], {
+          state: {
+            autoFinishActionError: errorMessage,
+          },
+        });
+        return;
+      }
+
       this.loadError = resolveApiErrorMessage(error, {
         defaultMessage: 'No se pudo finalizar la atención de este paciente.',
+      });
+      this.cdr.detectChanges();
+    }
+  }
+
+  protected async reactivateEncounter(entry: QueueEntryRecord): Promise<void> {
+    if (!entry.encounter || !this.canReactivateEncounter(entry)) {
+      return;
+    }
+
+    this.loadError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const encounter = await firstValueFrom(this.encountersApi.reactivate(entry.encounter.id));
+      this.closeDetailPanel();
+      void this.router.navigate(['/encounters', encounter.id]);
+    } catch (error) {
+      this.pendingEntryIdToReveal = entry.id;
+      this.activeStatusFilter = 'TODOS';
+      await this.loadQueue(this.paginationMeta.currentPage || 1);
+      this.loadError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo reactivar la consulta clínica desde atención diaria.',
       });
       this.cdr.detectChanges();
     }

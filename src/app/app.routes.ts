@@ -152,6 +152,29 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'catalogs',
+        redirectTo: 'catalogs/procedures',
+        pathMatch: 'full',
+      },
+      {
+        path: 'catalogs/procedures',
+        canActivate: [authGuard],
+        data: { roles: staffRoles, catalogKind: 'PROCEDURE' },
+        loadComponent: () =>
+          import('@app/catalogs/admin/pages/catalog-items-page.component').then(
+            (m) => m.CatalogItemsPageComponent,
+          ),
+      },
+      {
+        path: 'catalogs/surgeries',
+        canActivate: [authGuard],
+        data: { roles: staffRoles, catalogKind: 'SURGERY' },
+        loadComponent: () =>
+          import('@app/catalogs/admin/pages/catalog-items-page.component').then(
+            (m) => m.CatalogItemsPageComponent,
+          ),
+      },
+      {
         path: 'pets/:id/vaccination',
         canActivate: [authGuard],
         data: { roles: staffRoles },
