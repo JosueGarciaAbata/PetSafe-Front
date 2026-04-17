@@ -1,0 +1,193 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-8 pb-12">
+  <div class="flex flex-col gap-1">
+    <h1 class="text-[28px] font-bold text-text-primary">Historial clínico</h1>
+    <p class="text-base text-text-secondary">
+      Consulta el registro clínico de los pacientes y su información general.
+    </p>
+  </div>
+
+  <div class="max-w-[540px]">
+    <div class="group relative">
+      <div
+        class="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary transition-colors group-focus-within:text-brand"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          class="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <circle cx="11" cy="11" r="6"></circle>
+          <path d="m20 20-3.5-3.5"></path>
+        </svg>
+      </div>
+      <input
+        type="text"
+        [formControl]="searchControl"
+        placeholder="Buscar por nombre de paciente o tutor"
+        class="h-12 w-full rounded-xl border border-border bg-surface pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+      />
+    </div>
+  </div>
+
+  <section class="overflow-hidden rounded-[16px] border border-border bg-card shadow-sm">
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[880px] text-left">
+        <thead>
+          <tr class="border-b border-border bg-card">
+            <th class="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+              Paciente
+            </th>
+            <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+              Tutor
+            </th>
+            <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+              Datos clínicos
+            </th>
+            <th class="px-8 py-5 text-right text-xs font-bold uppercase tracking-wider text-text-secondary"></th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-border">
+          @if (isLoading && patients.length === 0) {
+            <tr>
+              <td colspan="4" class="px-8 py-16 text-center text-sm text-text-secondary">
+                Cargando pacientes...
+              </td>
+            </tr>
+          } @else if (loadError) {
+            <tr>
+              <td colspan="4" class="px-8 py-16">
+                <div class="flex flex-col items-center gap-3 text-center">
+                  <p class="text-sm font-semibold text-text-primary">{{ loadError }}</p>
+                  <button
+                    type="button"
+                    (click)="retryLoad()"
+                    class="inline-flex cursor-pointer items-center rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:opacity-90"
+                  >
+                    Reintentar
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @else if (patients.length === 0) {
+            <tr>
+              <td colspan="4" class="px-8 py-16 text-center text-sm text-text-secondary">
+                No se encontraron pacientes.
+              </td>
+            </tr>
+          } @else {
+            @for (patient of patients; track patient.id) {
+              <tr
+                class="cursor-pointer bg-surface transition-colors hover:bg-card"
+                [class.opacity-60]="generatingPdfForId === patient.id"
+                (click)="openPatientPdf(patient)"
+              >
+                <td class="px-8 py-6">
+                  <div class="flex items-center gap-4">
+                    <div
+                      class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-surface bg-[#F4E7BF] text-sm font-bold text-[#7A5A00] shadow-sm"
+                    >
+                      @if (patient.image?.url; as imageUrl) {
+                        <img
+                          [src]="imageUrl"
+                          [alt]="'Foto de ' + patient.name"
+                          class="h-full w-full object-cover"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      } @else {
+                        {{ buildInitials(patient) }}
+                      }
+                    </div>
+                    <div class="flex flex-col">
+                      <span class="text-[15px] font-bold text-text-primary">{{ patient.name }}</span>
+                      <span class="text-xs font-medium text-text-secondary">
+                        {{ buildSpeciesBreedLabel(patient) }}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+
+                <td class="px-6 py-6">
+                  <div class="flex flex-col gap-1">
+                    <span class="text-sm font-semibold text-text-primary">{{ buildTutorLabel(patient) }}</span>
+                    @if (buildTutorContactLabel(patient); as contact) {
+                      <span class="text-xs text-text-secondary">{{ contact }}</span>
+                    }
+                  </div>
+                </td>
+
+                <td class="px-6 py-6">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span
+                      class="inline-flex items-center rounded-lg border border-border bg-background px-2.5 py-1.5 text-[11px] font-semibold text-text-secondary"
+                    >
+                      {{ buildAgeLabel(patient) }}
+                    </span>
+                    <span
+                      class="inline-flex items-center rounded-lg border border-border bg-background px-2.5 py-1.5 text-[11px] font-semibold text-text-secondary"
+                    >
+                      {{ buildSexLabel(patient) }}
+                    </span>
+                    <span
+                      class="inline-flex items-center rounded-lg border border-border bg-background px-2.5 py-1.5 text-[11px] font-semibold text-text-secondary"
+                    >
+                      {{ buildWeightLabel(patient) }}
+                    </span>
+                  </div>
+                </td>
+
+                <td class="px-8 py-6 text-right">
+                  <button
+                    type="button"
+                    (click)="$event.stopPropagation(); openPatientPdf(patient)"
+                    [disabled]="generatingPdfForId !== null"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-background text-text-secondary transition-all hover:bg-active-soft hover:text-brand disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label="Descargar historial clínico PDF"
+                  >
+                    @if (generatingPdfForId === patient.id) {
+                      <svg
+                        viewBox="0 0 24 24"
+                        class="h-4 w-4 animate-spin"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+                      </svg>
+                    } @else {
+                      <svg
+                        viewBox="0 0 24 24"
+                        class="h-4.5 w-4.5"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="12" y1="11" x2="12" y2="17"></line>
+                        <polyline points="9 14 12 17 15 14"></polyline>
+                      </svg>
+                    }
+                  </button>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (!isLoading && !loadError) {
+      <app-pagination
+        [meta]="paginationMeta"
+        itemLabel="pacientes"
+        (pageChange)="onPageChange($event)"
+      />
+    }
+  </section>
+</div>

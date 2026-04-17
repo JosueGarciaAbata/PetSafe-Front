@@ -61,13 +61,13 @@
         <div class="min-h-0 flex-1 overflow-y-auto overflow-x-visible px-6 py-5">
           <div class="flex flex-col gap-5">
         @if (loadError) {
-          <div class="rounded-2xl border border-[#fecaca] bg-[#fff1f2] px-4 py-3 text-sm leading-6 text-[#9f1239]">
+          <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
             {{ loadError }}
           </div>
         }
 
         @if (submitError) {
-          <div class="rounded-2xl border border-[#fecaca] bg-[#fff1f2] px-4 py-3 text-sm leading-6 text-[#9f1239]">
+          <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
             {{ submitError }}
           </div>
         }
@@ -79,7 +79,7 @@
         }
 
         @if (doctorLoadError) {
-          <div class="rounded-2xl border border-[#fecaca] bg-[#fff1f2] px-4 py-3 text-sm leading-6 text-[#9f1239]">
+          <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
             {{ doctorLoadError }}
           </div>
         }
@@ -106,7 +106,7 @@
                     <path d="M12 7.5h.01"></path>
                   </svg>
                 </button>
-                <div class="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-[280px] -translate-x-1/2 rounded-2xl border border-[#dbeafe] bg-white px-4 py-3 text-left text-xs leading-5 text-[#35507f] shadow-xl group-hover:block">
+                <div class="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-[280px] -translate-x-1/2 rounded-2xl border border-[#dbeafe] bg-surface px-4 py-3 text-left text-xs leading-5 text-[#35507f] shadow-xl group-hover:block">
                   <p class="font-semibold text-primary">Vacuna aplicada</p>
                   <p class="mt-1">
                     Selecciona el producto biológico real que se aplicó al paciente en esta atención.
@@ -172,7 +172,7 @@
                     <path d="M12 7.5h.01"></path>
                   </svg>
                 </button>
-                <div class="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-[280px] -translate-x-1/2 rounded-2xl border border-[#dbeafe] bg-white px-4 py-3 text-left text-xs leading-5 text-[#35507f] shadow-xl group-hover:block">
+                <div class="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-[280px] -translate-x-1/2 rounded-2xl border border-[#dbeafe] bg-surface px-4 py-3 text-left text-xs leading-5 text-[#35507f] shadow-xl group-hover:block">
                   <p class="font-semibold text-primary">Fecha real</p>
                   <p class="mt-1">
                     Corresponde al día en que realmente se aplicó la vacuna al paciente.
@@ -219,7 +219,7 @@
                       <path d="M12 7.5h.01"></path>
                     </svg>
                   </button>
-                  <div class="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-[320px] -translate-x-1/2 rounded-2xl border border-[#dbeafe] bg-white px-4 py-3 text-left text-xs leading-5 text-[#35507f] shadow-xl group-hover:block">
+                  <div class="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-[320px] -translate-x-1/2 rounded-2xl border border-[#dbeafe] bg-surface px-4 py-3 text-left text-xs leading-5 text-[#35507f] shadow-xl group-hover:block">
                     <p class="font-semibold text-primary">Aplicación interna</p>
                     <p class="mt-1">
                       Solo aplica para vacunas internas. Si eres administrador puedes seleccionar otro veterinario; si eres MVZ queda tu perfil cargado.
@@ -311,7 +311,7 @@
                     <path d="M12 7.5h.01"></path>
                   </svg>
                 </button>
-                <div class="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-[320px] -translate-x-1/2 rounded-2xl border border-[#dbeafe] bg-white px-4 py-3 text-left text-xs leading-5 text-[#35507f] shadow-xl group-hover:block">
+                <div class="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-[320px] -translate-x-1/2 rounded-2xl border border-[#dbeafe] bg-surface px-4 py-3 text-left text-xs leading-5 text-[#35507f] shadow-xl group-hover:block">
                   <p class="font-semibold text-primary">Lugar de aplicación</p>
                   <p class="mt-1">
                     Indica el lugar real donde se aplicó la vacuna. Puede ser la clínica, la casa del paciente o una veterinaria externa.
@@ -361,7 +361,7 @@
                       <path d="M12 7.5h.01"></path>
                     </svg>
                   </button>
-                  <div class="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-[300px] -translate-x-1/2 rounded-2xl border border-[#dbeafe] bg-white px-4 py-3 text-left text-xs leading-5 text-[#35507f] shadow-xl group-hover:block">
+                  <div class="pointer-events-none absolute left-1/2 top-full z-30 mt-2 hidden w-[300px] -translate-x-1/2 rounded-2xl border border-[#dbeafe] bg-surface px-4 py-3 text-left text-xs leading-5 text-[#35507f] shadow-xl group-hover:block">
                     <p class="font-semibold text-primary">Seguimiento sugerido</p>
                     <p class="mt-1">
                       Es una fecha sugerida de seguimiento. No crea una nueva dosis dentro del esquema vacunal.

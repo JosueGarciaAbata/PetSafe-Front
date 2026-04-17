@@ -60,7 +60,7 @@
                 <button
                   type="button"
                   (click)="petImageInput.click()"
-                  class="rounded-xl border border-border bg-white px-4 py-2 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background"
+                  class="rounded-xl border border-border bg-surface px-4 py-2 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background"
                 >
                   {{ hasPendingImage() || patient.image ? 'Cambiar imagen' : 'Subir imagen' }}
                 </button>
@@ -91,7 +91,7 @@
                   <button
                     type="button"
                     (click)="clearImageSelection(petImageInput)"
-                    class="self-start rounded-xl px-3 py-2 text-xs font-bold text-text-secondary transition-all hover:bg-white"
+                    class="self-start rounded-xl px-3 py-2 text-xs font-bold text-text-secondary transition-all hover:bg-surface"
                   >
                     Descartar cambio
                   </button>
@@ -193,7 +193,7 @@
                 @if (selectedTags.length > 0) {
                   <div class="flex flex-wrap gap-2">
                     @for (tag of selectedTags; track tag.id) {
-                      <span class="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-bold text-text-primary shadow-sm">
+                      <span class="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs font-bold text-text-primary shadow-sm">
                         {{ tag.name }}
                         <button
                           type="button"
@@ -287,7 +287,7 @@
           </section>
       </div>
 
-      <div class="border-t border-border bg-white/95 px-8 py-5 backdrop-blur">
+      <div class="border-t border-border bg-surface/95 px-8 py-5 backdrop-blur">
         <div class="flex items-center justify-end gap-3">
           @if (submitError) {
             <div class="mr-auto rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">

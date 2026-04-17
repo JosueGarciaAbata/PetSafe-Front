@@ -22,8 +22,22 @@ export interface AuthPasswordResetConfirmRequest {
   newPassword: string;
 }
 
+export interface AuthEmailChangeRequest {
+  newEmail: string;
+}
+
+export interface AuthEmailChangeConfirmRequest {
+  newEmail: string;
+  code: string;
+}
+
 export interface AuthMessageResponse {
   message: string;
+}
+
+export interface AuthEmailChangeConfirmResponse extends AuthMessageResponse {
+  email: string;
+  requiresReauth: boolean;
 }
 
 export interface AuthLoginResponse {
@@ -52,9 +66,9 @@ export interface AuthStoredUser {
 }
 
 export interface AuthUpdateProfileRequest {
-  email: string;
-  firstName: string;
-  lastName: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
   phone?: string;
 }
 

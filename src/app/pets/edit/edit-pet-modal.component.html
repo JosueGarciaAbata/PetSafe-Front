@@ -23,7 +23,7 @@
     [class.shadow-2xl]="!pageMode"
   >
     @if (!pageMode) {
-    <div class="flex items-center justify-between border-b border-border bg-white px-6 py-5">
+    <div class="flex items-center justify-between border-b border-border bg-surface px-6 py-5">
       <div class="flex flex-col gap-1">
         <h2 class="text-xl font-bold text-text-primary">Editar mascota</h2>
         <p class="text-sm text-text-secondary">Actualiza la informacion basica del paciente.</p>
@@ -91,16 +91,16 @@
               <div class="flex flex-col gap-2">
                 <span class="text-sm font-semibold text-text-primary">Sexo</span>
                 <div class="flex h-12 rounded-xl bg-background p-1">
-                  <button type="button" (click)="setGender('Macho')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-white]="editGender === 'Macho'" [class.text-brand]="editGender === 'Macho'" [class.shadow-sm]="editGender === 'Macho'" [class.text-text-secondary]="editGender !== 'Macho'">Macho</button>
-                  <button type="button" (click)="setGender('Hembra')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-white]="editGender === 'Hembra'" [class.text-brand]="editGender === 'Hembra'" [class.shadow-sm]="editGender === 'Hembra'" [class.text-text-secondary]="editGender !== 'Hembra'">Hembra</button>
+                  <button type="button" (click)="setGender('Macho')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-surface]="editGender === 'Macho'" [class.text-brand]="editGender === 'Macho'" [class.shadow-sm]="editGender === 'Macho'" [class.text-text-secondary]="editGender !== 'Macho'">Macho</button>
+                  <button type="button" (click)="setGender('Hembra')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-surface]="editGender === 'Hembra'" [class.text-brand]="editGender === 'Hembra'" [class.shadow-sm]="editGender === 'Hembra'" [class.text-text-secondary]="editGender !== 'Hembra'">Hembra</button>
                 </div>
               </div>
 
               <div class="flex flex-col gap-2">
                 <span class="text-sm font-semibold text-text-primary">Esterilizado</span>
                 <div class="flex h-12 rounded-xl bg-background p-1">
-                  <button type="button" (click)="setSterilized('Si')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-white]="editSterilized === 'Si'" [class.text-brand]="editSterilized === 'Si'" [class.shadow-sm]="editSterilized === 'Si'" [class.text-text-secondary]="editSterilized !== 'Si'">Si</button>
-                  <button type="button" (click)="setSterilized('No')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-white]="editSterilized === 'No'" [class.text-brand]="editSterilized === 'No'" [class.shadow-sm]="editSterilized === 'No'" [class.text-text-secondary]="editSterilized !== 'No'">No</button>
+                  <button type="button" (click)="setSterilized('Si')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-surface]="editSterilized === 'Si'" [class.text-brand]="editSterilized === 'Si'" [class.shadow-sm]="editSterilized === 'Si'" [class.text-text-secondary]="editSterilized !== 'Si'">Si</button>
+                  <button type="button" (click)="setSterilized('No')" class="flex-1 rounded-lg text-xs font-bold transition-all" [class.bg-surface]="editSterilized === 'No'" [class.text-brand]="editSterilized === 'No'" [class.shadow-sm]="editSterilized === 'No'" [class.text-text-secondary]="editSterilized !== 'No'">No</button>
                 </div>
               </div>
             </div>
@@ -225,7 +225,7 @@
 
                 <input #petImageInput type="file" accept="image/jpeg,image/png,image/webp" class="hidden" (change)="onImageSelected($event)" />
 
-                <button type="button" (click)="petImageInput.click()" class="rounded-xl border border-border bg-white px-4 py-2 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background">
+                <button type="button" (click)="petImageInput.click()" class="rounded-xl border border-border bg-surface px-4 py-2 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background">
                   {{ currentImageUrl() ? 'Reemplazar imagen' : 'Subir imagen' }}
                 </button>
               </div>
@@ -251,7 +251,7 @@
                 </div>
 
                 @if (hasSelectedReplacementImage()) {
-                  <button type="button" (click)="clearImageSelection(petImageInput)" class="self-start rounded-xl px-3 py-2 text-xs font-bold text-text-secondary transition-all hover:bg-white">Descartar</button>
+                  <button type="button" (click)="clearImageSelection(petImageInput)" class="self-start rounded-xl px-3 py-2 text-xs font-bold text-text-secondary transition-all hover:bg-surface">Descartar</button>
                 }
               </div>
             </div>
@@ -313,7 +313,7 @@
         </div>
       </div>
       @if (pageMode) {
-        <div class="flex items-center justify-end gap-3 border-t border-border bg-white/95 px-8 py-5 backdrop-blur">
+        <div class="flex items-center justify-end gap-3 border-t border-border bg-surface/95 px-8 py-5 backdrop-blur">
           @if (submitError) {
             <p class="mr-auto whitespace-pre-line text-xs font-medium text-red-600">{{ submitError }}</p>
           }
@@ -328,7 +328,7 @@
     </div>
 
     @if (!pageMode) {
-      <div class="flex items-center justify-end gap-3 border-t border-border bg-white px-6 py-5">
+      <div class="flex items-center justify-end gap-3 border-t border-border bg-surface px-6 py-5">
         @if (submitError) {
           <p class="mr-auto whitespace-pre-line text-xs font-medium text-red-600">{{ submitError }}</p>
         }

@@ -16,8 +16,15 @@
       <div class="h-[640px] animate-pulse rounded-[24px] bg-background"></div>
     </div>
   } @else if (loadError) {
-    <div class="rounded-[24px] border border-border bg-card p-8 text-sm text-text-secondary shadow-sm">
-      {{ loadError }}
+    <div class="flex items-center justify-between gap-3 rounded-[18px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      <span>{{ loadError }}</span>
+      <button
+        type="button"
+        (click)="retryLoad()"
+        class="cursor-pointer rounded-lg border border-red-200 bg-surface px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.1em] transition-colors hover:bg-red-50"
+      >
+        Reintentar
+      </button>
     </div>
   } @else if (owner) {
     <form [formGroup]="form" (ngSubmit)="save()" novalidate class="overflow-hidden rounded-[24px] border border-border bg-card shadow-sm">
@@ -154,14 +161,14 @@
               </p>
             </div>
 
-            <div class="rounded-2xl border border-border bg-white p-4">
+            <div class="rounded-2xl border border-border bg-surface p-4">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Cédula</span>
               <p class="mt-2 text-sm font-semibold text-text-primary">
                 {{ owner.person.identification || owner.person.documentId || 'No registrada' }}
               </p>
             </div>
 
-            <div class="rounded-2xl border border-border bg-white p-4">
+            <div class="rounded-2xl border border-border bg-surface p-4">
               <span class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Correo</span>
               <p class="mt-2 text-sm font-semibold text-text-primary">{{ owner.email || 'Sin correo registrado' }}</p>
             </div>
@@ -173,7 +180,7 @@
         </aside>
       </div>
 
-      <div class="border-t border-border bg-white/95 px-6 py-4 backdrop-blur">
+      <div class="border-t border-border bg-surface/95 px-6 py-4 backdrop-blur">
         @if (errorMessage) {
           <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">
             {{ errorMessage }}

@@ -9,9 +9,18 @@
   </button>
 
   @if (petLoadError) {
-    <div class="rounded-[16px] border border-border bg-card p-8 text-sm text-text-secondary shadow-sm">
-      {{ petLoadError }}
-    </div>
+    <section class="rounded-[20px] border border-border bg-card p-8 shadow-sm">
+      <div class="flex flex-col items-center gap-3 py-8 text-center">
+        <p class="text-sm font-semibold text-text-primary">{{ petLoadError }}</p>
+        <button
+          type="button"
+          (click)="retryLoad()"
+          class="inline-flex cursor-pointer items-center rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:opacity-90"
+        >
+          Reintentar
+        </button>
+      </div>
+    </section>
   } @else {
     <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <header class="flex flex-col gap-2">
@@ -71,15 +80,24 @@
         </div>
 
         @if (planLoadError) {
-          <div class="mt-4 rounded-xl border border-[#fecaca] bg-[#fff1f2] px-4 py-3 text-sm leading-6 text-[#9f1239]">
+          <div class="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
             {{ planLoadError }}
           </div>
         }
       </div>
     } @else if (planLoadError) {
-      <div class="rounded-[24px] border border-[#fecaca] bg-[#fff1f2] p-6 text-sm leading-6 text-[#9f1239] shadow-sm">
-        {{ planLoadError }}
-      </div>
+      <section class="rounded-[20px] border border-border bg-card p-8 shadow-sm">
+        <div class="flex flex-col items-center gap-3 py-8 text-center">
+          <p class="text-sm font-semibold text-text-primary">{{ planLoadError }}</p>
+          <button
+            type="button"
+            (click)="retryLoad()"
+            class="inline-flex cursor-pointer items-center rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:opacity-90"
+          >
+            Reintentar
+          </button>
+        </div>
+      </section>
     } @else if (plan) {
       <div class="grid gap-4 md:grid-cols-3">
         <div class="rounded-[24px] border border-border bg-card p-6 shadow-sm md:col-span-2">
@@ -155,7 +173,7 @@
 
           <div class="mt-5 flex flex-col gap-4">
             @for (dose of doses(); track dose.id) {
-              <article class="rounded-2xl border border-border bg-white p-4 shadow-sm">
+              <article class="rounded-2xl border border-border bg-surface p-4 shadow-sm">
                 <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <div class="min-w-0 space-y-2">
                     <div class="flex flex-wrap items-center gap-2">
@@ -211,7 +229,7 @@
           @if (plan.applications.length > 0) {
             <div class="mt-5 flex flex-col gap-3">
               @for (application of plan.applications; track application.id) {
-                <article class="rounded-xl border border-border bg-white px-3 py-3 shadow-sm">
+                <article class="rounded-xl border border-border bg-surface px-3 py-3 shadow-sm">
                   <div class="space-y-1.5">
                     <div class="flex flex-wrap items-center justify-between gap-2">
                       <h3 class="text-sm font-bold text-text-primary">{{ application.vaccineName }}</h3>

@@ -20,13 +20,17 @@ export type ShellIconName =
   | 'search'
   | 'bell'
   | 'user'
-  | 'chevronDown';
+  | 'chevronDown'
+  | 'sun'
+  | 'moon'
+  | 'sidebarToggle';
 
 @Component({
   selector: 'app-shell-icon',
   standalone: true,
   imports: [NgClass],
   templateUrl: './shell-icon.component.html',
+  styles: [':host { display: inline-flex; align-items: center; justify-content: center; }'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ShellIconComponent {

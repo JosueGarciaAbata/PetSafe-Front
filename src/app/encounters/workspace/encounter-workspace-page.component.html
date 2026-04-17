@@ -30,7 +30,7 @@
               <div class="flex flex-wrap items-center gap-3">
                 <button
                   type="button"
-                  class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+                  class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-surface text-slate-600 transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
                   (click)="goBack()"
                   aria-label="Volver a atención del día"
                 >
@@ -105,7 +105,7 @@
             <div class="flex flex-wrap justify-end gap-3">
               <button
                 type="button"
-                class="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-bold text-text-primary shadow-sm transition hover:bg-background disabled:cursor-not-allowed disabled:opacity-60"
+                class="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-bold text-text-primary shadow-sm transition hover:bg-background disabled:cursor-not-allowed disabled:opacity-60"
                 [disabled]="isSavingAll || isSubmittingAction"
                 (click)="saveAllSections()"
               >
@@ -191,7 +191,7 @@
                 <form class="mt-6 space-y-5" [formGroup]="reasonForm">
                   <div>
                     <label class="mb-2 block text-sm font-bold text-text-primary">Motivo principal</label>
-                    <textarea formControlName="consultationReason" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(reasonForm, 'consultationReason')" [class.focus:border-red-300]="controlHasError(reasonForm, 'consultationReason')" [class.border-slate-200]="!controlHasError(reasonForm, 'consultationReason')" [class.focus:border-primary/40]="!controlHasError(reasonForm, 'consultationReason')" placeholder="Describe por qué acude hoy la mascota."></textarea>
+                    <textarea formControlName="consultationReason" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(reasonForm, 'consultationReason')" [class.focus:border-red-300]="controlHasError(reasonForm, 'consultationReason')" [class.border-slate-200]="!controlHasError(reasonForm, 'consultationReason')" [class.focus:border-primary/40]="!controlHasError(reasonForm, 'consultationReason')" placeholder="Describe por qué acude hoy la mascota."></textarea>
                     <div class="mt-2 flex items-center justify-end gap-3 text-xs text-text-secondary">
                       <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                       <span>{{ controlTextLength(reasonForm, 'consultationReason') }} caracteres</span>
@@ -207,7 +207,7 @@
                         <span>Enfermedad actual</span>
                         <span class="text-xs font-medium text-text-secondary">Opcional</span>
                       </label>
-                      <textarea formControlName="currentIllnessHistory" [attr.maxlength]="clinicalTextMaxLength" rows="5" class="min-h-[140px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Inicio, evolución y signos actuales."></textarea>
+                      <textarea formControlName="currentIllnessHistory" [attr.maxlength]="clinicalTextMaxLength" rows="5" class="min-h-[140px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Inicio, evolución y signos actuales."></textarea>
                       <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                         <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                         <span>{{ controlTextLength(reasonForm, 'currentIllnessHistory') }} caracteres</span>
@@ -220,7 +220,7 @@
                           <span>Diagnósticos previos referidos</span>
                           <span class="text-xs font-medium text-text-secondary">Opcional</span>
                         </label>
-                        <textarea formControlName="referredPreviousDiagnoses" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[110px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Si el tutor trae diagnósticos previos, resúmelos aquí."></textarea>
+                        <textarea formControlName="referredPreviousDiagnoses" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[110px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Si el tutor trae diagnósticos previos, resúmelos aquí."></textarea>
                         <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                           <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                           <span>{{ controlTextLength(reasonForm, 'referredPreviousDiagnoses') }} caracteres</span>
@@ -232,7 +232,7 @@
                           <span>Tratamientos previos referidos</span>
                           <span class="text-xs font-medium text-text-secondary">Opcional</span>
                         </label>
-                        <textarea formControlName="referredPreviousTreatments" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[110px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Medicaciones o medidas previas reportadas por el tutor."></textarea>
+                        <textarea formControlName="referredPreviousTreatments" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[110px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Medicaciones o medidas previas reportadas por el tutor."></textarea>
                         <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                           <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                           <span>{{ controlTextLength(reasonForm, 'referredPreviousTreatments') }} caracteres</span>
@@ -262,7 +262,7 @@
                         <span>¿Cuándo inició el problema?</span>
                         <span class="text-xs font-medium text-text-secondary">Opcional</span>
                       </label>
-                      <textarea formControlName="problemStartText" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Tiempo de evolución o fecha aproximada."></textarea>
+                      <textarea formControlName="problemStartText" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Tiempo de evolución o fecha aproximada."></textarea>
                       <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                         <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                         <span>{{ controlTextLength(anamnesisForm, 'problemStartText') }} caracteres</span>
@@ -274,7 +274,7 @@
                         <span>¿Cómo comenzó?</span>
                         <span class="text-xs font-medium text-text-secondary">Opcional</span>
                       </label>
-                      <textarea formControlName="howProblemStartedText" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Describe la forma de inicio del cuadro."></textarea>
+                      <textarea formControlName="howProblemStartedText" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Describe la forma de inicio del cuadro."></textarea>
                       <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                         <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                         <span>{{ controlTextLength(anamnesisForm, 'howProblemStartedText') }} caracteres</span>
@@ -288,7 +288,7 @@
                         <span>Cirugías previas referidas</span>
                         <span class="text-xs font-medium text-text-secondary">Opcional</span>
                       </label>
-                      <textarea formControlName="previousSurgeriesText" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Antecedentes quirúrgicos reportados."></textarea>
+                      <textarea formControlName="previousSurgeriesText" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Antecedentes quirúrgicos reportados."></textarea>
                       <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                         <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                         <span>{{ controlTextLength(anamnesisForm, 'previousSurgeriesText') }} caracteres</span>
@@ -300,7 +300,7 @@
                         <span>Medicación administrada</span>
                         <span class="text-xs font-medium text-text-secondary">Opcional</span>
                       </label>
-                      <textarea formControlName="administeredMedicationText" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Medicaciones, suplementos o tratamientos recientes."></textarea>
+                      <textarea formControlName="administeredMedicationText" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Medicaciones, suplementos o tratamientos recientes."></textarea>
                       <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                         <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                         <span>{{ controlTextLength(anamnesisForm, 'administeredMedicationText') }} caracteres</span>
@@ -311,7 +311,7 @@
                   <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
                     <label class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                       <span class="block text-sm font-bold text-text-primary">Vacunas al día <span class="ml-2 text-xs font-medium text-text-secondary">Opcional</span></span>
-                      <select formControlName="vaccinesUpToDate" class="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
+                      <select formControlName="vaccinesUpToDate" class="mt-3 w-full rounded-xl border border-slate-200 bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
                         <option [ngValue]="null">Sin definir</option>
                         <option [ngValue]="true">Sí</option>
                         <option [ngValue]="false">No</option>
@@ -320,7 +320,7 @@
 
                     <label class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                       <span class="block text-sm font-bold text-text-primary">Desparasitación al día <span class="ml-2 text-xs font-medium text-text-secondary">Opcional</span></span>
-                      <select formControlName="dewormingUpToDate" class="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
+                      <select formControlName="dewormingUpToDate" class="mt-3 w-full rounded-xl border border-slate-200 bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
                         <option [ngValue]="null">Sin definir</option>
                         <option [ngValue]="true">Sí</option>
                         <option [ngValue]="false">No</option>
@@ -329,7 +329,7 @@
 
                     <label class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                       <span class="block text-sm font-bold text-text-primary">Apetito <span class="ml-2 text-xs font-medium text-text-secondary">Opcional</span></span>
-                      <select formControlName="appetiteStatus" class="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
+                      <select formControlName="appetiteStatus" class="mt-3 w-full rounded-xl border border-slate-200 bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
                         <option [ngValue]="null">Sin definir</option>
                         @for (option of appetiteOptions; track option) {
                           <option [ngValue]="option">{{ buildAppetiteLabel(option) }}</option>
@@ -339,7 +339,7 @@
 
                     <label class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                       <span class="block text-sm font-bold text-text-primary">Ingesta de agua <span class="ml-2 text-xs font-medium text-text-secondary">Opcional</span></span>
-                      <select formControlName="waterIntakeStatus" class="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
+                      <select formControlName="waterIntakeStatus" class="mt-3 w-full rounded-xl border border-slate-200 bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
                         <option [ngValue]="null">Sin definir</option>
                         @for (option of waterIntakeOptions; track option) {
                           <option [ngValue]="option">{{ buildWaterIntakeLabel(option) }}</option>
@@ -354,7 +354,7 @@
                         <span>Heces</span>
                         <span class="text-xs font-medium text-text-secondary">Opcional</span>
                       </label>
-                      <textarea formControlName="fecesText" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Frecuencia, consistencia y cambios."></textarea>
+                      <textarea formControlName="fecesText" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Frecuencia, consistencia y cambios."></textarea>
                       <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                         <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                         <span>{{ controlTextLength(anamnesisForm, 'fecesText') }} caracteres</span>
@@ -365,7 +365,7 @@
                         <span>Vómito</span>
                         <span class="text-xs font-medium text-text-secondary">Opcional</span>
                       </label>
-                      <textarea formControlName="vomitText" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Número de episodios, aspecto y relación con alimento."></textarea>
+                      <textarea formControlName="vomitText" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Número de episodios, aspecto y relación con alimento."></textarea>
                       <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                         <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                         <span>{{ controlTextLength(anamnesisForm, 'vomitText') }} caracteres</span>
@@ -376,7 +376,7 @@
                         <span>Orina</span>
                         <span class="text-xs font-medium text-text-secondary">Opcional</span>
                       </label>
-                      <textarea formControlName="urineText" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Volumen, frecuencia, color y cambios."></textarea>
+                      <textarea formControlName="urineText" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Volumen, frecuencia, color y cambios."></textarea>
                       <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                         <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                         <span>{{ controlTextLength(anamnesisForm, 'urineText') }} caracteres</span>
@@ -387,14 +387,14 @@
                   <div class="grid gap-5 xl:grid-cols-3">
                     <div>
                       <label class="mb-2 block text-sm font-bold text-text-primary">Número de deposiciones <span class="font-medium text-slate-400">(Opcional)</span></label>
-                      <input type="number" min="0" formControlName="numberOfBowelMovements" class="w-full rounded-2xl border bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(anamnesisForm, 'numberOfBowelMovements')" [class.focus:border-red-300]="controlHasError(anamnesisForm, 'numberOfBowelMovements')" [class.border-slate-200]="!controlHasError(anamnesisForm, 'numberOfBowelMovements')" [class.focus:border-primary/40]="!controlHasError(anamnesisForm, 'numberOfBowelMovements')" placeholder="Ej. 2" />
+                      <input type="number" min="0" formControlName="numberOfBowelMovements" class="w-full rounded-2xl border bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(anamnesisForm, 'numberOfBowelMovements')" [class.focus:border-red-300]="controlHasError(anamnesisForm, 'numberOfBowelMovements')" [class.border-slate-200]="!controlHasError(anamnesisForm, 'numberOfBowelMovements')" [class.focus:border-primary/40]="!controlHasError(anamnesisForm, 'numberOfBowelMovements')" placeholder="Ej. 2" />
                       @if (controlErrorMessage('ANAMNESIS', 'numberOfBowelMovements')) {
                         <p class="mt-2 text-xs font-medium text-red-600">{{ controlErrorMessage('ANAMNESIS', 'numberOfBowelMovements') }}</p>
                       }
                     </div>
                     <div>
                       <label class="mb-2 block text-sm font-bold text-text-primary">Problemas respiratorios <span class="font-medium text-slate-400">(Opcional)</span></label>
-                      <textarea formControlName="respiratoryProblemsText" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Tos, disnea, estornudos, secreciones."></textarea>
+                      <textarea formControlName="respiratoryProblemsText" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Tos, disnea, estornudos, secreciones."></textarea>
                       <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                         <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                         <span>{{ controlTextLength(anamnesisForm, 'respiratoryProblemsText') }} caracteres</span>
@@ -402,7 +402,7 @@
                     </div>
                     <div>
                       <label class="mb-2 block text-sm font-bold text-text-primary">Dificultad para caminar <span class="font-medium text-slate-400">(Opcional)</span></label>
-                      <textarea formControlName="difficultyWalkingText" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Claudicación, dolor o rigidez."></textarea>
+                      <textarea formControlName="difficultyWalkingText" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Claudicación, dolor o rigidez."></textarea>
                       <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                         <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                         <span>{{ controlTextLength(anamnesisForm, 'difficultyWalkingText') }} caracteres</span>
@@ -413,7 +413,7 @@
                   <div class="grid gap-5 xl:grid-cols-[240px_minmax(0,1fr)]">
                     <label class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                       <span class="block text-sm font-bold text-text-primary">¿Convive con otras mascotas? <span class="font-medium text-slate-400">(Opcional)</span></span>
-                      <select formControlName="hasPetAtHome" class="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
+                      <select formControlName="hasPetAtHome" class="mt-3 w-full rounded-xl border border-slate-200 bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
                         <option [ngValue]="null">Sin definir</option>
                         <option [ngValue]="true">Sí</option>
                         <option [ngValue]="false">No</option>
@@ -422,7 +422,7 @@
 
                     <div>
                       <label class="mb-2 block text-sm font-bold text-text-primary">Detalle de convivencia en casa <span class="font-medium text-slate-400">(Opcional)</span></label>
-                      <textarea formControlName="petAtHomeDetail" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Especies, número de mascotas y observaciones relevantes."></textarea>
+                      <textarea formControlName="petAtHomeDetail" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Especies, número de mascotas y observaciones relevantes."></textarea>
                       <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                         <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                         <span>{{ controlTextLength(anamnesisForm, 'petAtHomeDetail') }} caracteres</span>
@@ -432,7 +432,7 @@
 
                   <div>
                     <label class="mb-2 block text-sm font-bold text-text-primary">Notas adicionales <span class="font-medium text-slate-400">(Opcional)</span></label>
-                    <textarea formControlName="notes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Detalles clínicos relevantes no cubiertos arriba."></textarea>
+                    <textarea formControlName="notes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Detalles clínicos relevantes no cubiertos arriba."></textarea>
                     <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                       <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                       <span>{{ controlTextLength(anamnesisForm, 'notes') }} caracteres</span>
@@ -457,39 +457,39 @@
                   <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                     <label class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                       <span class="block text-sm font-bold text-text-primary">Peso (kg) <span class="ml-2 text-xs font-medium text-text-secondary">Opcional</span></span>
-                      <input type="number" min="0.01" step="0.01" formControlName="weightKg" class="mt-3 w-full rounded-xl border bg-white px-3 py-2 text-sm text-text-primary outline-none focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(examForm, 'weightKg')" [class.focus:border-red-300]="controlHasError(examForm, 'weightKg')" [class.border-slate-200]="!controlHasError(examForm, 'weightKg')" [class.focus:border-primary/40]="!controlHasError(examForm, 'weightKg')" placeholder="0.00" />
+                      <input type="number" min="0.01" step="0.01" formControlName="weightKg" class="mt-3 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(examForm, 'weightKg')" [class.focus:border-red-300]="controlHasError(examForm, 'weightKg')" [class.border-slate-200]="!controlHasError(examForm, 'weightKg')" [class.focus:border-primary/40]="!controlHasError(examForm, 'weightKg')" placeholder="0.00" />
                       @if (controlErrorMessage('EXAM', 'weightKg')) {
                         <p class="mt-2 text-xs font-medium text-red-600">{{ controlErrorMessage('EXAM', 'weightKg') }}</p>
                       }
                     </label>
                     <label class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                       <span class="block text-sm font-bold text-text-primary">Temperatura (°C) <span class="ml-2 text-xs font-medium text-text-secondary">Opcional</span></span>
-                      <input type="number" step="0.1" formControlName="temperatureC" class="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="38.5" />
+                      <input type="number" step="0.1" formControlName="temperatureC" class="mt-3 w-full rounded-xl border border-slate-200 bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="38.5" />
                     </label>
                     <label class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                       <span class="block text-sm font-bold text-text-primary">Pulso <span class="ml-2 text-xs font-medium text-text-secondary">Opcional</span></span>
-                      <input type="number" min="0" step="1" formControlName="pulse" class="mt-3 w-full rounded-xl border bg-white px-3 py-2 text-sm text-text-primary outline-none focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(examForm, 'pulse')" [class.focus:border-red-300]="controlHasError(examForm, 'pulse')" [class.border-slate-200]="!controlHasError(examForm, 'pulse')" [class.focus:border-primary/40]="!controlHasError(examForm, 'pulse')" placeholder="80" />
+                      <input type="number" min="0" step="1" formControlName="pulse" class="mt-3 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(examForm, 'pulse')" [class.focus:border-red-300]="controlHasError(examForm, 'pulse')" [class.border-slate-200]="!controlHasError(examForm, 'pulse')" [class.focus:border-primary/40]="!controlHasError(examForm, 'pulse')" placeholder="80" />
                       @if (controlErrorMessage('EXAM', 'pulse')) {
                         <p class="mt-2 text-xs font-medium text-red-600">{{ controlErrorMessage('EXAM', 'pulse') }}</p>
                       }
                     </label>
                     <label class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                       <span class="block text-sm font-bold text-text-primary">Frecuencia cardiaca <span class="ml-2 text-xs font-medium text-text-secondary">Opcional</span></span>
-                      <input type="number" min="0" step="1" formControlName="heartRate" class="mt-3 w-full rounded-xl border bg-white px-3 py-2 text-sm text-text-primary outline-none focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(examForm, 'heartRate')" [class.focus:border-red-300]="controlHasError(examForm, 'heartRate')" [class.border-slate-200]="!controlHasError(examForm, 'heartRate')" [class.focus:border-primary/40]="!controlHasError(examForm, 'heartRate')" placeholder="110" />
+                      <input type="number" min="0" step="1" formControlName="heartRate" class="mt-3 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(examForm, 'heartRate')" [class.focus:border-red-300]="controlHasError(examForm, 'heartRate')" [class.border-slate-200]="!controlHasError(examForm, 'heartRate')" [class.focus:border-primary/40]="!controlHasError(examForm, 'heartRate')" placeholder="110" />
                       @if (controlErrorMessage('EXAM', 'heartRate')) {
                         <p class="mt-2 text-xs font-medium text-red-600">{{ controlErrorMessage('EXAM', 'heartRate') }}</p>
                       }
                     </label>
                     <label class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                       <span class="block text-sm font-bold text-text-primary">Frecuencia respiratoria <span class="ml-2 text-xs font-medium text-text-secondary">Opcional</span></span>
-                      <input type="number" min="0" step="1" formControlName="respiratoryRate" class="mt-3 w-full rounded-xl border bg-white px-3 py-2 text-sm text-text-primary outline-none focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(examForm, 'respiratoryRate')" [class.focus:border-red-300]="controlHasError(examForm, 'respiratoryRate')" [class.border-slate-200]="!controlHasError(examForm, 'respiratoryRate')" [class.focus:border-primary/40]="!controlHasError(examForm, 'respiratoryRate')" placeholder="28" />
+                      <input type="number" min="0" step="1" formControlName="respiratoryRate" class="mt-3 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(examForm, 'respiratoryRate')" [class.focus:border-red-300]="controlHasError(examForm, 'respiratoryRate')" [class.border-slate-200]="!controlHasError(examForm, 'respiratoryRate')" [class.focus:border-primary/40]="!controlHasError(examForm, 'respiratoryRate')" placeholder="28" />
                       @if (controlErrorMessage('EXAM', 'respiratoryRate')) {
                         <p class="mt-2 text-xs font-medium text-red-600">{{ controlErrorMessage('EXAM', 'respiratoryRate') }}</p>
                       }
                     </label>
                     <label class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                       <span class="block text-sm font-bold text-text-primary">TRC (seg) <span class="ml-2 text-xs font-medium text-text-secondary">Opcional</span></span>
-                      <input type="number" min="0" step="1" formControlName="crtSeconds" class="mt-3 w-full rounded-xl border bg-white px-3 py-2 text-sm text-text-primary outline-none focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(examForm, 'crtSeconds')" [class.focus:border-red-300]="controlHasError(examForm, 'crtSeconds')" [class.border-slate-200]="!controlHasError(examForm, 'crtSeconds')" [class.focus:border-primary/40]="!controlHasError(examForm, 'crtSeconds')" placeholder="2" />
+                      <input type="number" min="0" step="1" formControlName="crtSeconds" class="mt-3 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(examForm, 'crtSeconds')" [class.focus:border-red-300]="controlHasError(examForm, 'crtSeconds')" [class.border-slate-200]="!controlHasError(examForm, 'crtSeconds')" [class.focus:border-primary/40]="!controlHasError(examForm, 'crtSeconds')" placeholder="2" />
                       @if (controlErrorMessage('EXAM', 'crtSeconds')) {
                         <p class="mt-2 text-xs font-medium text-red-600">{{ controlErrorMessage('EXAM', 'crtSeconds') }}</p>
                       }
@@ -499,7 +499,7 @@
                   <div class="grid gap-5 md:grid-cols-2">
                     <label class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                       <span class="block text-sm font-bold text-text-primary">Mucosas <span class="ml-2 text-xs font-medium text-text-secondary">Opcional</span></span>
-                      <select formControlName="mucousMembranes" class="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
+                      <select formControlName="mucousMembranes" class="mt-3 w-full rounded-xl border border-slate-200 bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
                         <option [ngValue]="null">Sin definir</option>
                         @for (option of mucosaOptions; track option) {
                           <option [ngValue]="option">{{ buildMucosaLabel(option) }}</option>
@@ -508,7 +508,7 @@
                     </label>
                     <label class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                       <span class="block text-sm font-bold text-text-primary">Hidratación <span class="ml-2 text-xs font-medium text-text-secondary">Opcional</span></span>
-                      <select formControlName="hydration" class="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
+                      <select formControlName="hydration" class="mt-3 w-full rounded-xl border border-slate-200 bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
                         <option [ngValue]="null">Sin definir</option>
                         @for (option of hydrationOptions; track option) {
                           <option [ngValue]="option">{{ buildHydrationLabel(option) }}</option>
@@ -522,7 +522,7 @@
                       <span>Ganglios linfáticos</span>
                       <span class="text-xs font-medium text-text-secondary">Opcional</span>
                     </label>
-                    <textarea formControlName="lymphNodes" [attr.maxlength]="clinicalShortTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Describe tamaño, sensibilidad o hallazgos."></textarea>
+                    <textarea formControlName="lymphNodes" [attr.maxlength]="clinicalShortTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Describe tamaño, sensibilidad o hallazgos."></textarea>
                     <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                       <span>Máximo {{ clinicalShortTextMaxLength }} caracteres</span>
                       <span>{{ controlTextLength(examForm, 'lymphNodes') }}/{{ clinicalShortTextMaxLength }}</span>
@@ -534,7 +534,7 @@
                       <span>Notas del examen</span>
                       <span class="text-xs font-medium text-text-secondary">Opcional</span>
                     </label>
-                    <textarea formControlName="examNotes" [attr.maxlength]="clinicalTextMaxLength" rows="5" class="min-h-[140px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Hallazgos físicos, dolor, lesiones, observaciones generales."></textarea>
+                    <textarea formControlName="examNotes" [attr.maxlength]="clinicalTextMaxLength" rows="5" class="min-h-[140px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Hallazgos físicos, dolor, lesiones, observaciones generales."></textarea>
                     <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                       <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                       <span>{{ controlTextLength(examForm, 'examNotes') }} caracteres</span>
@@ -561,7 +561,7 @@
                       <span>Ambiente</span>
                       <span class="text-xs font-medium text-text-secondary">Opcional</span>
                     </label>
-                    <textarea formControlName="environmentNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Vivienda, patio, convivencia, higiene, exposición."></textarea>
+                    <textarea formControlName="environmentNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Vivienda, patio, convivencia, higiene, exposición."></textarea>
                     <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                       <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                       <span>{{ controlTextLength(environmentForm, 'environmentNotes') }} caracteres</span>
@@ -572,7 +572,7 @@
                       <span>Nutrición</span>
                       <span class="text-xs font-medium text-text-secondary">Opcional</span>
                     </label>
-                    <textarea formControlName="nutritionNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Tipo de dieta, frecuencia, cambios recientes."></textarea>
+                    <textarea formControlName="nutritionNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Tipo de dieta, frecuencia, cambios recientes."></textarea>
                     <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                       <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                       <span>{{ controlTextLength(environmentForm, 'nutritionNotes') }} caracteres</span>
@@ -583,7 +583,7 @@
                       <span>Estilo de vida</span>
                       <span class="text-xs font-medium text-text-secondary">Opcional</span>
                     </label>
-                    <textarea formControlName="lifestyleNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Actividad, paseos, contacto con otros animales."></textarea>
+                    <textarea formControlName="lifestyleNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Actividad, paseos, contacto con otros animales."></textarea>
                     <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                       <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                       <span>{{ controlTextLength(environmentForm, 'lifestyleNotes') }} caracteres</span>
@@ -594,7 +594,7 @@
                       <span>Tipo de alimentación</span>
                       <span class="text-xs font-medium text-text-secondary">Opcional</span>
                     </label>
-                    <textarea formControlName="feedingTypeNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Balanceado, casera, mixta, premios u otros detalles."></textarea>
+                    <textarea formControlName="feedingTypeNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Balanceado, casera, mixta, premios u otros detalles."></textarea>
                     <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                       <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                       <span>{{ controlTextLength(environmentForm, 'feedingTypeNotes') }} caracteres</span>
@@ -605,7 +605,7 @@
                       <span>Notas complementarias</span>
                       <span class="text-xs font-medium text-text-secondary">Opcional</span>
                     </label>
-                    <textarea formControlName="notes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Elementos contextuales importantes para esta consulta."></textarea>
+                    <textarea formControlName="notes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Elementos contextuales importantes para esta consulta."></textarea>
                     <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                       <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                       <span>{{ controlTextLength(environmentForm, 'notes') }} caracteres</span>
@@ -631,7 +631,7 @@
                       <span>Diagnóstico presuntivo</span>
                       <span class="text-xs font-medium text-text-secondary">Opcional</span>
                     </label>
-                    <textarea formControlName="presumptiveDiagnosis" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Hipótesis clínica principal."></textarea>
+                    <textarea formControlName="presumptiveDiagnosis" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Hipótesis clínica principal."></textarea>
                     <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                       <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                       <span>{{ controlTextLength(impressionForm, 'presumptiveDiagnosis') }} caracteres</span>
@@ -642,7 +642,7 @@
                       <span>Diagnóstico diferencial</span>
                       <span class="text-xs font-medium text-text-secondary">Opcional</span>
                     </label>
-                    <textarea formControlName="differentialDiagnosis" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Lista de posibilidades a descartar."></textarea>
+                    <textarea formControlName="differentialDiagnosis" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Lista de posibilidades a descartar."></textarea>
                     <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                       <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                       <span>{{ controlTextLength(impressionForm, 'differentialDiagnosis') }} caracteres</span>
@@ -654,7 +654,7 @@
                         <span>Pronóstico</span>
                         <span class="text-xs font-medium text-text-secondary">Opcional</span>
                       </label>
-                      <textarea formControlName="prognosis" [attr.maxlength]="clinicalShortTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Reservado, favorable, etc."></textarea>
+                      <textarea formControlName="prognosis" [attr.maxlength]="clinicalShortTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Reservado, favorable, etc."></textarea>
                       <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                         <span>Máximo {{ clinicalShortTextMaxLength }} caracteres</span>
                         <span>{{ controlTextLength(impressionForm, 'prognosis') }}/{{ clinicalShortTextMaxLength }}</span>
@@ -665,7 +665,7 @@
                         <span>Notas clínicas</span>
                         <span class="text-xs font-medium text-text-secondary">Opcional</span>
                       </label>
-                      <textarea formControlName="clinicalNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Fundamentos, observaciones o comentarios de apoyo."></textarea>
+                      <textarea formControlName="clinicalNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Fundamentos, observaciones o comentarios de apoyo."></textarea>
                       <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                         <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                         <span>{{ controlTextLength(impressionForm, 'clinicalNotes') }} caracteres</span>
@@ -692,7 +692,7 @@
                       <span>Plan clínico</span>
                       <span class="text-xs font-medium text-text-secondary">Opcional</span>
                     </label>
-                    <textarea formControlName="clinicalPlan" [attr.maxlength]="clinicalTextMaxLength" rows="5" class="min-h-[150px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Tratamiento general, estudios, seguimiento y recomendaciones."></textarea>
+                    <textarea formControlName="clinicalPlan" [attr.maxlength]="clinicalTextMaxLength" rows="5" class="min-h-[150px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Tratamiento general, estudios, seguimiento y recomendaciones."></textarea>
                     <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                       <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                       <span>{{ controlTextLength(planForm, 'clinicalPlan') }} caracteres</span>
@@ -702,7 +702,7 @@
                   <div class="grid gap-5 md:grid-cols-[240px_minmax(0,1fr)]">
                     <label class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                       <span class="block text-sm font-bold text-text-primary">¿Requiere seguimiento? <span class="ml-2 text-xs font-medium text-text-secondary">Opcional</span></span>
-                      <select formControlName="requiresFollowUp" class="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
+                      <select formControlName="requiresFollowUp" class="mt-3 w-full rounded-xl border border-slate-200 bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
                         <option [ngValue]="false">No</option>
                         <option [ngValue]="true">Sí</option>
                       </select>
@@ -716,7 +716,7 @@
                           <span class="font-medium text-slate-400">(Opcional)</span>
                         }
                       </span>
-                      <input type="date" formControlName="suggestedFollowUpDate" class="mt-3 w-full rounded-xl border bg-white px-3 py-2 text-sm text-text-primary outline-none focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(planForm, 'suggestedFollowUpDate')" [class.focus:border-red-300]="controlHasError(planForm, 'suggestedFollowUpDate')" [class.border-slate-200]="!controlHasError(planForm, 'suggestedFollowUpDate')" [class.focus:border-primary/40]="!controlHasError(planForm, 'suggestedFollowUpDate')" />
+                      <input type="date" formControlName="suggestedFollowUpDate" class="mt-3 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(planForm, 'suggestedFollowUpDate')" [class.focus:border-red-300]="controlHasError(planForm, 'suggestedFollowUpDate')" [class.border-slate-200]="!controlHasError(planForm, 'suggestedFollowUpDate')" [class.focus:border-primary/40]="!controlHasError(planForm, 'suggestedFollowUpDate')" />
                       @if (controlErrorMessage('PLAN', 'suggestedFollowUpDate')) {
                         <p class="mt-2 text-xs font-medium text-red-600">{{ controlErrorMessage('PLAN', 'suggestedFollowUpDate') }}</p>
                       }
@@ -728,7 +728,7 @@
                       <span>Notas del plan</span>
                       <span class="text-xs font-medium text-text-secondary">Opcional</span>
                     </label>
-                    <textarea formControlName="planNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Indicaciones complementarias para el tutor y el equipo."></textarea>
+                    <textarea formControlName="planNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Indicaciones complementarias para el tutor y el equipo."></textarea>
                     <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                       <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                       <span>{{ controlTextLength(planForm, 'planNotes') }} caracteres</span>
@@ -750,7 +750,7 @@
                 </div>
 
                 <div class="mt-6 grid gap-5 xl:grid-cols-3">
-                  <article class="rounded-[24px] border border-slate-200 bg-white p-4">
+                  <article class="rounded-[24px] border border-slate-200 bg-surface p-4">
                     <div class="flex items-start justify-between gap-3">
                       <div>
                         <p class="text-sm font-black text-text-primary">Vacunaciones</p>
@@ -797,7 +797,7 @@
                     <button type="button" class="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-primary px-4 py-3 text-sm font-black text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60" [disabled]="isSubmittingAction || isLoadingPatientContext || availableVaccines.length === 0 || encounter.status !== 'ACTIVA'" (click)="openVaccinationModal()">Preparar vacunación</button>
                   </article>
 
-                  <article class="rounded-[24px] border border-slate-200 bg-white p-4">
+                  <article class="rounded-[24px] border border-slate-200 bg-surface p-4">
                     <div class="flex items-start justify-between gap-3">
                       <div>
                         <p class="text-sm font-black text-text-primary">Tratamientos</p>
@@ -841,7 +841,7 @@
                     <button type="button" class="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-primary px-4 py-3 text-sm font-black text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60" [disabled]="isSubmittingAction || encounter.status !== 'ACTIVA'" (click)="openTreatmentModal()">Preparar tratamiento</button>
                   </article>
 
-                  <article class="rounded-[24px] border border-slate-200 bg-white p-4">
+                  <article class="rounded-[24px] border border-slate-200 bg-surface p-4">
                     <div class="flex items-start justify-between gap-3">
                       <div>
                         <p class="text-sm font-black text-text-primary">Procedimientos</p>
@@ -890,7 +890,7 @@
           </main>
 
           <aside>
-            <section class="rounded-[28px] border border-slate-200 bg-white px-5 py-5 shadow-sm">
+            <section class="rounded-[28px] border border-slate-200 bg-surface px-5 py-5 shadow-sm">
               @if (patientContextError) {
                 <div class="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ patientContextError }}</div>
               }
@@ -1003,7 +1003,7 @@
     @if (isTreatmentModalOpen) {
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-950/45 backdrop-blur-sm" (click)="closeTreatmentModal()"></div>
-        <div class="relative z-10 w-full max-w-4xl overflow-hidden rounded-[30px] border border-white/70 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.20)]">
+        <div class="relative z-10 w-full max-w-4xl overflow-hidden rounded-[30px] border border-surface/70 bg-surface shadow-[0_30px_90px_rgba(15,23,42,0.20)]">
           <div class="flex items-start justify-between border-b border-slate-200 px-6 py-5">
             <div>
               <p class="text-[11px] font-black uppercase tracking-[0.28em] text-primary/70">Consulta</p>
@@ -1024,17 +1024,17 @@
               <div class="grid gap-5 md:grid-cols-2">
                 <label class="block">
                   <span class="mb-2 block text-sm font-bold text-text-primary">Fecha de inicio</span>
-                  <input type="date" formControlName="startDate" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10" />
+                  <input type="date" formControlName="startDate" class="w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10" />
                 </label>
                 <label class="block">
                   <span class="mb-2 block text-sm font-bold text-text-primary">Fecha de fin <span class="font-medium text-slate-400">(Opcional)</span></span>
-                  <input type="date" formControlName="endDate" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10" />
+                  <input type="date" formControlName="endDate" class="w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10" />
                 </label>
               </div>
 
               <label class="block">
                 <span class="mb-2 block text-sm font-bold text-text-primary">Indicaciones generales <span class="font-medium text-slate-400">(Opcional)</span></span>
-                <textarea formControlName="generalInstructions" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Indicaciones globales para el tratamiento."></textarea>
+                <textarea formControlName="generalInstructions" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Indicaciones globales para el tratamiento."></textarea>
                 <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                   <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                   <span>{{ controlTextLength(treatmentForm, 'generalInstructions') }} caracteres</span>
@@ -1063,31 +1063,31 @@
                       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                         <label class="block">
                           <span class="mb-2 block text-sm font-bold text-text-primary">Medicamento</span>
-                          <input [attr.maxlength]="clinicalShortTextMaxLength" [value]="item.medication" (input)="updateTreatmentItem(index, 'medication', $any($event.target).value)" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Nombre del fármaco" />
+                          <input [attr.maxlength]="clinicalShortTextMaxLength" [value]="item.medication" (input)="updateTreatmentItem(index, 'medication', $any($event.target).value)" class="w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Nombre del fármaco" />
                           <p class="mt-2 text-xs text-text-secondary">Máximo {{ clinicalShortTextMaxLength }} caracteres · {{ treatmentItemLength(item, 'medication') }}/{{ clinicalShortTextMaxLength }}</p>
                         </label>
                         <label class="block">
                           <span class="mb-2 block text-sm font-bold text-text-primary">Dosis</span>
-                          <input [attr.maxlength]="clinicalShortTextMaxLength" [value]="item.dose" (input)="updateTreatmentItem(index, 'dose', $any($event.target).value)" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Ej. 1 tableta" />
+                          <input [attr.maxlength]="clinicalShortTextMaxLength" [value]="item.dose" (input)="updateTreatmentItem(index, 'dose', $any($event.target).value)" class="w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Ej. 1 tableta" />
                           <p class="mt-2 text-xs text-text-secondary">Máximo {{ clinicalShortTextMaxLength }} caracteres · {{ treatmentItemLength(item, 'dose') }}/{{ clinicalShortTextMaxLength }}</p>
                         </label>
                         <label class="block">
                           <span class="mb-2 block text-sm font-bold text-text-primary">Frecuencia</span>
-                          <input [attr.maxlength]="clinicalShortTextMaxLength" [value]="item.frequency" (input)="updateTreatmentItem(index, 'frequency', $any($event.target).value)" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Cada 12 horas" />
+                          <input [attr.maxlength]="clinicalShortTextMaxLength" [value]="item.frequency" (input)="updateTreatmentItem(index, 'frequency', $any($event.target).value)" class="w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Cada 12 horas" />
                           <p class="mt-2 text-xs text-text-secondary">Máximo {{ clinicalShortTextMaxLength }} caracteres · {{ treatmentItemLength(item, 'frequency') }}/{{ clinicalShortTextMaxLength }}</p>
                         </label>
                         <label class="block">
                           <span class="mb-2 block text-sm font-bold text-text-primary">Duración (días)</span>
-                          <input type="number" min="1" [value]="item.durationDays ?? ''" (input)="updateTreatmentItem(index, 'durationDays', $any($event.target).value === '' ? null : +$any($event.target).value)" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10" />
+                          <input type="number" min="1" [value]="item.durationDays ?? ''" (input)="updateTreatmentItem(index, 'durationDays', $any($event.target).value === '' ? null : +$any($event.target).value)" class="w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10" />
                         </label>
                         <label class="block">
                           <span class="mb-2 block text-sm font-bold text-text-primary">Vía de administración</span>
-                          <input [attr.maxlength]="clinicalShortTextMaxLength" [value]="item.administrationRoute" (input)="updateTreatmentItem(index, 'administrationRoute', $any($event.target).value)" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Oral, IV, tópica..." />
+                          <input [attr.maxlength]="clinicalShortTextMaxLength" [value]="item.administrationRoute" (input)="updateTreatmentItem(index, 'administrationRoute', $any($event.target).value)" class="w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Oral, IV, tópica..." />
                           <p class="mt-2 text-xs text-text-secondary">Máximo {{ clinicalShortTextMaxLength }} caracteres · {{ treatmentItemLength(item, 'administrationRoute') }}/{{ clinicalShortTextMaxLength }}</p>
                         </label>
                         <label class="block md:col-span-2 xl:col-span-3">
                           <span class="mb-2 block text-sm font-bold text-text-primary">Notas del ítem <span class="font-medium text-slate-400">(Opcional)</span></span>
-                          <textarea rows="3" [attr.maxlength]="clinicalTextMaxLength" [value]="item.notes" (input)="updateTreatmentItem(index, 'notes', $any($event.target).value)" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Observaciones adicionales del medicamento."></textarea>
+                          <textarea rows="3" [attr.maxlength]="clinicalTextMaxLength" [value]="item.notes" (input)="updateTreatmentItem(index, 'notes', $any($event.target).value)" class="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Observaciones adicionales del medicamento."></textarea>
                           <p class="mt-2 text-xs text-text-secondary">Máximo {{ clinicalTextMaxLength }} caracteres · {{ treatmentItemLength(item, 'notes') }} caracteres</p>
                         </label>
                       </div>
@@ -1111,7 +1111,7 @@
     @if (isProcedureModalOpen) {
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-950/45 backdrop-blur-sm" (click)="closeProcedureModal()"></div>
-        <div class="relative z-10 w-full max-w-3xl overflow-hidden rounded-[30px] border border-white/70 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.20)]">
+        <div class="relative z-10 w-full max-w-3xl overflow-hidden rounded-[30px] border border-surface/70 bg-surface shadow-[0_30px_90px_rgba(15,23,42,0.20)]">
           <div class="flex items-start justify-between border-b border-slate-200 px-6 py-5">
             <div>
               <p class="text-[11px] font-black uppercase tracking-[0.28em] text-primary/70">Consulta</p>
@@ -1131,7 +1131,7 @@
             <form class="grid gap-5 md:grid-cols-2" [formGroup]="procedureForm">
               <label class="block">
                 <span class="mb-2 block text-sm font-bold text-text-primary">Procedimiento del catálogo <span class="font-medium text-slate-400">(Opcional)</span></span>
-                <select formControlName="catalogId" (change)="onProcedureCatalogSelected()" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
+                <select formControlName="catalogId" (change)="onProcedureCatalogSelected()" class="w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
                   <option [ngValue]="null">Selecciona del catálogo</option>
                   @for (item of procedureCatalog; track item.id) {
                     <option [ngValue]="item.id">{{ item.name }}</option>
@@ -1140,26 +1140,26 @@
               </label>
               <label class="block">
                 <span class="mb-2 block text-sm font-bold text-text-primary">Fecha y hora</span>
-                <input type="datetime-local" formControlName="performedDate" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10" />
+                <input type="datetime-local" formControlName="performedDate" class="w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10" />
               </label>
               <label class="block md:col-span-2">
                 <span class="mb-2 block text-sm font-bold text-text-primary">Tipo realizado <span class="font-medium text-slate-400">(Opcional si eliges catálogo)</span></span>
-                <input [attr.maxlength]="clinicalShortTextMaxLength" formControlName="procedureType" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Ej. Sutura simple" />
+                <input [attr.maxlength]="clinicalShortTextMaxLength" formControlName="procedureType" class="w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Ej. Sutura simple" />
                 <p class="mt-2 text-xs text-text-secondary">Máximo {{ clinicalShortTextMaxLength }} caracteres · {{ controlTextLength(procedureForm, 'procedureType') }}/{{ clinicalShortTextMaxLength }}</p>
               </label>
               <label class="block md:col-span-2">
                 <span class="mb-2 block text-sm font-bold text-text-primary">Descripción <span class="font-medium text-slate-400">(Opcional)</span></span>
-                <textarea formControlName="description" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Cómo se realizó, motivo o contexto clínico."></textarea>
+                <textarea formControlName="description" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Cómo se realizó, motivo o contexto clínico."></textarea>
                 <p class="mt-2 text-xs text-text-secondary">Máximo {{ clinicalTextMaxLength }} caracteres · {{ controlTextLength(procedureForm, 'description') }} caracteres</p>
               </label>
               <label class="block">
                 <span class="mb-2 block text-sm font-bold text-text-primary">Resultado <span class="font-medium text-slate-400">(Opcional)</span></span>
-                <textarea formControlName="result" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Resultado clínico del procedimiento."></textarea>
+                <textarea formControlName="result" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Resultado clínico del procedimiento."></textarea>
                 <p class="mt-2 text-xs text-text-secondary">Máximo {{ clinicalTextMaxLength }} caracteres · {{ controlTextLength(procedureForm, 'result') }} caracteres</p>
               </label>
               <label class="block">
                 <span class="mb-2 block text-sm font-bold text-text-primary">Notas <span class="font-medium text-slate-400">(Opcional)</span></span>
-                <textarea formControlName="notes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Observaciones adicionales."></textarea>
+                <textarea formControlName="notes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Observaciones adicionales."></textarea>
                 <p class="mt-2 text-xs text-text-secondary">Máximo {{ clinicalTextMaxLength }} caracteres · {{ controlTextLength(procedureForm, 'notes') }} caracteres</p>
               </label>
             </form>

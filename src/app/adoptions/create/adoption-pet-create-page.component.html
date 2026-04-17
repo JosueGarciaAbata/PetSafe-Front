@@ -53,7 +53,7 @@
               <button
                 type="button"
                 (click)="petImageInput.click()"
-                class="rounded-xl border border-border bg-white px-4 py-2 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background"
+                class="rounded-xl border border-border bg-surface px-4 py-2 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background"
               >
                 {{ hasSelectedImage() ? 'Cambiar imagen' : 'Subir imagen' }}
               </button>
@@ -82,7 +82,7 @@
                 <button
                   type="button"
                   (click)="clearImageSelection(petImageInput)"
-                  class="self-start rounded-xl px-3 py-2 text-xs font-bold text-text-secondary transition-all hover:bg-white"
+                  class="self-start rounded-xl px-3 py-2 text-xs font-bold text-text-secondary transition-all hover:bg-surface"
                 >
                   Quitar
                 </button>
@@ -254,7 +254,7 @@
                   type="button"
                   (click)="setSex('MACHO')"
                   class="flex-1 rounded-lg text-xs font-bold transition-all"
-                  [class.bg-white]="form.controls.sex.value === 'MACHO'"
+                  [class.bg-surface]="form.controls.sex.value === 'MACHO'"
                   [class.text-brand]="form.controls.sex.value === 'MACHO'"
                   [class.shadow-sm]="form.controls.sex.value === 'MACHO'"
                   [class.text-text-secondary]="form.controls.sex.value !== 'MACHO'"
@@ -265,7 +265,7 @@
                   type="button"
                   (click)="setSex('HEMBRA')"
                   class="flex-1 rounded-lg text-xs font-bold transition-all"
-                  [class.bg-white]="form.controls.sex.value === 'HEMBRA'"
+                  [class.bg-surface]="form.controls.sex.value === 'HEMBRA'"
                   [class.text-brand]="form.controls.sex.value === 'HEMBRA'"
                   [class.shadow-sm]="form.controls.sex.value === 'HEMBRA'"
                   [class.text-text-secondary]="form.controls.sex.value !== 'HEMBRA'"
@@ -282,7 +282,7 @@
                   type="button"
                   (click)="setSterilized(true)"
                   class="flex-1 rounded-lg text-xs font-bold transition-all"
-                  [class.bg-white]="form.controls.sterilized.value === true"
+                  [class.bg-surface]="form.controls.sterilized.value === true"
                   [class.text-brand]="form.controls.sterilized.value === true"
                   [class.shadow-sm]="form.controls.sterilized.value === true"
                   [class.text-text-secondary]="form.controls.sterilized.value !== true"
@@ -293,7 +293,7 @@
                   type="button"
                   (click)="setSterilized(false)"
                   class="flex-1 rounded-lg text-xs font-bold transition-all"
-                  [class.bg-white]="form.controls.sterilized.value === false"
+                  [class.bg-surface]="form.controls.sterilized.value === false"
                   [class.text-brand]="form.controls.sterilized.value === false"
                   [class.shadow-sm]="form.controls.sterilized.value === false"
                   [class.text-text-secondary]="form.controls.sterilized.value !== false"
@@ -365,7 +365,7 @@
       </aside>
     </div>
 
-    <div class="border-t border-border bg-white/95 px-8 py-5 backdrop-blur">
+    <div class="border-t border-border bg-surface/95 px-8 py-5 backdrop-blur">
       <div class="flex items-center justify-end gap-3">
         @if (errorMessage) {
           <div class="mr-auto rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">

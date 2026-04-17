@@ -1,87 +1,100 @@
-<header class="sticky top-0 z-20 flex h-[72px] w-full items-center border-b border-border bg-card px-8 shadow-sm">
-  <div class="flex w-full items-center justify-between gap-6">
-    <div class="flex items-center gap-3">
-      <button
-        type="button"
-        (click)="toggleSidebar.emit()"
-        class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-white text-text-secondary shadow-sm transition-all hover:border-brand/20 hover:bg-active-soft hover:text-brand"
-        [attr.aria-label]="sidebarOpen ? 'Ocultar barra lateral' : 'Mostrar barra lateral'"
-        [title]="sidebarOpen ? 'Ocultar barra lateral' : 'Mostrar barra lateral'"
-      >
-        <app-shell-icon name="menu" [size]="20"></app-shell-icon>
-      </button>
-    </div>
+<div class="topbar-panel">
+  <div class="topbar-cluster">
+    <button
+      type="button"
+      (click)="toggleSidebar.emit()"
+      class="topbar-icon-button"
+      [attr.aria-label]="sidebarOpen ? 'Ocultar barra lateral' : 'Mostrar barra lateral'"
+    >
+      <app-shell-icon name="sidebarToggle" [size]="20"></app-shell-icon>
+    </button>
 
-    <div class="flex items-center gap-6">
-      <div class="hidden items-center gap-2 border-r border-border pr-6 text-sm font-medium text-text-secondary xl:flex">
-        <app-shell-icon name="calendar" [size]="18"></app-shell-icon>
-        <span class="capitalize">{{ today }}</span>
-      </div>
-
-      <button
-        type="button"
-        class="group relative rounded-xl border border-border bg-white p-2.5 text-text-secondary shadow-sm transition-all hover:border-brand/20 hover:bg-active-soft hover:text-brand"
-      >
-        <app-shell-icon name="bell" [size]="20"></app-shell-icon>
-        <span class="absolute right-2 top-2 h-2.5 w-2.5 rounded-full border-2 border-white bg-red-500 ring-2 ring-red-500/20"></span>
-      </button>
-
-      <div class="relative">
-        <button
-          type="button"
-          (click)="toggleUserMenu($event)"
-          class="group flex items-center gap-3 rounded-2xl border border-border bg-white px-4 py-1.5 shadow-sm transition-all hover:border-brand/20 hover:bg-active-soft"
-          aria-haspopup="menu"
-          [attr.aria-expanded]="isUserMenuOpen"
-        >
-          <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/10 text-brand">
-            <app-shell-icon name="user" [size]="20"></app-shell-icon>
-          </div>
-          <div class="flex flex-col items-start leading-tight">
-            <span class="text-sm font-bold text-text-primary">{{ userName() }}</span>
-            <span class="text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
-              {{ userRole() }}
-            </span>
-          </div>
-          <app-shell-icon
-            name="chevronDown"
-            [size]="14"
-            className="text-text-secondary transition-colors group-hover:text-brand"
-          ></app-shell-icon>
-        </button>
-
-        @if (isUserMenuOpen) {
-          <div
-            class="absolute right-0 top-[calc(100%+0.75rem)] z-30 min-w-[220px] overflow-hidden rounded-2xl border border-border bg-white p-2 shadow-xl"
-            role="menu"
-          >
-            <div class="border-b border-border px-3 py-2">
-              <p class="text-sm font-semibold text-text-primary">{{ userName() }}</p>
-              <p class="text-xs uppercase tracking-wider text-text-secondary">{{ userRole() }}</p>
-            </div>
-
-            <button
-              type="button"
-              (click)="openSettings()"
-              class="mt-2 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-text-primary transition-colors hover:bg-background"
-              role="menuitem"
-            >
-              <app-shell-icon name="settings" [size]="18"></app-shell-icon>
-              <span>Configuracion</span>
-            </button>
-
-            <button
-              type="button"
-              (click)="logout()"
-              class="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
-              role="menuitem"
-            >
-              <app-shell-icon name="logout" [size]="18"></app-shell-icon>
-              <span>Cerrar sesion</span>
-            </button>
-          </div>
-        }
-      </div>
+    <div class="topbar-date">
+      <app-shell-icon name="calendar" [size]="16"></app-shell-icon>
+      <span class="capitalize">{{ today }}</span>
     </div>
   </div>
-</header>
+
+  <div class="topbar-cluster">
+    <!-- Theme toggle -->
+    <button
+      type="button"
+      class="topbar-theme-toggle"
+      [class.topbar-theme-toggle--dark]="theme.isDark()"
+      (click)="toggleTheme()"
+      [attr.aria-label]="theme.isDark() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
+    >
+      <span class="topbar-theme-toggle__track">
+        <span class="topbar-theme-toggle__thumb"></span>
+        <span class="topbar-theme-toggle__icon topbar-theme-toggle__icon--sun">
+          <app-shell-icon name="sun" [size]="14"></app-shell-icon>
+        </span>
+        <span class="topbar-theme-toggle__icon topbar-theme-toggle__icon--moon">
+          <app-shell-icon name="moon" [size]="14"></app-shell-icon>
+        </span>
+      </span>
+    </button>
+
+    <!-- Notifications -->
+    <button
+      type="button"
+      class="topbar-icon-button"
+      aria-label="Notificaciones"
+    >
+      <app-shell-icon name="bell" [size]="20"></app-shell-icon>
+      <span class="topbar-notification-dot"></span>
+    </button>
+
+    <!-- User menu -->
+    <div class="topbar-user-menu">
+      <button
+        type="button"
+        (click)="toggleUserMenu($event)"
+        class="topbar-user-button"
+        aria-haspopup="menu"
+        [attr.aria-expanded]="isUserMenuOpen"
+      >
+        <span class="topbar-user-avatar">{{ initials() }}</span>
+        <span class="topbar-user-button__copy">
+          <span class="topbar-user-button__name">{{ userName() }}</span>
+          <span class="topbar-user-divider"></span>
+          <span class="topbar-user-button__role">{{ userRole() }}</span>
+        </span>
+        <app-shell-icon
+          name="chevronDown"
+          [size]="14"
+          className="topbar-user-button__chevron"
+        ></app-shell-icon>
+      </button>
+
+      @if (isUserMenuOpen) {
+        <div class="topbar-menu" role="menu">
+          <div class="topbar-menu__header">
+            <p class="topbar-menu__name">{{ userName() }}</p>
+            <p class="topbar-menu__role">{{ userRole() }}</p>
+          </div>
+
+          <button
+            type="button"
+            (click)="openSettings()"
+            class="topbar-menu__action"
+            role="menuitem"
+          >
+            <app-shell-icon name="settings" [size]="18"></app-shell-icon>
+            <span>Configuración</span>
+          </button>
+
+          <button
+            type="button"
+            (click)="logout()"
+            class="topbar-menu__action topbar-menu__action--danger"
+            role="menuitem"
+          >
+            <app-shell-icon name="logout" [size]="18"></app-shell-icon>
+            <span>Cerrar sesión</span>
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</div>

@@ -87,7 +87,7 @@
               <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Dosis del esquema</h3>
               <p class="mt-1 text-sm leading-6 text-text-secondary">Usa productos activos de la especie seleccionada y construye el orden clínico inicial.</p>
             </div>
-            <button type="button" (click)="addDose()" class="rounded-xl border border-border bg-white px-3 py-2 text-xs font-semibold text-text-primary transition hover:bg-[#F8FAFC]">
+            <button type="button" (click)="addDose()" class="rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-text-primary transition hover:bg-card">
               + Agregar dosis
             </button>
           </div>
@@ -100,13 +100,13 @@
 
           <div cdkDropList class="space-y-4" (cdkDropListDropped)="reorderDoses($event)">
             @for (dose of doses; track $index; let doseIndex = $index) {
-              <div cdkDrag class="rounded-2xl border border-border bg-white p-4 shadow-sm transition-[transform,border-color,box-shadow] duration-200 hover:border-[#dbeafe]">
+              <div cdkDrag class="rounded-2xl border border-border bg-surface p-4 shadow-sm transition-[transform,border-color,box-shadow] duration-200 hover:border-[#dbeafe]">
                 <div class="mb-3 flex items-center justify-between gap-3">
                   <div class="flex items-center gap-3">
                     <button
                       type="button"
                       cdkDragHandle
-                      class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-background text-text-secondary transition hover:bg-white hover:text-text-primary"
+                      class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-background text-text-secondary transition hover:bg-surface hover:text-text-primary"
                       aria-label="Reordenar dosis"
                     >
                       <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -222,7 +222,7 @@
       </aside>
     </div>
 
-    <div class="border-t border-border bg-white/95 px-8 py-5 backdrop-blur">
+    <div class="border-t border-border bg-surface/95 px-8 py-5 backdrop-blur">
       @if (errorMessage) {
         <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 whitespace-pre-line">
           {{ errorMessage }}

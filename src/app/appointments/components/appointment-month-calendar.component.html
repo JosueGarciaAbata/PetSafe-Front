@@ -44,7 +44,7 @@
             <div class="appointment-day-scroll flex max-h-[168px] flex-col gap-2 overflow-y-auto pr-1">
               @for (appointment of cell.appointments; track trackByAppointment($index, appointment)) {
                 <article
-                  class="appointment-month-card cursor-pointer rounded-[16px] border border-border bg-white px-3 py-3 shadow-sm transition-all hover:-translate-y-[1px] hover:ring-2 hover:ring-primary/20"
+                  class="appointment-month-card cursor-pointer rounded-[16px] border border-border bg-surface px-3 py-3 shadow-sm transition-all hover:-translate-y-[1px] hover:ring-2 hover:ring-primary/20"
                   (click)="appointmentClick.emit(appointment)"
                   [class.opacity-70]="appointment.status === 'CANCELADA' || !appointment.isActive"
                 >

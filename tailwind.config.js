@@ -8,6 +8,7 @@ module.exports = {
         primary: 'var(--ps-primary)',
         background: 'var(--ps-background)',
         card: 'var(--ps-card)',
+        surface: 'var(--ps-surface)',
         'active-soft': 'var(--ps-active-soft)',
         border: 'var(--ps-border)',
         text: {
@@ -22,6 +23,9 @@ module.exports = {
         'badge-blue-text': 'var(--ps-badge-blue-text)',
         'badge-purple-bg': 'var(--ps-badge-purple-bg)',
         'badge-purple-text': 'var(--ps-badge-purple-text)',
+        'sidebar-bg': 'var(--ps-sidebar-bg)',
+        'sidebar-border': 'var(--ps-sidebar-border)',
+        'sidebar-hover': 'var(--ps-sidebar-hover)',
       },
     },
   },

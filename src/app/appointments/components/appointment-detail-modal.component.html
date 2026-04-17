@@ -7,7 +7,7 @@
     aria-modal="true"
     aria-labelledby="appointment-detail-title"
   >
-    <div class="shrink-0 border-b border-border bg-white px-5 py-4">
+    <div class="shrink-0 border-b border-border bg-surface px-5 py-4">
       <div class="flex items-start justify-between gap-4">
         <div class="min-w-0">
           <span class="text-[11px] font-bold uppercase tracking-[0.16em] text-brand">Turno</span>
@@ -39,12 +39,6 @@
 
     <div class="flex-1 overflow-y-auto px-5 py-5">
       <div class="flex flex-col gap-6">
-        @if (submitError) {
-          <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {{ submitError }}
-          </div>
-        }
-
         <section class="appointment-detail-section appointment-detail-section--patient">
           <p class="appointment-detail-label">Paciente</p>
           <h3 class="appointment-detail-patient-name">{{ patientNameLabel }}</h3>
@@ -88,7 +82,7 @@
       </div>
     </div>
 
-    <div class="shrink-0 border-t border-border bg-white px-5 py-4">
+    <div class="shrink-0 border-t border-border bg-surface px-5 py-4">
       @if (hasActions) {
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div class="flex flex-wrap items-center gap-2">

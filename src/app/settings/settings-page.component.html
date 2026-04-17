@@ -2,12 +2,14 @@
   <div class="flex flex-col gap-1">
     <h1 class="text-[28px] font-bold text-text-primary">Configuracion</h1>
     <p class="text-base text-text-secondary">
-      Administra los datos basicos de tu cuenta actual.
+      Actualiza la informacion basica de tu cuenta interna.
     </p>
   </div>
 
   @if (!currentUser) {
-    <section class="rounded-[20px] border border-red-200 bg-red-50 px-6 py-5 text-sm text-red-700 shadow-sm">
+    <section
+      class="rounded-[20px] border border-red-200 bg-red-50 px-6 py-5 text-sm text-red-700 shadow-sm"
+    >
       {{ errorMessage }}
     </section>
   } @else {
@@ -15,119 +17,111 @@
       [formGroup]="form"
       (ngSubmit)="save()"
       novalidate
-      class="overflow-hidden rounded-[20px] border border-border bg-card shadow-sm"
+      class="overflow-hidden rounded-[24px] border border-border bg-card shadow-sm"
     >
-      <div class="p-6 sm:p-8">
-        <div class="flex flex-col gap-6">
-          <section class="flex flex-col gap-2">
-            <span class="text-xs font-bold uppercase tracking-[0.16em] text-text-secondary">
-              Cuenta actual
-            </span>
-            <h2 class="text-[24px] font-bold text-text-primary">Datos personales</h2>
-            <p class="max-w-[720px] text-sm leading-6 text-text-secondary">
-              Por ahora puedes actualizar correo, nombre, apellido y telefono desde esta seccion.
-            </p>
-          </section>
+      <div class="flex flex-col gap-8 p-6 sm:p-8">
+        <section class="flex flex-col gap-2">
+          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-brand/70">Perfil</p>
+          <h2 class="text-[24px] font-bold text-text-primary">Datos personales</h2>
+          <p class="max-w-[680px] text-sm leading-6 text-text-secondary">
+            Desde aqui puedes actualizar tu nombre, apellido y telefono.
+          </p>
+        </section>
 
-          @if (successMessage) {
-            <div class="rounded-xl border border-[#A7F3D0] bg-[#ECFDF5] px-4 py-3 text-sm text-[#065F46]">
-              {{ successMessage }}
-            </div>
-          }
+        <section class="grid gap-5 md:grid-cols-2">
+          <div class="flex flex-col gap-2">
+            <label for="settings-first-name" class="text-sm font-semibold text-text-primary">
+              Nombre
+            </label>
+            <input
+              id="settings-first-name"
+              type="text"
+              formControlName="firstName"
+              [attr.maxlength]="nameMaxLength"
+              class="h-12 rounded-xl border border-border bg-surface px-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+            />
+            @if (form.controls.firstName.touched && form.controls.firstName.hasError('required')) {
+              <p class="text-xs font-medium text-red-600">El nombre es obligatorio.</p>
+            } @else if (
+              form.controls.firstName.touched && form.controls.firstName.hasError('minlength')
+            ) {
+              <p class="text-xs font-medium text-red-600">
+                El nombre debe tener entre 3 y 20 caracteres.
+              </p>
+            } @else if (
+              form.controls.firstName.touched && form.controls.firstName.hasError('maxlength')
+            ) {
+              <p class="text-xs font-medium text-red-600">
+                El nombre debe tener entre 3 y 20 caracteres.
+              </p>
+            } @else if (
+              form.controls.firstName.touched && form.controls.firstName.hasError('pattern')
+            ) {
+              <p class="text-xs font-medium text-red-600">
+                El nombre solo puede contener letras, espacios, apostrofes o guiones.
+              </p>
+            }
+          </div>
 
-          @if (errorMessage) {
-            <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {{ errorMessage }}
-            </div>
-          }
+          <div class="flex flex-col gap-2">
+            <label for="settings-last-name" class="text-sm font-semibold text-text-primary">
+              Apellido
+            </label>
+            <input
+              id="settings-last-name"
+              type="text"
+              formControlName="lastName"
+              [attr.maxlength]="nameMaxLength"
+              class="h-12 rounded-xl border border-border bg-surface px-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+            />
+            @if (form.controls.lastName.touched && form.controls.lastName.hasError('required')) {
+              <p class="text-xs font-medium text-red-600">El apellido es obligatorio.</p>
+            } @else if (
+              form.controls.lastName.touched && form.controls.lastName.hasError('minlength')
+            ) {
+              <p class="text-xs font-medium text-red-600">
+                El apellido debe tener entre 3 y 20 caracteres.
+              </p>
+            } @else if (
+              form.controls.lastName.touched && form.controls.lastName.hasError('maxlength')
+            ) {
+              <p class="text-xs font-medium text-red-600">
+                El apellido debe tener entre 3 y 20 caracteres.
+              </p>
+            } @else if (
+              form.controls.lastName.touched && form.controls.lastName.hasError('pattern')
+            ) {
+              <p class="text-xs font-medium text-red-600">
+                El apellido solo puede contener letras, espacios, apostrofes o guiones.
+              </p>
+            }
+          </div>
 
-          <section class="grid gap-5 border-t border-border/80 pt-6 md:grid-cols-2">
-            <div class="flex flex-col gap-2">
-              <label for="settings-first-name" class="text-sm font-semibold text-text-primary">
-                Nombre
-              </label>
-              <input
-                id="settings-first-name"
-                type="text"
-                formControlName="firstName"
-                [attr.maxlength]="nameMaxLength"
-                class="h-12 rounded-xl border border-border bg-white px-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
-              />
-              @if (form.controls.firstName.touched && form.controls.firstName.hasError('required')) {
-                <p class="text-xs font-medium text-red-600">El nombre es obligatorio.</p>
-              } @else if (form.controls.firstName.touched && form.controls.firstName.hasError('minlength')) {
-                <p class="text-xs font-medium text-red-600">Ingresa al menos 2 caracteres.</p>
-              } @else if (form.controls.firstName.touched && form.controls.firstName.hasError('pattern')) {
-                <p class="text-xs font-medium text-red-600">
-                  Usa solo letras, espacios, apostrofes o guiones.
-                </p>
-              }
-            </div>
-
-            <div class="flex flex-col gap-2">
-              <label for="settings-last-name" class="text-sm font-semibold text-text-primary">
-                Apellido
-              </label>
-              <input
-                id="settings-last-name"
-                type="text"
-                formControlName="lastName"
-                [attr.maxlength]="nameMaxLength"
-                class="h-12 rounded-xl border border-border bg-white px-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
-              />
-              @if (form.controls.lastName.touched && form.controls.lastName.hasError('required')) {
-                <p class="text-xs font-medium text-red-600">El apellido es obligatorio.</p>
-              } @else if (form.controls.lastName.touched && form.controls.lastName.hasError('minlength')) {
-                <p class="text-xs font-medium text-red-600">Ingresa al menos 2 caracteres.</p>
-              } @else if (form.controls.lastName.touched && form.controls.lastName.hasError('pattern')) {
-                <p class="text-xs font-medium text-red-600">
-                  Usa solo letras, espacios, apostrofes o guiones.
-                </p>
-              }
-            </div>
-
-            <div class="flex flex-col gap-2 md:col-span-2">
-              <label for="settings-email" class="text-sm font-semibold text-text-primary">
-                Correo
-              </label>
-              <input
-                id="settings-email"
-                type="email"
-                formControlName="email"
-                [attr.maxlength]="emailMaxLength"
-                class="h-12 rounded-xl border border-border bg-white px-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
-              />
-              @if (form.controls.email.touched && form.controls.email.hasError('required')) {
-                <p class="text-xs font-medium text-red-600">El correo es obligatorio.</p>
-              } @else if (form.controls.email.touched && form.controls.email.hasError('email')) {
-                <p class="text-xs font-medium text-red-600">Ingresa un correo valido.</p>
-              }
-            </div>
-
-            <div class="flex flex-col gap-2 md:col-span-2">
-              <label for="settings-phone" class="text-sm font-semibold text-text-primary">
-                Telefono
-                <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span>
-              </label>
-              <input
-                id="settings-phone"
-                type="tel"
-                formControlName="phone"
-                [attr.maxlength]="phoneMaxLength"
-                placeholder="Solo numeros"
-                class="h-12 rounded-xl border border-border bg-white px-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
-              />
-              @if (form.controls.phone.touched && form.controls.phone.hasError('pattern')) {
-                <p class="text-xs font-medium text-red-600">
-                  El telefono debe tener entre 7 y 15 digitos.
-                </p>
-              }
-            </div>
-          </section>
-        </div>
+          <div class="flex flex-col gap-2 md:col-span-2">
+            <label for="settings-phone" class="text-sm font-semibold text-text-primary">
+              Telefono
+              <span class="ml-1 text-xs font-medium text-text-secondary">Opcional</span>
+            </label>
+            <input
+              id="settings-phone"
+              type="tel"
+              formControlName="phone"
+              [attr.maxlength]="phoneLength"
+              placeholder="10 digitos"
+              class="h-12 rounded-xl border border-border bg-surface px-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+            />
+            @if (form.controls.phone.touched && form.controls.phone.hasError('pattern')) {
+              <p class="text-xs font-medium text-red-600">
+                El telefono debe contener exactamente 10 numeros.
+              </p>
+            }
+          </div>
+        </section>
       </div>
 
-      <div class="flex flex-wrap items-center justify-end gap-3 border-t border-border bg-white/95 px-6 py-4 sm:px-8">
+      <div
+        class="flex flex-wrap items-center justify-end gap-3 border-t border-border bg-surface/95 px-6 py-4 sm:px-8"
+      >
         <button
           type="button"
           (click)="resetForm()"
@@ -145,5 +139,146 @@
         </button>
       </div>
     </form>
+
+    <section class="rounded-[24px] border border-border bg-card p-6 sm:p-8 shadow-sm">
+      <div class="flex flex-col gap-2">
+        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-brand/70">Cuenta</p>
+        <h2 class="text-xl font-bold text-text-primary">Correo electronico</h2>
+        <p class="max-w-[720px] text-sm leading-6 text-text-secondary">
+          Correo asociado a tu cuenta.
+        </p>
+      </div>
+
+      <div class="mt-5 rounded-2xl border border-border bg-surface/80 px-4 py-4">
+        <p class="text-xs font-medium uppercase tracking-[0.16em] text-text-secondary">
+          Correo actual
+        </p>
+        <p class="mt-2 text-sm font-semibold text-text-primary">
+          {{ currentUser.correo }}
+        </p>
+      </div>
+
+      <div class="mt-5 flex justify-end">
+        <button
+          type="button"
+          (click)="openEmailChange()"
+          class="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90"
+        >
+          Actualizar correo
+        </button>
+      </div>
+
+      @if (isEmailChangeOpen) {
+        <section class="mt-6 border-t border-border pt-6">
+          <div class="flex flex-col gap-2">
+            <h3 class="text-lg font-bold text-text-primary">Actualizar correo</h3>
+            <p class="text-sm text-text-secondary">
+              Ingresa el nuevo correo y te enviaremos un codigo de confirmacion.
+            </p>
+          </div>
+
+          <div class="mt-5 grid gap-5 lg:grid-cols-2">
+            <form
+              [formGroup]="emailChangeRequestForm"
+              (ngSubmit)="requestEmailChange()"
+              class="flex flex-col gap-4"
+            >
+              <div class="flex flex-col gap-2">
+                <label for="settings-new-email" class="text-sm font-semibold text-text-primary">
+                  Nuevo correo
+                </label>
+                <input
+                  id="settings-new-email"
+                  type="email"
+                  formControlName="newEmail"
+                  placeholder="nuevo@correo.com"
+                  class="h-12 rounded-xl border border-border bg-surface px-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+                />
+                @if (
+                  emailChangeRequestForm.controls.newEmail.touched &&
+                  emailChangeRequestForm.controls.newEmail.hasError('required')
+                ) {
+                  <p class="text-xs font-medium text-red-600">El correo es obligatorio.</p>
+                } @else if (
+                  emailChangeRequestForm.controls.newEmail.touched &&
+                  emailChangeRequestForm.controls.newEmail.hasError('email')
+                ) {
+                  <p class="text-xs font-medium text-red-600">Ingresa un correo valido.</p>
+                }
+              </div>
+
+              <div class="flex flex-wrap gap-3">
+                <button
+                  type="submit"
+                  [disabled]="isRequestingEmailChange"
+                  class="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {{ isRequestingEmailChange ? 'Enviando...' : 'Enviar codigo' }}
+                </button>
+                <button
+                  type="button"
+                  (click)="cancelEmailChange()"
+                  class="rounded-xl px-5 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-background"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+
+            <form
+              [formGroup]="emailChangeConfirmForm"
+              (ngSubmit)="confirmEmailChange()"
+              class="flex flex-col gap-4"
+            >
+              <div class="flex flex-col gap-2">
+                <label for="settings-email-code" class="text-sm font-semibold text-text-primary">
+                  Codigo de confirmacion
+                </label>
+                <input
+                  id="settings-email-code"
+                  type="text"
+                  formControlName="code"
+                  [disabled]="!pendingNewEmail"
+                  [attr.maxlength]="6"
+                  placeholder="6 digitos"
+                  class="h-12 rounded-xl border border-border bg-surface px-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+                @if (
+                  emailChangeConfirmForm.controls.code.touched &&
+                  emailChangeConfirmForm.controls.code.hasError('required')
+                ) {
+                  <p class="text-xs font-medium text-red-600">El codigo es obligatorio.</p>
+                } @else if (
+                  emailChangeConfirmForm.controls.code.touched &&
+                  emailChangeConfirmForm.controls.code.hasError('pattern')
+                ) {
+                  <p class="text-xs font-medium text-red-600">
+                    Ingresa un codigo valido de 6 digitos.
+                  </p>
+                } @else if (!pendingNewEmail) {
+                  <p class="text-xs font-medium text-text-secondary">
+                    Primero solicita el codigo al nuevo correo.
+                  </p>
+                } @else {
+                  <p class="text-xs font-medium text-text-secondary">
+                    Codigo enviado a {{ pendingNewEmail }}.
+                  </p>
+                }
+              </div>
+
+              <div class="flex flex-wrap gap-3">
+                <button
+                  type="submit"
+                  [disabled]="isConfirmingEmailChange || !pendingNewEmail"
+                  class="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {{ isConfirmingEmailChange ? 'Confirmando...' : 'Confirmar cambio' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      }
+    </section>
   }
 </div>
