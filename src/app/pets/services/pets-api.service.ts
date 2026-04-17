@@ -12,9 +12,15 @@ import {
   PetBasicDetailApiResponse,
   PetClinicalObservationApiResponse,
   PetDetailCatalogApiResponse,
+  PetProcedureHistoryApiResponse,
+  PetRecentActivityApiResponse,
   PetTutorApiResponse,
 } from '../models/pet-detail.model';
 import { PetListApiResponse, PetListQuery } from '../models/pet-list.model';
+import {
+  PetSurgeryApiResponse,
+  UpsertPetSurgeryRequest,
+} from '../models/pet-surgery.model';
 import { UpdatePetBasicRequest } from '../models/update-pet-basic.model';
 
 @Injectable({
@@ -105,6 +111,40 @@ export class PetsApiService {
       .pipe(map((response) => this.mapPatientDetail(response)));
   }
 
+  createProfileSurgery(
+    id: number | string,
+    payload: UpsertPetSurgeryRequest,
+  ): Observable<PetSurgeryApiResponse> {
+    return this.http.post<PetSurgeryApiResponse>(
+      buildApiUrl(`patients/admin/${encodeURIComponent(String(id))}/surgeries`),
+      payload,
+    );
+  }
+
+  updateProfileSurgery(
+    id: number | string,
+    surgeryId: number | string,
+    payload: UpsertPetSurgeryRequest,
+  ): Observable<PetSurgeryApiResponse> {
+    return this.http.patch<PetSurgeryApiResponse>(
+      buildApiUrl(
+        `patients/admin/${encodeURIComponent(String(id))}/surgeries/${encodeURIComponent(String(surgeryId))}`,
+      ),
+      payload,
+    );
+  }
+
+  deleteProfileSurgery(
+    id: number | string,
+    surgeryId: number | string,
+  ): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(
+      buildApiUrl(
+        `patients/admin/${encodeURIComponent(String(id))}/surgeries/${encodeURIComponent(String(surgeryId))}`,
+      ),
+    );
+  }
+
   private buildPetFormData(payload: CreatePetRequest | UpdatePetBasicRequest): FormData {
     const formData = new FormData();
 
@@ -118,6 +158,7 @@ export class PetsApiService {
     this.appendPrimitive(formData, 'generalAllergies', payload.generalAllergies);
     this.appendPrimitive(formData, 'generalHistory', payload.generalHistory);
     this.appendPrimitive(formData, 'sterilized', payload.sterilized);
+    this.appendJson(formData, 'surgeries', payload.surgeries);
 
     if ('clientId' in payload) {
       this.appendPrimitive(formData, 'clientId', payload.clientId);
@@ -151,6 +192,7 @@ export class PetsApiService {
     this.appendPrimitive(formData, 'distinguishingMarks', payload.distinguishingMarks);
     this.appendPrimitive(formData, 'generalAllergies', payload.generalAllergies);
     this.appendPrimitive(formData, 'generalHistory', payload.generalHistory);
+    this.appendJson(formData, 'surgeries', payload.surgeries);
 
     if (payload.image) {
       formData.append('image', payload.image, payload.image.name);
@@ -165,6 +207,14 @@ export class PetsApiService {
     }
 
     formData.append(key, String(value));
+  }
+
+  private appendJson(formData: FormData, key: string, value: unknown): void {
+    if (value === undefined) {
+      return;
+    }
+
+    formData.append(key, JSON.stringify(value));
   }
 
   private mapPatientDetail(response: PatientDetailResponse): PetBasicDetailApiResponse {
@@ -186,6 +236,8 @@ export class PetsApiService {
       image: response.image ?? null,
       tutors: [...(response.tutors ?? [])].sort((left, right) => Number(right.isPrimary) - Number(left.isPrimary)),
       clinicalObservations: response.conditions ?? response.clinicalObservations ?? [],
+      surgeries: response.surgeries ?? [],
+      procedures: response.procedures ?? [],
       recentActivity: response.recentActivity ?? null,
     };
   }
@@ -262,5 +314,7 @@ interface PatientDetailResponse {
   tutors?: PetTutorApiResponse[];
   conditions?: PetClinicalObservationApiResponse[];
   clinicalObservations?: PetClinicalObservationApiResponse[];
-  recentActivity?: unknown | null;
+  surgeries?: PetSurgeryApiResponse[];
+  procedures?: PetProcedureHistoryApiResponse[];
+  recentActivity?: PetRecentActivityApiResponse | null;
 }
