@@ -226,8 +226,15 @@ export const routes: Routes = [
         canActivate: [authGuard],
         data: { roles: staffRoles },
         loadComponent: () =>
-          import('@app/internal-section-page/internal-section-page.component').then(
-            (m) => m.InternalSectionPageComponent,
+          import('@app/history/list/history-page.component').then((m) => m.HistoryPageComponent),
+      },
+      {
+        path: 'history/:id',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/history/detail/history-detail-page.component').then(
+            (m) => m.HistoryDetailPageComponent,
           ),
       },
       {

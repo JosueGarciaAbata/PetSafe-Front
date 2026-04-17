@@ -14,6 +14,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged, firstValueFrom, map, tap } from 'rxjs';
+import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
+import { AppToastService } from '@app/core/ui/app-toast.service';
 import { OwnersApiService } from '@app/owners/api/owners-api.service';
 import { ClientPetApiResponse } from '@app/owners/models/client-pet.model';
 import { ClientTutorBasicApiResponse } from '@app/owners/models/client-tutor-basic.model';
@@ -21,6 +23,7 @@ import { PetsApiService } from '@app/pets/services/pets-api.service';
 import { PetListItemApiResponse } from '@app/pets/models/pet-list.model';
 import { QueueApiService } from '../api/queue-api.service';
 import { QueueEntryCreateRequest, QueueEntryType } from '../models/queue.model';
+import { resolveQueueEntryCreateErrorMessage } from '../utils/queue-entry-error-message.util';
 
 interface QueueSelectedPet {
   id: number;
@@ -63,6 +66,7 @@ export class QueueIntakePageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly toast = inject(AppToastService);
   private readonly lookupLimit = 6;
   private lookupRequestVersion = 0;
   private tutorPetsRequestVersion = 0;
@@ -342,8 +346,9 @@ export class QueueIntakePageComponent implements OnInit {
 
       const createdEntry = await firstValueFrom(this.queueApi.createEntry(payload));
       await this.router.navigate(['/queue'], { state: { entryId: createdEntry.id } });
-    } catch {
-      this.errorMessage = 'No se pudo registrar el paciente en la cola. Intenta nuevamente.';
+    } catch (error: unknown) {
+      this.errorMessage = null;
+      this.toast.error(resolveQueueEntryCreateErrorMessage(error));
     } finally {
       this.isSaving = false;
       this.cdr.markForCheck();

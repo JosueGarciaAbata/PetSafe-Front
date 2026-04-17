@@ -4,10 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '@app/core/auth/auth.service';
-import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
-import { AppToastService } from '@app/core/ui/app-toast.service';
-import { SpeciesApiResponse } from '@app/pets/models/species.model';
-import { SpeciesApiService } from '@app/pets/services/species-api.service';
 import { ShellIconComponent } from '@app/shell/shell-icon.component';
 import { EMPTY_PAGINATION_META, PaginationMeta } from '@app/shared/pagination/pagination.model';
 import { PaginationComponent } from '@app/shared/pagination/pagination.component';
@@ -23,13 +19,10 @@ import { VaccinationScheme } from '../models/vaccination-admin.model';
 })
 export class VaccinationSchemesPageComponent implements OnInit {
   private readonly router = inject(Router);
-  private readonly speciesApi = inject(SpeciesApiService);
   private readonly vaccinationApi = inject(VaccinationAdminApiService);
   private readonly authService = inject(AuthService);
-  private readonly toast = inject(AppToastService);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  protected readonly speciesOptions: SpeciesApiResponse[] = [];
   protected readonly schemes: VaccinationScheme[] = [];
   protected readonly filter = {
     term: '',
@@ -37,16 +30,18 @@ export class VaccinationSchemesPageComponent implements OnInit {
   protected readonly paginationMeta: PaginationMeta = { ...EMPTY_PAGINATION_META, itemsPerPage: 8 };
 
   protected isLoading = false;
-  protected isLoadingSpecies = false;
   protected loadError: string | null = null;
 
   ngOnInit(): void {
-    void this.loadSpecies();
     void this.loadSchemes();
   }
 
   protected canManageSchemes(): boolean {
     return this.authService.hasAnyRole(['ADMIN', 'MVZ']);
+  }
+
+  protected retryLoadSchemes(): void {
+    void this.loadSchemes();
   }
 
   protected visibleSchemes(): VaccinationScheme[] {
@@ -96,21 +91,6 @@ export class VaccinationSchemesPageComponent implements OnInit {
     return activeVersion ? `v${activeVersion.version}` : 'Sin versión vigente';
   }
 
-  private async loadSpecies(): Promise<void> {
-    this.isLoadingSpecies = true;
-    this.cdr.detectChanges();
-
-    try {
-      const response = await firstValueFrom(this.speciesApi.list({ page: 1, limit: 100 }));
-      this.speciesOptions.splice(0, this.speciesOptions.length, ...response.data);
-    } catch {
-      this.toast.error('No se pudo cargar la lista de especies.');
-    } finally {
-      this.isLoadingSpecies = false;
-      this.cdr.detectChanges();
-    }
-  }
-
   private async loadSchemes(): Promise<void> {
     this.isLoading = true;
     this.loadError = null;
@@ -120,10 +100,8 @@ export class VaccinationSchemesPageComponent implements OnInit {
       const response = await firstValueFrom(this.vaccinationApi.listSchemes());
       this.schemes.splice(0, this.schemes.length, ...response);
       this.syncPagination();
-    } catch (error: unknown) {
-      this.loadError = resolveApiErrorMessage(error, {
-        defaultMessage: 'No se pudieron cargar los esquemas vacunales.',
-      });
+    } catch {
+      this.loadError = 'No se pudieron cargar los esquemas vacunales.';
     } finally {
       this.isLoading = false;
       this.cdr.detectChanges();

@@ -3,6 +3,9 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { buildApiUrl } from '@app/core/config/api.config';
 import {
+  AuthEmailChangeConfirmRequest,
+  AuthEmailChangeConfirmResponse,
+  AuthEmailChangeRequest,
   AuthLoginRequest,
   AuthLoginResponse,
   AuthMessageResponse,
@@ -16,11 +19,23 @@ import {
 export class AuthApiService {
   private readonly http = inject(HttpClient);
   private readonly loginUrl = buildApiUrl('auth/login');
+  private readonly emailChangeRequestUrl = buildApiUrl('auth/email-change/request');
+  private readonly emailChangeConfirmUrl = buildApiUrl('auth/email-change/confirm');
   private readonly passwordResetRequestUrl = buildApiUrl('auth/password-reset/request');
   private readonly passwordResetConfirmUrl = buildApiUrl('auth/password-reset/confirm');
 
   login(payload: AuthLoginRequest): Observable<AuthLoginResponse> {
     return this.http.post<AuthLoginResponse>(this.loginUrl, payload);
+  }
+
+  requestEmailChange(payload: AuthEmailChangeRequest): Observable<AuthMessageResponse> {
+    return this.http.post<AuthMessageResponse>(this.emailChangeRequestUrl, payload);
+  }
+
+  confirmEmailChange(
+    payload: AuthEmailChangeConfirmRequest,
+  ): Observable<AuthEmailChangeConfirmResponse> {
+    return this.http.post<AuthEmailChangeConfirmResponse>(this.emailChangeConfirmUrl, payload);
   }
 
   requestPasswordReset(payload: AuthPasswordResetRequest): Observable<AuthMessageResponse> {
@@ -35,9 +50,7 @@ export class AuthApiService {
     id: string | number,
     payload: AuthUpdateProfileRequest,
   ): Observable<AuthUserProfileResponse> {
-    return this.http.patch<AuthUserProfileResponse>(
-      buildApiUrl(`users/${encodeURIComponent(String(id))}`),
-      payload,
-    );
+    void id;
+    return this.http.patch<AuthUserProfileResponse>(buildApiUrl('users/me'), payload);
   }
 }

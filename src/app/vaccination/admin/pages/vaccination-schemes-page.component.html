@@ -60,8 +60,17 @@
             </tr>
           } @else if (loadError) {
             <tr>
-              <td colspan="5" class="px-8 py-16 text-center text-sm text-text-secondary">
-                {{ loadError }}
+              <td colspan="5" class="px-8 py-16">
+                <div class="flex flex-col items-center gap-3 text-center">
+                  <p class="text-sm font-semibold text-text-primary">{{ loadError }}</p>
+                  <button
+                    type="button"
+                    (click)="retryLoadSchemes()"
+                    class="inline-flex cursor-pointer items-center rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:opacity-90"
+                  >
+                    Reintentar
+                  </button>
+                </div>
               </td>
             </tr>
           } @else if (visibleSchemes().length === 0) {

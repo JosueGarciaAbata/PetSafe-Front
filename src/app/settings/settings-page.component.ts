@@ -2,20 +2,24 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
+import { Router } from '@angular/router';
 import { AuthApiService } from '@app/core/auth/auth-api.service';
 import {
+  AuthEmailChangeConfirmResponse,
   AuthStoredUser,
   AuthUpdateProfileRequest,
   AuthUserProfileResponse,
 } from '@app/core/auth/auth.model';
 import { AuthService } from '@app/core/auth/auth.service';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
+import { AppToastService } from '@app/core/ui/app-toast.service';
 
-const NAME_PATTERN = /^[A-Za-zÀ-ÿ' -]+$/;
-const PHONE_PATTERN = /^\d{7,15}$/;
-const NAME_MAX_LENGTH = 60;
-const EMAIL_MAX_LENGTH = 120;
-const PHONE_MAX_LENGTH = 15;
+const NAME_MIN_LENGTH = 3;
+const NAME_MAX_LENGTH = 20;
+const NAME_PATTERN = /^[\p{L}' -]+$/u;
+const PHONE_PATTERN = /^\d{10}$/;
+const PHONE_LENGTH = 10;
+const EMAIL_CHANGE_CODE_PATTERN = /^\d{6}$/;
 
 @Component({
   selector: 'app-settings-page',
@@ -28,22 +32,26 @@ export class SettingsPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly authApi = inject(AuthApiService);
+  private readonly toast = inject(AppToastService);
+  private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
 
   protected currentUser: AuthStoredUser | null = null;
   protected isSaving = false;
+  protected isEmailChangeOpen = false;
+  protected isRequestingEmailChange = false;
+  protected isConfirmingEmailChange = false;
+  protected pendingNewEmail: string | null = null;
   protected errorMessage: string | null = null;
   protected successMessage: string | null = null;
   protected readonly nameMaxLength = NAME_MAX_LENGTH;
-  protected readonly emailMaxLength = EMAIL_MAX_LENGTH;
-  protected readonly phoneMaxLength = PHONE_MAX_LENGTH;
+  protected readonly phoneLength = PHONE_LENGTH;
   protected readonly form = this.fb.nonNullable.group({
-    email: ['', [Validators.required, Validators.email, Validators.maxLength(EMAIL_MAX_LENGTH)]],
     firstName: [
       '',
       [
         Validators.required,
-        Validators.minLength(2),
+        Validators.minLength(NAME_MIN_LENGTH),
         Validators.maxLength(NAME_MAX_LENGTH),
         Validators.pattern(NAME_PATTERN),
       ],
@@ -52,12 +60,18 @@ export class SettingsPageComponent implements OnInit {
       '',
       [
         Validators.required,
-        Validators.minLength(2),
+        Validators.minLength(NAME_MIN_LENGTH),
         Validators.maxLength(NAME_MAX_LENGTH),
         Validators.pattern(NAME_PATTERN),
       ],
     ],
-    phone: ['', [Validators.maxLength(PHONE_MAX_LENGTH), Validators.pattern(PHONE_PATTERN)]],
+    phone: ['', [Validators.pattern(PHONE_PATTERN)]],
+  });
+  protected readonly emailChangeRequestForm = this.fb.nonNullable.group({
+    newEmail: ['', [Validators.required, Validators.email]],
+  });
+  protected readonly emailChangeConfirmForm = this.fb.nonNullable.group({
+    code: ['', [Validators.required, Validators.pattern(EMAIL_CHANGE_CODE_PATTERN)]],
   });
 
   ngOnInit(): void {
@@ -94,6 +108,7 @@ export class SettingsPageComponent implements OnInit {
       this.currentUser = updatedUser;
       this.authService.saveUser(updatedUser);
       this.successMessage = 'Los datos de tu cuenta se actualizaron correctamente.';
+      this.toast.success(this.successMessage);
       this.form.markAsPristine();
     } catch (error: unknown) {
       this.errorMessage = resolveApiErrorMessage(error, {
@@ -101,6 +116,7 @@ export class SettingsPageComponent implements OnInit {
         clientErrorMessage: 'Revisa los datos ingresados antes de guardar.',
         unauthorizedMessage: 'Tu sesion ya no tiene permisos para actualizar esta cuenta.',
       });
+      this.toast.error(this.errorMessage);
     } finally {
       this.isSaving = false;
       this.cdr.markForCheck();
@@ -113,7 +129,6 @@ export class SettingsPageComponent implements OnInit {
     }
 
     this.form.reset({
-      email: this.currentUser.correo,
       firstName: this.currentUser.nombres,
       lastName: this.currentUser.apellidos,
       phone: this.currentUser.telefono,
@@ -123,23 +138,94 @@ export class SettingsPageComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
-  protected getRoleLabel(): string {
-    if (!this.currentUser) {
-      return 'Usuario';
+  protected openEmailChange(): void {
+    this.isEmailChangeOpen = true;
+    this.pendingNewEmail = null;
+    this.emailChangeRequestForm.reset({ newEmail: '' });
+    this.emailChangeConfirmForm.reset({ code: '' });
+    this.cdr.markForCheck();
+  }
+
+  protected cancelEmailChange(): void {
+    this.isEmailChangeOpen = false;
+    this.pendingNewEmail = null;
+    this.isRequestingEmailChange = false;
+    this.isConfirmingEmailChange = false;
+    this.emailChangeRequestForm.reset({ newEmail: '' });
+    this.emailChangeConfirmForm.reset({ code: '' });
+    this.cdr.markForCheck();
+  }
+
+  protected async requestEmailChange(): Promise<void> {
+    if (this.isRequestingEmailChange || this.emailChangeRequestForm.invalid) {
+      this.emailChangeRequestForm.markAllAsTouched();
+      this.cdr.markForCheck();
+      return;
     }
 
-    if (this.currentUser.roles.some((role) => role.trim().toUpperCase() === 'ADMIN')) {
-      return 'Administrador';
+    this.isRequestingEmailChange = true;
+    this.cdr.markForCheck();
+
+    try {
+      const newEmail = this.emailChangeRequestForm.controls.newEmail.value.trim().toLowerCase();
+      const response = await firstValueFrom(this.authApi.requestEmailChange({ newEmail }));
+      this.pendingNewEmail = newEmail;
+      this.emailChangeConfirmForm.reset({ code: '' });
+      this.toast.success(response.message);
+    } catch (error: unknown) {
+      this.toast.error(
+        resolveApiErrorMessage(error, {
+          defaultMessage: 'No se pudo solicitar el cambio de correo.',
+          clientErrorMessage: 'Revisa el correo ingresado antes de continuar.',
+          unauthorizedMessage: 'Tu sesion ya no tiene permisos para realizar esta accion.',
+        }),
+      );
+    } finally {
+      this.isRequestingEmailChange = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  protected async confirmEmailChange(): Promise<void> {
+    if (
+      this.isConfirmingEmailChange ||
+      !this.pendingNewEmail ||
+      this.emailChangeConfirmForm.invalid
+    ) {
+      this.emailChangeConfirmForm.markAllAsTouched();
+      this.cdr.markForCheck();
+      return;
     }
 
-    return this.currentUser.isVet ? 'Medico veterinario' : 'Usuario interno';
+    this.isConfirmingEmailChange = true;
+    this.cdr.markForCheck();
+
+    try {
+      const response = await firstValueFrom(
+        this.authApi.confirmEmailChange({
+          newEmail: this.pendingNewEmail,
+          code: this.emailChangeConfirmForm.controls.code.value.trim(),
+        }),
+      );
+      this.handleEmailChangeConfirmed(response);
+    } catch (error: unknown) {
+      this.toast.error(
+        resolveApiErrorMessage(error, {
+          defaultMessage: 'No se pudo confirmar el cambio de correo.',
+          unauthorizedMessage: 'El codigo es invalido o ha expirado.',
+          clientErrorMessage: 'Revisa el codigo e intenta nuevamente.',
+        }),
+      );
+    } finally {
+      this.isConfirmingEmailChange = false;
+      this.cdr.markForCheck();
+    }
   }
 
   private buildPayload(): AuthUpdateProfileRequest {
     const value = this.form.getRawValue();
 
     return {
-      email: value.email.trim(),
       firstName: this.normalizeWhitespace(value.firstName),
       lastName: this.normalizeWhitespace(value.lastName),
       phone: value.phone.trim() || undefined,
@@ -158,9 +244,9 @@ export class SettingsPageComponent implements OnInit {
 
     return {
       id: String(response.id ?? currentUser.id),
-      correo: response.email?.trim() || payload.email,
-      nombres: response.firstName?.trim() || payload.firstName,
-      apellidos: response.lastName?.trim() || payload.lastName,
+      correo: response.email?.trim() || currentUser.correo,
+      nombres: response.firstName?.trim() || payload.firstName || currentUser.nombres,
+      apellidos: response.lastName?.trim() || payload.lastName || currentUser.apellidos,
       telefono: response.phone?.trim() || payload.phone || '',
       roles: Array.isArray(response.roles) ? response.roles : currentUser.roles,
       isVet: typeof response.isVet === 'boolean' ? response.isVet : currentUser.isVet,
@@ -169,5 +255,23 @@ export class SettingsPageComponent implements OnInit {
 
   private normalizeWhitespace(value: string): string {
     return value.trim().replace(/\s+/g, ' ');
+  }
+
+  private handleEmailChangeConfirmed(response: AuthEmailChangeConfirmResponse): void {
+    if (response.requiresReauth) {
+      this.authService.clearSession();
+      this.toast.success(response.message);
+      void this.router.navigateByUrl('/login', { replaceUrl: true });
+      return;
+    }
+
+    if (this.currentUser) {
+      const updatedUser = { ...this.currentUser, correo: response.email };
+      this.currentUser = updatedUser;
+      this.authService.saveUser(updatedUser);
+    }
+
+    this.cancelEmailChange();
+    this.toast.success(response.message);
   }
 }

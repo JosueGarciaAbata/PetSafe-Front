@@ -11,8 +11,10 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
+import { AppToastService } from '@app/core/ui/app-toast.service';
 import { AppointmentsApiService } from '../api/appointments-api.service';
 import { QueueApiService } from '@app/queue/api/queue-api.service';
+import { resolveQueueEntryCreateErrorMessage } from '@app/queue/utils/queue-entry-error-message.util';
 import {
   AppointmentRecord,
   AppointmentStatus,
@@ -36,13 +38,13 @@ export class AppointmentDetailModalComponent {
   private readonly queueApi = inject(QueueApiService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly toast = inject(AppToastService);
 
   @Input({ required: true }) appointment!: AppointmentRecord;
   @Output() readonly closed = new EventEmitter<void>();
   @Output() readonly updated = new EventEmitter<void>();
 
   protected isSaving = false;
-  protected submitError: string | null = null;
   protected activeAction: AppointmentAction = null;
 
   protected close(): void {
@@ -187,7 +189,6 @@ export class AppointmentDetailModalComponent {
 
     this.activeAction = 'confirm';
     this.isSaving = true;
-    this.submitError = null;
     this.cdr.markForCheck();
 
     try {
@@ -195,9 +196,11 @@ export class AppointmentDetailModalComponent {
       this.updated.emit();
       this.close();
     } catch (error) {
-      this.submitError = resolveApiErrorMessage(error, {
-        defaultMessage: 'No se pudo confirmar la cita.',
-      });
+      this.toast.error(
+        resolveApiErrorMessage(error, {
+          defaultMessage: 'No se pudo confirmar la cita.',
+        }),
+      );
       this.activeAction = null;
       this.isSaving = false;
       this.cdr.markForCheck();
@@ -211,7 +214,6 @@ export class AppointmentDetailModalComponent {
 
     this.activeAction = 'cancel';
     this.isSaving = true;
-    this.submitError = null;
     this.cdr.markForCheck();
 
     try {
@@ -219,9 +221,11 @@ export class AppointmentDetailModalComponent {
       this.updated.emit();
       this.close();
     } catch (error) {
-      this.submitError = resolveApiErrorMessage(error, {
-        defaultMessage: 'No se pudo cancelar la cita.',
-      });
+      this.toast.error(
+        resolveApiErrorMessage(error, {
+          defaultMessage: 'No se pudo cancelar la cita.',
+        }),
+      );
       this.activeAction = null;
       this.isSaving = false;
       this.cdr.markForCheck();
@@ -235,7 +239,6 @@ export class AppointmentDetailModalComponent {
 
     this.activeAction = 'arrival';
     this.isSaving = true;
-    this.submitError = null;
     this.cdr.markForCheck();
 
     try {
@@ -253,9 +256,7 @@ export class AppointmentDetailModalComponent {
       this.close();
       await this.router.navigate(['/queue'], { state: { entryId: entry.id } });
     } catch (error) {
-      this.submitError = resolveApiErrorMessage(error, {
-        defaultMessage: 'No se pudo registrar la llegada en la cola de atencion.',
-      });
+      this.toast.error(resolveQueueEntryCreateErrorMessage(error));
       this.activeAction = null;
       this.isSaving = false;
       this.cdr.markForCheck();
@@ -269,7 +270,6 @@ export class AppointmentDetailModalComponent {
 
     this.activeAction = 'noShow';
     this.isSaving = true;
-    this.submitError = null;
     this.cdr.markForCheck();
 
     try {
@@ -277,9 +277,11 @@ export class AppointmentDetailModalComponent {
       this.updated.emit();
       this.close();
     } catch (error) {
-      this.submitError = resolveApiErrorMessage(error, {
-        defaultMessage: 'No se pudo marcar la cita como no asistio.',
-      });
+      this.toast.error(
+        resolveApiErrorMessage(error, {
+          defaultMessage: 'No se pudo marcar la cita como no asistio.',
+        }),
+      );
       this.activeAction = null;
       this.isSaving = false;
       this.cdr.markForCheck();

@@ -62,6 +62,7 @@ export class PetVaccinationPageComponent implements OnInit {
   private requestVersion = 0;
   private productsRequestVersion = 0;
   private doctorsRequestVersion = 0;
+  private petId = '';
   private backTarget: readonly (string | number)[] = ['/pets'];
 
   protected backLabel = 'Volver a mascotas';
@@ -107,6 +108,7 @@ export class PetVaccinationPageComponent implements OnInit {
         return;
       }
 
+      this.petId = petId;
       this.backTarget = navigationState?.backTarget ?? ['/pets', Number(petId)];
       this.backLabel = navigationState?.backLabel?.trim() || 'Volver al detalle';
 
@@ -123,6 +125,17 @@ export class PetVaccinationPageComponent implements OnInit {
       void this.loadPet(petId, requestToken);
       void this.loadPlan(petId, requestToken);
     });
+  }
+
+  protected retryLoad(): void {
+    const requestToken = ++this.requestVersion;
+    this.petLoadError = null;
+    this.planLoadError = null;
+    this.isLoadingPet = true;
+    this.isLoadingPlan = true;
+    this.cdr.detectChanges();
+    void this.loadPet(this.petId, requestToken);
+    void this.loadPlan(this.petId, requestToken);
   }
 
   protected canManageApplications(): boolean {
@@ -182,11 +195,10 @@ export class PetVaccinationPageComponent implements OnInit {
       this.hasMissingVaccinationPlan = false;
       this.isInitializePlanModalOpen = false;
     } catch (error: unknown) {
-      const resolvedMessage = this.resolveVaccinationPlanOperationError(error, {
+      this.initializePlanSubmitError = this.resolveVaccinationPlanOperationError(error, {
         defaultMessage: 'No se pudo generar el plan vacunal.',
       });
-      this.initializePlanSubmitError = resolvedMessage;
-      this.planLoadError = resolvedMessage;
+      this.toast.error(this.initializePlanSubmitError);
     } finally {
       this.isGeneratingVaccinationPlan = false;
       this.cdr.detectChanges();

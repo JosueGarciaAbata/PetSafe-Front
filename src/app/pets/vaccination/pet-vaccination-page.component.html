@@ -9,9 +9,18 @@
   </button>
 
   @if (petLoadError) {
-    <div class="rounded-[16px] border border-border bg-card p-8 text-sm text-text-secondary shadow-sm">
-      {{ petLoadError }}
-    </div>
+    <section class="rounded-[20px] border border-border bg-card p-8 shadow-sm">
+      <div class="flex flex-col items-center gap-3 py-8 text-center">
+        <p class="text-sm font-semibold text-text-primary">{{ petLoadError }}</p>
+        <button
+          type="button"
+          (click)="retryLoad()"
+          class="inline-flex cursor-pointer items-center rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:opacity-90"
+        >
+          Reintentar
+        </button>
+      </div>
+    </section>
   } @else {
     <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <header class="flex flex-col gap-2">
@@ -77,9 +86,18 @@
         }
       </div>
     } @else if (planLoadError) {
-      <div class="ps-tone ps-tone--danger ps-tone-surface rounded-[24px] border p-6 text-sm leading-6 shadow-sm">
-        {{ planLoadError }}
-      </div>
+      <section class="rounded-[20px] border border-border bg-card p-8 shadow-sm">
+        <div class="flex flex-col items-center gap-3 py-8 text-center">
+          <p class="text-sm font-semibold text-text-primary">{{ planLoadError }}</p>
+          <button
+            type="button"
+            (click)="retryLoad()"
+            class="inline-flex cursor-pointer items-center rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:opacity-90"
+          >
+            Reintentar
+          </button>
+        </div>
+      </section>
     } @else if (plan) {
       <div class="grid gap-4 md:grid-cols-3">
         <div class="rounded-[24px] border border-border bg-card p-6 shadow-sm md:col-span-2">

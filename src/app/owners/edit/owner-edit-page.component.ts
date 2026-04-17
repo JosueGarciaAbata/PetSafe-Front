@@ -129,6 +129,10 @@ export class OwnerEditPageComponent implements OnInit {
     }
   }
 
+  protected retryLoad(): void {
+    void this.loadOwner();
+  }
+
   private async loadOwner(): Promise<void> {
     this.isLoading = true;
     this.loadError = null;

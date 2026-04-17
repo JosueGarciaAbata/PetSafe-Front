@@ -12,6 +12,7 @@ import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged, firstValueFrom } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
+import { AppToastService } from '@app/core/ui/app-toast.service';
 import { PaginationComponent } from '@app/shared/pagination/pagination.component';
 import { EMPTY_PAGINATION_META, PaginationMeta } from '@app/shared/pagination/pagination.model';
 import { QueueApiService } from '../api/queue-api.service';
@@ -44,6 +45,7 @@ export class QueuePageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly toast = inject(AppToastService);
   private readonly pageSize = 15;
   private requestVersion = 0;
   private pendingEntryIdToReveal: number | null = null;
@@ -332,7 +334,6 @@ export class QueuePageComponent implements OnInit {
       return;
     }
 
-    this.loadError = null;
     this.cdr.detectChanges();
 
     const encounterPayload = {
@@ -360,9 +361,10 @@ export class QueuePageComponent implements OnInit {
         await this.loadQueue(this.paginationMeta.currentPage || 1);
       }
 
-      this.loadError = resolveApiErrorMessage(error, {
+      const actionError = resolveApiErrorMessage(error, {
         defaultMessage: 'No se pudo iniciar la consulta médica para este paciente.',
       });
+      this.toast.error(actionError);
       this.cdr.detectChanges();
     }
   }
@@ -532,12 +534,13 @@ export class QueuePageComponent implements OnInit {
         this.selectedEntryId = entry.id;
       }
     } catch (error) {
-      this.loadError = resolveApiErrorMessage(error, {
+      const actionError = resolveApiErrorMessage(error, {
         defaultMessage:
           pendingActionType === 'finish'
-            ? 'No se pudo finalizar la atenciA3n de este paciente.'
+            ? 'No se pudo finalizar la atención de este paciente.'
             : 'No se pudo cancelar el ingreso de este paciente.',
       });
+      this.toast.error(actionError);
       this.cdr.detectChanges();
     }
   }
