@@ -26,6 +26,7 @@ const EMAIL_CHANGE_CODE_PATTERN = /^\d{6}$/;
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './settings-page.component.html',
+  styleUrl: './settings-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SettingsPageComponent implements OnInit {

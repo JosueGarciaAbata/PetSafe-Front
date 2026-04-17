@@ -13,6 +13,31 @@ export interface VaccinationProductItem {
   isActive: boolean;
 }
 
+export interface VaccinationRecordListItem {
+  id: number;
+  vaccineName: string;
+  applicationDate: string;
+  nextDoseDate: string | null;
+  isExternal: boolean;
+  notes: string | null;
+  patientId: number;
+  patientName: string;
+  encounterId: number | null;
+}
+
+export interface VaccinationRecordListResponse {
+  data: VaccinationRecordListItem[];
+  meta: {
+    totalItems: number;
+    itemCount: number;
+    itemsPerPage: number;
+    totalPages: number;
+    currentPage: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
 export interface CreateVaccinationProductRequest {
   name: string;
   speciesId: number;
