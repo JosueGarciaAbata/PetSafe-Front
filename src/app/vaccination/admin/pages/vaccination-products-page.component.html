@@ -1,9 +1,9 @@
-<div class="mx-auto flex max-w-[1400px] flex-col gap-8 pb-12">
-  <header class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-    <div class="flex flex-col gap-1">
+<div class="ps-page">
+  <header class="ps-page-header">
+    <div class="ps-page-header__titles">
       <p class="text-sm font-semibold uppercase tracking-[0.24em] text-brand/70">Vacunacion</p>
-      <h1 class="text-[28px] font-bold text-text-primary">Productos biologicos</h1>
-      <p class="text-base text-text-secondary">
+      <h1 class="ps-page-title">Productos biologicos</h1>
+      <p class="ps-page-subtitle">
         Gestiona el catalogo activo de vacunas por especie.
       </p>
     </div>
@@ -12,7 +12,7 @@
       <button
         type="button"
         (click)="openCreateModal()"
-        class="inline-flex cursor-pointer items-center gap-2 self-start rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 md:self-auto"
+        class="ps-btn--primary self-start md:self-auto"
       >
         <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
           <path d="M12 5v14M5 12h14"></path>
@@ -23,8 +23,8 @@
   </header>
 
   <div class="max-w-[520px]">
-    <div class="group relative">
-      <div class="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary transition-colors group-focus-within:text-brand">
+    <div class="ps-search">
+      <div class="ps-search__icon">
         <app-shell-icon name="search" [size]="18"></app-shell-icon>
       </div>
       <input
@@ -33,7 +33,7 @@
         (ngModelChange)="onFilterTermChange()"
         name="productsSearch"
         placeholder="Buscar por nombre, especie o tipo"
-        class="h-12 w-full rounded-xl border border-border bg-surface pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+        class="ps-search__input"
       />
     </div>
   </div>
@@ -80,7 +80,7 @@
     </button>
   </div>
 
-  <section class="overflow-hidden rounded-[16px] border border-border bg-card shadow-sm">
+  <section class="ps-card">
     @if (isLoading) {
       <div class="px-8 py-16 text-center text-sm text-text-secondary">
         Cargando productos vacunales...
