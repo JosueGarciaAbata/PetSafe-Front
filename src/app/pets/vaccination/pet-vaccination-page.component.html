@@ -57,11 +57,11 @@
       </div>
       <div class="h-64 animate-pulse rounded-[24px] bg-background"></div>
     } @else if (hasMissingVaccinationPlan) {
-      <div class="rounded-[24px] border border-[#fef3c7] bg-[#fffbeb] p-6 shadow-sm">
+      <div class="ps-tone ps-tone--warning ps-tone-surface rounded-[24px] border p-6 shadow-sm">
         <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div class="flex flex-col gap-1">
-            <span class="text-base font-bold text-[#92400e]">Sin plan vacunal generado</span>
-            <p class="text-sm leading-6 text-[#92400e]">
+            <span class="text-base font-bold">Sin plan vacunal generado</span>
+            <p class="text-sm leading-6">
               Esta mascota aún no tiene plan vacunal. Puedes generarlo ahora si la especie ya tiene un esquema usable.
             </p>
           </div>
@@ -80,7 +80,7 @@
         </div>
 
         @if (planLoadError) {
-          <div class="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
+          <div class="ps-tone ps-tone--danger ps-tone-surface mt-4 rounded-xl border px-4 py-3 text-sm leading-6">
             {{ planLoadError }}
           </div>
         }
@@ -106,31 +106,31 @@
             <span class="rounded-full bg-background px-3 py-1 text-xs font-semibold text-text-secondary">
               v{{ plan.version.version }}
             </span>
-            <span class="rounded-full bg-[#ecfdf3] px-3 py-1 text-xs font-semibold text-[#166534]">
+            <span class="rounded-full px-3 py-1 text-xs font-semibold" [ngClass]="coverageToneClasses()">
               {{ coveragePercent() }}% cobertura
             </span>
           </div>
 
           <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-            <div class="rounded-2xl border border-[#dcfce7] bg-[#f0fdf4] p-4">
-              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#166534]">Aplicadas</span>
-              <p class="mt-1 text-2xl font-bold text-[#166534]">{{ plan.coverage.applied }}</p>
+            <div class="ps-tone ps-tone--success ps-tone-surface rounded-2xl border p-4">
+              <span class="text-[11px] font-semibold uppercase tracking-wider">Aplicadas</span>
+              <p class="mt-1 text-2xl font-bold">{{ plan.coverage.applied }}</p>
             </div>
-            <div class="rounded-2xl border border-[#dbeafe] bg-[#eff6ff] p-4">
-              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#1d4ed8]">Pendientes</span>
-              <p class="mt-1 text-2xl font-bold text-[#1d4ed8]">{{ plan.coverage.notApplied }}</p>
+            <div class="ps-tone ps-tone--info ps-tone-surface rounded-2xl border p-4">
+              <span class="text-[11px] font-semibold uppercase tracking-wider">Pendientes</span>
+              <p class="mt-1 text-2xl font-bold">{{ plan.coverage.notApplied }}</p>
             </div>
-            <div class="rounded-2xl border border-[#fef3c7] bg-[#fffbeb] p-4">
-              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#b45309]">Desconocidas</span>
-              <p class="mt-1 text-2xl font-bold text-[#b45309]">{{ plan.coverage.unknown }}</p>
+            <div class="ps-tone ps-tone--warning ps-tone-surface rounded-2xl border p-4">
+              <span class="text-[11px] font-semibold uppercase tracking-wider">Desconocidas</span>
+              <p class="mt-1 text-2xl font-bold">{{ plan.coverage.unknown }}</p>
             </div>
-            <div class="rounded-2xl border border-[#ffedd5] bg-[#fff7ed] p-4">
-              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#c2410c]">Revisión</span>
-              <p class="mt-1 text-2xl font-bold text-[#c2410c]">{{ plan.coverage.requiresReview }}</p>
+            <div class="ps-tone ps-tone--attention ps-tone-surface rounded-2xl border p-4">
+              <span class="text-[11px] font-semibold uppercase tracking-wider">Revisión</span>
+              <p class="mt-1 text-2xl font-bold">{{ plan.coverage.requiresReview }}</p>
             </div>
-            <div class="rounded-2xl border border-slate-200 bg-slate-100 p-4">
-              <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-700">Bloqueadas</span>
-              <p class="mt-1 text-2xl font-bold text-slate-700">{{ plan.coverage.blocked }}</p>
+            <div class="ps-tone ps-tone--neutral ps-tone-surface rounded-2xl border p-4">
+              <span class="text-[11px] font-semibold uppercase tracking-wider">Bloqueadas</span>
+              <p class="mt-1 text-2xl font-bold">{{ plan.coverage.blocked }}</p>
             </div>
           </div>
         </div>
@@ -146,7 +146,7 @@
           @if (alerts().length > 0) {
             <div class="mt-4 flex flex-col gap-3">
               @for (alert of alerts(); track alert) {
-                <div class="rounded-xl border border-[#ffedd5] bg-[#fff7ed] px-3 py-2 text-sm leading-6 text-[#9a3412]">
+                <div class="ps-tone ps-tone--attention ps-tone-surface rounded-xl border px-3 py-2 text-sm leading-6">
                   {{ alert }}
                 </div>
               }

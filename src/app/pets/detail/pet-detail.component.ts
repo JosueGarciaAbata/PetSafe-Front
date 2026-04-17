@@ -6,6 +6,7 @@ import {
   inject,
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
@@ -21,11 +22,12 @@ import {
   PatientVaccinationPlan,
 } from '../vaccination/models/patient-vaccination-plan.model';
 import { PatientVaccinationApiService } from '../vaccination/services/patient-vaccination-api.service';
+import { buildVaccinationCoverageToneClasses } from '../vaccination/vaccination-tone.util';
 
 @Component({
   selector: 'app-pet-detail',
   standalone: true,
-  imports: [InitializeVaccinationPlanModalComponent],
+  imports: [CommonModule, InitializeVaccinationPlanModalComponent],
   templateUrl: './pet-detail.component.html',
   styleUrl: './pet-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -267,6 +269,10 @@ export class PetDetailComponent implements OnInit {
 
   protected vaccinationCoveragePercent(): number {
     return Math.round(this.vaccinationPlan?.coverage.coveragePercent ?? 0);
+  }
+
+  protected vaccinationCoverageToneClasses(): string {
+    return buildVaccinationCoverageToneClasses(this.vaccinationPlan);
   }
 
   protected vaccinationAlerts(): string[] {

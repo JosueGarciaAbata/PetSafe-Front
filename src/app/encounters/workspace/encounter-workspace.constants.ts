@@ -2,6 +2,8 @@ import { ClinicalBlock, ClinicalTabView, TabView } from './encounter-workspace.t
 
 export const CLINICAL_TEXT_MAX_LENGTH = 255;
 export const CLINICAL_SHORT_TEXT_MAX_LENGTH = 120;
+export const CLINICAL_TEMPERATURE_MIN = 20;
+export const CLINICAL_TEMPERATURE_MAX = 50;
 
 export const ENCOUNTER_TAB_ORDER: readonly TabView[] = [
   'REASON',
