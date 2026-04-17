@@ -1,15 +1,15 @@
-<div class="mx-auto flex max-w-[1400px] flex-col gap-8 pb-12">
+<div class="ps-page">
   <!-- Header -->
-  <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-    <header class="flex flex-col gap-1">
-      <h1 class="text-[28px] font-bold text-text-primary">Atención del día</h1>
-      <p class="text-base text-text-secondary">Gestion operativa del dia y atenciones en curso.</p>
+  <div class="ps-page-header">
+    <header class="ps-page-header__titles">
+      <h1 class="ps-page-title">Atención del día</h1>
+      <p class="ps-page-subtitle">Gestion operativa del dia y atenciones en curso.</p>
     </header>
 
     <button
       type="button"
       (click)="openIntakePage()"
-      class="inline-flex cursor-pointer items-center gap-2 self-start rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 md:self-auto"
+      class="ps-btn--primary self-start md:self-auto"
     >
       <span class="text-lg leading-none" aria-hidden="true">+</span>
       <span>Registrar ingreso</span>
@@ -20,10 +20,8 @@
   <!-- Toolbar -->
   <section class="flex flex-col gap-4" aria-label="Busqueda y filtros">
     <div class="max-w-[540px] w-full">
-      <div class="group relative">
-        <div
-          class="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary transition-colors group-focus-within:text-brand"
-        >
+      <div class="ps-search">
+        <div class="ps-search__icon">
           <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8">
             <circle cx="11" cy="11" r="6"></circle>
             <path d="m20 20-3.5-3.5"></path>
@@ -33,7 +31,7 @@
           [formControl]="searchControl"
           type="text"
           placeholder="Buscar paciente, tutor o motivo"
-          class="h-12 w-full rounded-xl border border-border bg-surface pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+          class="ps-search__input"
         />
       </div>
     </div>
@@ -75,7 +73,7 @@
   </section>
 
   <!-- Table -->
-  <section class="overflow-hidden rounded-[16px] border border-border bg-card shadow-sm">
+  <section class="ps-card">
     <div class="border-b border-border bg-surface px-8 py-5">
       <p class="text-sm font-semibold text-text-primary">Lista operativa del {{ todayLabel }}</p>
     </div>

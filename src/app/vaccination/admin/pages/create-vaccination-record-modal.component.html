@@ -1,0 +1,388 @@
+@if (open) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="vaccination-record-modal-title"
+  >
+    <div class="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity" (click)="close()"></div>
+
+    <div
+      class="relative flex max-h-[88vh] w-full max-w-[920px] flex-col overflow-hidden rounded-[24px] bg-card shadow-2xl"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex items-start justify-between border-b border-border px-6 py-5">
+        <div class="flex items-start gap-4">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <app-shell-icon name="syringe" [size]="20"></app-shell-icon>
+          </div>
+
+          <div class="space-y-1">
+            <h2 id="vaccination-record-modal-title" class="text-lg font-bold text-text-primary">
+              Registrar vacunacion
+            </h2>
+            <p class="text-sm text-text-secondary">Busca la mascota y registra la aplicacion.</p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="rounded-lg p-2 text-text-secondary transition-colors hover:bg-background"
+          [disabled]="isSaving"
+          (click)="close()"
+          aria-label="Cerrar modal"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="flex min-h-0 flex-1 flex-col">
+        <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+          <div class="flex flex-col gap-5">
+            @if (patientLoadError) {
+              <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {{ patientLoadError }}
+              </div>
+            }
+
+            @if (productsLoadError) {
+              <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {{ productsLoadError }}
+              </div>
+            }
+
+            @if (doctorsLoadError && requiresDoctorSelection()) {
+              <div class="rounded-2xl border border-[#fef3c7] bg-[#fffbeb] px-4 py-3 text-sm text-[#92400e]">
+                {{ doctorsLoadError }}
+              </div>
+            }
+
+            <div class="grid gap-4 lg:grid-cols-2">
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-text-primary">Mascota</label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+                  <input
+                    matInput
+                    type="text"
+                    [ngModel]="patientSearch"
+                    [ngModelOptions]="{ standalone: true }"
+                    (ngModelChange)="onPatientChanged($event)"
+                    (focus)="onPatientFocus()"
+                    [matAutocomplete]="patientAuto"
+                    [errorStateMatcher]="patientErrorStateMatcher"
+                    placeholder="Buscar mascota"
+                    autocomplete="off"
+                    class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                  />
+                  @if (hasPatientSelectionError()) {
+                    <mat-error>Selecciona una mascota valida.</mat-error>
+                  } @else if (selectedPatientMeta(); as patientMeta) {
+                    <mat-hint>{{ patientMeta }}</mat-hint>
+                  }
+                </mat-form-field>
+
+                <mat-autocomplete #patientAuto="matAutocomplete" autoActiveFirstOption>
+                  @for (patient of patientOptionsFiltered(); track patient.patientId) {
+                    <mat-option
+                      [value]="buildPatientLabel(patient)"
+                      (onSelectionChange)="onPatientOptionSelection($event.isUserInput, patient)"
+                    >
+                      <div class="flex flex-col">
+                        <span class="text-sm font-medium text-text-primary">
+                          {{ buildPatientLabel(patient) }}
+                        </span>
+                        <span class="text-xs text-text-secondary">
+                          {{ buildPatientMeta(patient) }}
+                        </span>
+                      </div>
+                    </mat-option>
+                  }
+
+                  @if (isLoadingPatients) {
+                    <mat-option disabled>Buscando mascotas...</mat-option>
+                  } @else if (patientSearch.trim() && patientOptionsFiltered().length === 0) {
+                    <mat-option disabled>No se encontraron mascotas</mat-option>
+                  }
+                </mat-autocomplete>
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-text-primary">Fecha de aplicacion</label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+                  <input
+                    #applicationDateInput
+                    matInput
+                    type="date"
+                    formControlName="applicationDate"
+                    [max]="today"
+                    class="text-sm text-text-primary"
+                  />
+                  <button
+                    type="button"
+                    matSuffix
+                    class="inline-flex h-8 w-8 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+                    (click)="openDatePicker(applicationDateInput)"
+                    aria-label="Abrir calendario de fecha de aplicacion"
+                  >
+                    <app-shell-icon name="calendar" [size]="16"></app-shell-icon>
+                  </button>
+                  @if (applicationDateInvalid()) {
+                    <mat-error>La fecha no puede ser futura.</mat-error>
+                  } @else if (hasError('applicationDate')) {
+                    <mat-error>La fecha de aplicacion es obligatoria.</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-text-primary">Vacuna</label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+                  <input
+                    matInput
+                    type="text"
+                    [ngModel]="vaccineSearch"
+                    [ngModelOptions]="{ standalone: true }"
+                    (ngModelChange)="onVaccineChanged($event)"
+                    [matAutocomplete]="vaccineAuto"
+                    [errorStateMatcher]="vaccineErrorStateMatcher"
+                    [disabled]="!canSearchVaccines() || isLoadingProducts"
+                    placeholder="Buscar vacuna"
+                    autocomplete="off"
+                    class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                  />
+                  @if (hasVaccineSelectionError()) {
+                    <mat-error>Selecciona una vacuna valida.</mat-error>
+                  } @else if (!selectedPatient) {
+                    <mat-hint>Primero elige la mascota.</mat-hint>
+                  } @else if (isLoadingProducts) {
+                    <mat-hint>Cargando catalogo...</mat-hint>
+                  } @else if (!productsLoadError && vaccineProducts.length === 0) {
+                    <mat-hint>No hay vacunas activas para esta especie.</mat-hint>
+                  }
+                </mat-form-field>
+
+                <mat-autocomplete #vaccineAuto="matAutocomplete" autoActiveFirstOption>
+                  @for (product of productOptions(); track product.id) {
+                    <mat-option
+                      [value]="buildProductLabel(product)"
+                      (onSelectionChange)="onProductOptionSelection($event.isUserInput, product)"
+                    >
+                      <div class="flex flex-col">
+                        <span class="text-sm font-medium text-text-primary">
+                          {{ buildProductLabel(product) }}
+                        </span>
+                        <span class="text-xs text-text-secondary">
+                          {{ buildProductMeta(product) }}
+                        </span>
+                      </div>
+                    </mat-option>
+                  }
+
+                  @if (isLoadingProducts) {
+                    <mat-option disabled>Cargando vacunas...</mat-option>
+                  } @else if (vaccineSearch.trim() && productOptions().length === 0) {
+                    <mat-option disabled>No se encontraron vacunas</mat-option>
+                  }
+                </mat-autocomplete>
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <label class="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                  <span>Administrado en</span>
+                  <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                </label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+                  <input
+                    matInput
+                    type="text"
+                    formControlName="administeredAt"
+                    placeholder="Lugar de aplicacion"
+                    class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                  />
+                  @if (hasError('administeredAt')) {
+                    <mat-error>Maximo 180 caracteres.</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-border bg-background/60 px-4 py-3">
+              <mat-checkbox formControlName="isExternal" class="text-sm text-text-primary" (change)="onExternalChanged()">
+                La vacuna fue aplicada fuera de la clinica
+              </mat-checkbox>
+            </div>
+
+            @if (requiresDoctorSelection()) {
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-text-primary">Veterinario</label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+                  @if (canSelectDoctor()) {
+                    <input
+                      matInput
+                      type="text"
+                      [ngModel]="doctorSearch"
+                      [ngModelOptions]="{ standalone: true }"
+                      (ngModelChange)="onDoctorChanged($event)"
+                      (focus)="onDoctorFocus()"
+                      [matAutocomplete]="doctorAuto"
+                      [errorStateMatcher]="doctorErrorStateMatcher"
+                      placeholder="Buscar veterinario"
+                      autocomplete="off"
+                      class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                    />
+                  } @else {
+                    <input
+                      matInput
+                      type="text"
+                      [value]="doctorSearch"
+                      readonly
+                      [errorStateMatcher]="doctorErrorStateMatcher"
+                      placeholder="Veterinario"
+                      class="text-sm text-text-primary"
+                    />
+                  }
+
+                  @if (hasDoctorSelectionError()) {
+                    <mat-error>Selecciona un veterinario.</mat-error>
+                  } @else if (selectedDoctorMeta(); as doctorMeta) {
+                    <mat-hint>{{ doctorMeta }}</mat-hint>
+                  }
+                </mat-form-field>
+
+                <mat-autocomplete #doctorAuto="matAutocomplete" autoActiveFirstOption>
+                  @if (canSelectDoctor()) {
+                    @for (doctor of filteredDoctorOptions(); track doctor.id) {
+                      <mat-option
+                        [value]="buildDoctorLabel(doctor)"
+                        (onSelectionChange)="onDoctorOptionSelection($event.isUserInput, doctor)"
+                      >
+                        <div class="flex flex-col">
+                          <span class="text-sm font-medium text-text-primary">
+                            {{ buildDoctorLabel(doctor) }}
+                          </span>
+                          <span class="text-xs text-text-secondary">
+                            {{ buildDoctorMeta(doctor) }}
+                          </span>
+                        </div>
+                      </mat-option>
+                    }
+
+                    @if (isLoadingDoctors) {
+                      <mat-option disabled>Cargando veterinarios...</mat-option>
+                    } @else if (doctorSearch.trim() && filteredDoctorOptions().length === 0) {
+                      <mat-option disabled>No se encontraron veterinarios</mat-option>
+                    }
+                  }
+                </mat-autocomplete>
+              </div>
+            }
+
+            <details class="rounded-2xl border border-border bg-background/40">
+              <summary class="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-text-primary">
+                Mas datos
+              </summary>
+
+              <div class="grid gap-4 border-t border-border px-4 py-4 lg:grid-cols-2">
+                <div class="flex flex-col gap-2">
+                  <label class="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                    <span>Proxima dosis</span>
+                    <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                  </label>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+                    <input
+                      #nextDoseDateInput
+                      matInput
+                      type="date"
+                      formControlName="nextDoseDate"
+                      [min]="today"
+                      class="text-sm text-text-primary"
+                    />
+                    <button
+                      type="button"
+                      matSuffix
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-background hover:text-text-primary"
+                      (click)="openDatePicker(nextDoseDateInput)"
+                      aria-label="Abrir calendario de proxima dosis"
+                    >
+                      <app-shell-icon name="calendar" [size]="16"></app-shell-icon>
+                    </button>
+                    @if (nextDoseDateInvalid()) {
+                      <mat-error>Debe ser posterior a la aplicacion.</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <label class="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                    <span>Lote</span>
+                    <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                  </label>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+                    <input
+                      matInput
+                      type="text"
+                      formControlName="batchNumber"
+                      placeholder="Numero de lote"
+                      class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                    />
+                    @if (hasError('batchNumber')) {
+                      <mat-error>Maximo 80 caracteres.</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+
+                <div class="flex flex-col gap-2 lg:col-span-2">
+                  <label class="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                    <span>Notas</span>
+                    <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                  </label>
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+                    <textarea
+                      matInput
+                      formControlName="notes"
+                      rows="3"
+                      placeholder="Observaciones"
+                      class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                    ></textarea>
+                  </mat-form-field>
+                </div>
+              </div>
+            </details>
+          </div>
+        </div>
+
+        <div class="flex shrink-0 flex-col-reverse gap-3 border-t border-border px-6 py-4 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            class="rounded-xl px-4 py-2 text-sm font-bold text-text-secondary transition-colors hover:bg-border/50"
+            [disabled]="isSaving"
+            (click)="close()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+            [disabled]="isSaving || isLoadingProducts"
+          >
+            {{ isSaving ? 'Guardando...' : 'Registrar vacunacion' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

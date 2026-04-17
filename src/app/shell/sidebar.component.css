@@ -217,3 +217,103 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ─── Child toggle (sub-group) ───────────────────────────────────── */
+.sidebar-child--toggle {
+  width: 100%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sidebar-child__chevron {
+  color: var(--ps-sidebar-icon);
+  transition: transform 0.22s ease, color 0.18s ease;
+  flex: none;
+  margin-left: auto;
+}
+
+.sidebar-child__chevron--open {
+  transform: rotate(180deg);
+  color: var(--ps-sidebar-text);
+}
+
+.sidebar-child--expanded {
+  color: var(--ps-sidebar-text);
+}
+
+/* ─── Subgroup ───────────────────────────────────────────────────── */
+.sidebar-subgroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+/* ─── Grandchildren ──────────────────────────────────────────────── */
+.sidebar-grandchildren {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  margin-left: 1rem;
+  padding-left: 0.85rem;
+  border-left: 1.5px solid var(--ps-sidebar-child-border);
+  transition: border-color 0.3s ease;
+}
+
+.sidebar-grandchild {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 0.6rem;
+  color: var(--ps-sidebar-text-muted);
+  font-size: 0.77rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.sidebar-grandchild:hover {
+  background: var(--ps-sidebar-hover);
+  color: var(--ps-sidebar-text);
+}
+
+.sidebar-grandchild--active {
+  background: var(--ps-sidebar-active-bg);
+  color: var(--ps-sidebar-active-text);
+  font-weight: 700;
+}
+
+.sidebar-grandchild--active:hover {
+  background: var(--ps-sidebar-active-bg);
+  color: var(--ps-sidebar-active-text);
+  opacity: 0.9;
+}
+
+.sidebar-grandchild__dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--ps-sidebar-child-dot);
+  flex: none;
+  transition: background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.sidebar-grandchild:hover .sidebar-grandchild__dot {
+  background: var(--ps-sidebar-child-dot-hover);
+}
+
+.sidebar-grandchild__dot--active {
+  background: var(--ps-sidebar-active-text);
+  box-shadow: 0 0 6px var(--ps-sidebar-active-shadow);
+}
+
+.sidebar-grandchild__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
