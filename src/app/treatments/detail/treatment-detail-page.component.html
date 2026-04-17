@@ -208,9 +208,9 @@
     </div>
 
     @if (isEditModalOpen) {
-      <div class="fixed inset-0 z-[120] bg-black/40 backdrop-blur-[2px]" (click)="closeEditTreatmentModal()"></div>
+      <div class="ps-modal-backdrop" (click)="closeEditTreatmentModal()"></div>
 
-      <div class="fixed inset-0 z-[130] flex items-center justify-center p-4">
+      <div class="ps-modal-overlay">
         <form
           [formGroup]="editTreatmentForm"
           (ngSubmit)="submitEditTreatment()"

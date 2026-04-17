@@ -1,8 +1,8 @@
-<div class="mx-auto flex max-w-[1400px] flex-col gap-6 pb-12">
+<div class="ps-page">
   <button
     type="button"
     routerLink="/adoption"
-    class="inline-flex cursor-pointer items-center gap-2 self-start text-sm font-medium text-text-secondary transition-colors hover:text-brand"
+    class="ps-back-link"
   >
     <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8">
       <path d="m15 18-6-6 6-6"></path>
@@ -14,7 +14,7 @@
     [formGroup]="form"
     (ngSubmit)="save()"
     novalidate
-    class="overflow-hidden rounded-[24px] border border-border bg-card shadow-sm"
+    class="ps-card"
   >
     <div class="flex flex-col gap-8 p-6">
       <section class="grid gap-4">
@@ -61,10 +61,8 @@
           </div>
 
           <div class="max-w-[540px]">
-            <div class="group relative">
-              <div
-                class="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary transition-colors group-focus-within:text-brand"
-              >
+            <div class="ps-search">
+              <div class="ps-search__icon">
                 <svg
                   viewBox="0 0 24 24"
                   class="h-5 w-5"
@@ -81,7 +79,7 @@
                 [value]="patientSearchValue"
                 (input)="onSearchInput($any($event.target).value)"
                 placeholder="Buscar por nombre, tutor o especie"
-                class="h-12 w-full rounded-xl border border-border bg-surface pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+                class="ps-search__input"
               />
             </div>
           </div>

@@ -46,24 +46,7 @@ export class SidebarComponent {
     { id: 'appointments', icon: 'calendar', label: 'Citas agendadas', path: '/appointments' },
     { id: 'queue', icon: 'clock', label: 'Atención del día', path: '/queue' },
     { id: 'history', icon: 'clipboard', label: 'Historial clínico', path: '/history' },
-    {
-      id: 'clinical',
-      icon: 'syringe',
-      label: 'Cuidados clínicos',
-      children: [
-        {
-          id: 'vaccination',
-          label: 'Vacunación',
-          children: [
-            { label: 'Vacunaciones', path: '/vaccination/records' },
-            { label: 'Esquemas', path: '/vaccination/schemes' },
-            { label: 'Productos', path: '/vaccination/products' },
-          ],
-        },
-        { label: 'Tratamientos', path: '/treatments' },
-        { label: 'Procedimientos', path: '/procedures' },
-      ],
-    },
+    { id: 'treatments', icon: 'syringe', label: 'Tratamientos', path: '/treatments' },
     { id: 'adoption', icon: 'heart', label: 'Adopcion', path: '/adoption' },
     { id: 'reports', icon: 'barChart', label: 'Reportes', path: '/reports' },
     { id: 'settings', icon: 'settings', label: 'Configuracion', path: '/settings' },
