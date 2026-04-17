@@ -30,6 +30,7 @@ import { VaccinationProductHideModalComponent } from './vaccination-product-hide
     VaccinationProductHideModalComponent,
   ],
   templateUrl: './vaccination-products-page.component.html',
+  styleUrl: './vaccination-products-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VaccinationProductsPageComponent implements OnInit {
@@ -137,8 +138,8 @@ export class VaccinationProductsPageComponent implements OnInit {
 
   protected productTypeClasses(product: VaccinationProductItem): string {
     return product.isRevaccination
-      ? 'bg-[#EFF6FF] text-[#1D4ED8]'
-      : 'bg-[#F1F5F9] text-text-secondary';
+      ? 'ps-tone ps-tone--info ps-tone-fill'
+      : 'ps-tone ps-tone--neutral ps-tone-fill';
   }
 
   protected productStatusLabel(product: VaccinationProductItem): string {
@@ -147,8 +148,8 @@ export class VaccinationProductsPageComponent implements OnInit {
 
   protected productStatusClasses(product: VaccinationProductItem): string {
     return product.isActive
-      ? 'bg-[#ecfdf3] text-[#166534]'
-      : 'bg-[#fff7ed] text-[#c2410c]';
+      ? 'ps-tone ps-tone--success ps-tone-fill'
+      : 'ps-tone ps-tone--attention ps-tone-fill';
   }
 
   protected openCreateModal(): void {

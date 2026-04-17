@@ -1,0 +1,79 @@
+:host {
+  display: block;
+}
+
+.vaccination-products-filter {
+  border: 1px solid var(--ps-border);
+  background: var(--ps-surface);
+  color: var(--ps-text-secondary);
+}
+
+.vaccination-products-filter:hover {
+  background: var(--ps-active-soft);
+  color: var(--ps-text-primary);
+}
+
+.vaccination-products-filter--all-active {
+  border-color: transparent;
+  background: var(--ps-primary);
+  color: #ffffff;
+}
+
+.vaccination-products-filter--active {
+  background: var(--ps-tone-success-bg);
+  border-color: var(--ps-tone-success-border);
+  color: var(--ps-tone-success-text);
+}
+
+.vaccination-products-filter--inactive {
+  background: var(--ps-tone-attention-bg);
+  border-color: var(--ps-tone-attention-border);
+  color: var(--ps-tone-attention-text);
+}
+
+.vaccination-products-group {
+  border: 1px solid var(--ps-border);
+  background: color-mix(in srgb, var(--ps-surface) 92%, var(--ps-background));
+}
+
+.vaccination-products-group__icon {
+  background: var(--ps-active-soft);
+  color: var(--ps-brand);
+}
+
+.vaccination-products-item {
+  border: 1px solid var(--ps-border);
+  background: var(--ps-surface);
+}
+
+.vaccination-products-item:hover {
+  border-color: color-mix(in srgb, var(--ps-brand) 24%, var(--ps-border));
+}
+
+.vaccination-products-action {
+  border: 1px solid var(--ps-border);
+  background: transparent;
+  color: var(--ps-text-primary);
+}
+
+.vaccination-products-action:hover {
+  background: var(--ps-active-soft);
+}
+
+.vaccination-products-action--warn {
+  border-color: var(--ps-tone-attention-border);
+  color: var(--ps-tone-attention-text);
+}
+
+.vaccination-products-action--warn:hover {
+  background: var(--ps-tone-attention-bg);
+}
+
+.vaccination-products-action--reactivate {
+  border-color: var(--ps-tone-info-border);
+  color: var(--ps-tone-info-text);
+}
+
+.vaccination-products-action--reactivate:hover {
+  background: var(--ps-tone-info-bg);
+}
