@@ -15,6 +15,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { firstValueFrom } from 'rxjs';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
+import { AppToastService } from '@app/core/ui/app-toast.service';
 import { MetadataStore } from '@app/core/metadata/metadata-store.service';
 import { ShellIconComponent } from '@app/shell/shell-icon.component';
 import { AppointmentsApiService } from '../api/appointments-api.service';
@@ -67,6 +68,7 @@ class ManualFieldErrorStateMatcher implements ErrorStateMatcher {
 export class CreateAppointmentModalComponent implements OnDestroy {
   private readonly appointmentsApi = inject(AppointmentsApiService);
   private readonly metadataStore = inject(MetadataStore);
+  private readonly toast = inject(AppToastService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly patientSearchLimit = 10;
   private patientRequestVersion = 0;
@@ -252,6 +254,7 @@ export class CreateAppointmentModalComponent implements OnDestroy {
 
     const payload = this.buildPayload();
     if (!payload) {
+      this.toast.info('Revisa los campos obligatorios del turno.');
       this.cdr.markForCheck();
       return;
     }
@@ -375,6 +378,7 @@ export class CreateAppointmentModalComponent implements OnDestroy {
         defaultMessage: 'No se pudo crear el turno. Intenta nuevamente.',
         clientErrorMessage: 'Revisa los datos ingresados.',
       });
+      this.toast.error(this.submitError);
     } finally {
       this.isSaving = false;
       this.cdr.markForCheck();

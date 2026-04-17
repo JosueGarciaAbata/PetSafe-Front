@@ -94,6 +94,18 @@
   opacity: 0.9;
 }
 
+.sidebar-item--expanded {
+  color: var(--ps-sidebar-text);
+  background: color-mix(in srgb, var(--ps-sidebar-hover) 70%, transparent);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.sidebar-item--expanded:hover {
+  background: color-mix(in srgb, var(--ps-sidebar-hover) 90%, transparent);
+  color: var(--ps-sidebar-text);
+}
+
 .sidebar-item__label {
   flex: 1;
   min-width: 0;
@@ -116,6 +128,10 @@
   color: var(--ps-sidebar-active-text);
 }
 
+.sidebar-item__icon--expanded {
+  color: var(--ps-sidebar-icon-hover);
+}
+
 /* ─── Chevron ────────────────────────────────────────────────────── */
 .sidebar-item__chevron {
   color: var(--ps-sidebar-icon);
@@ -125,6 +141,7 @@
 
 .sidebar-item__chevron--open {
   transform: rotate(180deg);
+  color: var(--ps-sidebar-text);
 }
 
 /* ─── Children ───────────────────────────────────────────────────── */
@@ -137,7 +154,7 @@
 .sidebar-children {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.14rem;
   margin-left: 1rem;
   padding-left: 0.85rem;
   border-left: 1.5px solid var(--ps-sidebar-child-border);

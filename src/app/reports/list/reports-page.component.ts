@@ -250,7 +250,7 @@ export class ReportsPageComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.searchError = 'No se pudo consultar la lista de pacientes.';
+      this.searchError = 'No se pudieron cargar los pacientes.';
       this.patientMeta = EMPTY_PAGINATION_META;
     } finally {
       if (requestToken !== this.searchRequestVersion) {

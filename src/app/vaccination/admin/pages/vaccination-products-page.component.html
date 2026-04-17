@@ -86,8 +86,17 @@
         Cargando productos vacunales...
       </div>
     } @else if (loadError) {
-      <div class="px-8 py-16 text-center text-sm text-text-secondary">
-        {{ loadError }}
+      <div class="px-8 py-16">
+        <div class="flex flex-col items-center gap-3 text-center">
+          <p class="text-sm font-semibold text-text-primary">{{ loadError }}</p>
+          <button
+            type="button"
+            (click)="retryLoadProducts()"
+            class="inline-flex cursor-pointer items-center rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:opacity-90"
+          >
+            Reintentar
+          </button>
+        </div>
       </div>
     } @else if (visibleProducts().length === 0) {
       <div class="px-8 py-16 text-center text-sm text-text-secondary">
@@ -184,6 +193,7 @@
 <app-vaccination-product-form-modal
   [open]="isModalOpen"
   [speciesOptions]="speciesOptions"
+  [isLoadingSpecies]="isLoadingSpecies"
   [product]="editingProduct"
   [isSaving]="isSaving"
   [errorMessage]="modalError"
