@@ -3,17 +3,24 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { LogoComponent } from '@app/logo/logo';
 import { ShellIconComponent, ShellIconName } from './shell-icon.component';
 
+interface SidebarLeafItem {
+  label: string;
+  path: string;
+}
+
+interface SidebarChildItem {
+  id?: string;
+  label: string;
+  path?: string;
+  children?: readonly SidebarLeafItem[];
+}
+
 interface SidebarItem {
   id: string;
   label: string;
   icon: ShellIconName;
   path?: string;
   children?: readonly SidebarChildItem[];
-}
-
-interface SidebarChildItem {
-  label: string;
-  path: string;
 }
 
 @Component({
@@ -29,23 +36,34 @@ export class SidebarComponent {
   @Input() isOpen = true;
   protected readonly expandedItemIds = new Set<string>();
   protected readonly collapsedItemIds = new Set<string>();
+  protected readonly expandedChildIds = new Set<string>();
+  protected readonly collapsedChildIds = new Set<string>();
 
   protected readonly navItems: readonly SidebarItem[] = [
     { id: 'dashboard', icon: 'dashboard', label: 'Dashboard', path: '/dashboard' },
     { id: 'owners', icon: 'users', label: 'Propietarios', path: '/owners' },
     { id: 'pets', icon: 'dog', label: 'Mascotas', path: '/pets' },
-    {
-      id: 'vaccination',
-      icon: 'syringe',
-      label: 'Vacunación',
-      children: [
-        { label: 'Esquemas', path: '/vaccination/schemes' },
-        { label: 'Productos', path: '/vaccination/products' },
-      ],
-    },
     { id: 'appointments', icon: 'calendar', label: 'Citas agendadas', path: '/appointments' },
     { id: 'queue', icon: 'clock', label: 'Atención del día', path: '/queue' },
     { id: 'history', icon: 'clipboard', label: 'Historial clínico', path: '/history' },
+    {
+      id: 'clinical',
+      icon: 'syringe',
+      label: 'Cuidados clínicos',
+      children: [
+        {
+          id: 'vaccination',
+          label: 'Vacunación',
+          children: [
+            { label: 'Vacunaciones', path: '/vaccination/records' },
+            { label: 'Esquemas', path: '/vaccination/schemes' },
+            { label: 'Productos', path: '/vaccination/products' },
+          ],
+        },
+        { label: 'Tratamientos', path: '/treatments' },
+        { label: 'Procedimientos', path: '/procedures' },
+      ],
+    },
     { id: 'adoption', icon: 'heart', label: 'Adopcion', path: '/adoption' },
     { id: 'reports', icon: 'barChart', label: 'Reportes', path: '/reports' },
     { id: 'settings', icon: 'settings', label: 'Configuracion', path: '/settings' },
@@ -53,6 +71,36 @@ export class SidebarComponent {
 
   protected isGroup(item: SidebarItem): boolean {
     return (item.children?.length ?? 0) > 0;
+  }
+
+  protected isChildGroup(child: SidebarChildItem): boolean {
+    return (child.children?.length ?? 0) > 0;
+  }
+
+  protected isChildExpanded(child: SidebarChildItem): boolean {
+    if (!this.isChildGroup(child)) return false;
+    if (this.expandedChildIds.has(child.id!)) return true;
+    if (this.collapsedChildIds.has(child.id!)) return false;
+    return this.hasActiveGrandchild(child);
+  }
+
+  protected toggleChildGroup(child: SidebarChildItem): void {
+    if (!this.isChildGroup(child)) return;
+    const id = child.id!;
+    if (this.expandedChildIds.has(id)) {
+      this.expandedChildIds.delete(id);
+      this.collapsedChildIds.add(id);
+      return;
+    }
+    this.collapsedChildIds.delete(id);
+    this.expandedChildIds.add(id);
+  }
+
+  protected hasActiveGrandchild(child: SidebarChildItem): boolean {
+    const currentUrl = this.router.url;
+    return child.children?.some(
+      (gc) => currentUrl === gc.path || currentUrl.startsWith(`${gc.path}/`),
+    ) ?? false;
   }
 
   protected isExpanded(item: SidebarItem): boolean {
@@ -99,8 +147,11 @@ export class SidebarComponent {
   protected hasActiveChild(item: SidebarItem): boolean {
     const currentUrl = this.router.url;
 
-    return item.children?.some((child) =>
-      currentUrl === child.path || currentUrl.startsWith(`${child.path}/`),
-    ) ?? false;
+    return item.children?.some((child) => {
+      if (child.path && (currentUrl === child.path || currentUrl.startsWith(`${child.path}/`))) {
+        return true;
+      }
+      return this.hasActiveGrandchild(child);
+    }) ?? false;
   }
 }

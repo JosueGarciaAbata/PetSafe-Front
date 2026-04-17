@@ -152,6 +152,15 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'vaccination/records',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/vaccination/admin/pages/vaccination-records-page.component').then(
+            (m) => m.VaccinationRecordsPageComponent,
+          ),
+      },
+      {
         path: 'pets/:id/vaccination',
         canActivate: [authGuard],
         data: { roles: staffRoles },
@@ -228,8 +237,35 @@ export const routes: Routes = [
         canActivate: [authGuard],
         data: { roles: staffRoles },
         loadComponent: () =>
-          import('@app/internal-section-page/internal-section-page.component').then(
-            (m) => m.InternalSectionPageComponent,
+          import('@app/treatments/list/treatments-page.component').then(
+            (m) => m.TreatmentsPageComponent,
+          ),
+      },
+      {
+        path: 'treatments/:id',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/treatments/detail/treatment-detail-page.component').then(
+            (m) => m.TreatmentDetailPageComponent,
+          ),
+      },
+      {
+        path: 'procedures',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/procedures/list/procedures-page.component').then(
+            (m) => m.ProceduresPageComponent,
+          ),
+      },
+      {
+        path: 'procedures/:id',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/procedures/detail/procedure-detail-page.component').then(
+            (m) => m.ProcedureDetailPageComponent,
           ),
       },
       {

@@ -1,0 +1,217 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-8 pb-12">
+  <header class="flex flex-col gap-1">
+    <h1 class="text-[28px] font-bold text-text-primary">Tratamientos</h1>
+    <p class="text-base text-text-secondary">Consulta los tratamientos registrados.</p>
+  </header>
+
+  <section class="flex flex-col gap-4" aria-label="Busqueda y filtros">
+    <div class="max-w-[540px]">
+      <div class="group relative">
+        <div
+          class="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary transition-colors group-focus-within:text-brand"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <circle cx="11" cy="11" r="6"></circle>
+            <path d="m20 20-3.5-3.5"></path>
+          </svg>
+        </div>
+        <input
+          type="text"
+          [value]="searchValue"
+          (input)="onSearchInput($any($event.target).value)"
+          placeholder="Buscar por mascota"
+          class="h-12 w-full rounded-xl border border-border bg-surface pl-12 pr-4 text-sm text-text-primary shadow-sm transition-all placeholder:text-text-secondary/40 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/10"
+        />
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-text-secondary">
+          Estado del tratamiento
+        </p>
+
+        @if (hasActiveFilters) {
+          <button
+            type="button"
+            class="cursor-pointer text-xs font-semibold text-text-secondary underline decoration-transparent transition-all hover:text-brand hover:decoration-brand"
+            (click)="clearFilters()"
+          >
+            Limpiar filtros
+          </button>
+        }
+      </div>
+
+      <div class="flex flex-wrap gap-2" role="group" aria-label="Filtrar tratamientos por estado">
+        <button
+          type="button"
+          class="inline-flex cursor-pointer items-center rounded-full border px-4 py-2 text-xs font-bold transition-all"
+          [ngClass]="
+            isFilterSelected(null)
+              ? 'border-transparent bg-active-soft text-brand shadow-sm'
+              : 'border-border bg-surface text-text-secondary hover:border-brand/20 hover:text-text-primary'
+          "
+          (click)="onStatusChange(null)"
+        >
+          Todos
+        </button>
+        <button
+          type="button"
+          class="inline-flex cursor-pointer items-center rounded-full border px-4 py-2 text-xs font-bold transition-all"
+          [ngClass]="
+            isFilterSelected('ACTIVO')
+              ? 'border-transparent bg-active-soft text-brand shadow-sm'
+              : 'border-border bg-surface text-text-secondary hover:border-brand/20 hover:text-text-primary'
+          "
+          (click)="onStatusChange('ACTIVO')"
+        >
+          Activos
+        </button>
+        <button
+          type="button"
+          class="inline-flex cursor-pointer items-center rounded-full border px-4 py-2 text-xs font-bold transition-all"
+          [ngClass]="
+            isFilterSelected('FINALIZADO')
+              ? 'border-transparent bg-active-soft text-brand shadow-sm'
+              : 'border-border bg-surface text-text-secondary hover:border-brand/20 hover:text-text-primary'
+          "
+          (click)="onStatusChange('FINALIZADO')"
+        >
+          Finalizados
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="overflow-hidden rounded-[16px] border border-border bg-card shadow-sm">
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[980px] text-left">
+        <thead>
+          <tr class="border-b border-border bg-card">
+            <th class="px-8 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+              Mascota
+            </th>
+            <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+              Estado
+            </th>
+            <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+              Fechas
+            </th>
+            <th class="px-6 py-5 text-xs font-bold uppercase tracking-wider text-text-secondary">
+              Instrucciones generales
+            </th>
+            <th
+              class="px-8 py-5 text-right text-xs font-bold uppercase tracking-wider text-text-secondary"
+            ></th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-border">
+          @if (isLoading && treatments.length === 0) {
+            <tr>
+              <td colspan="5" class="px-8 py-16 text-center text-sm text-text-secondary">
+                Cargando tratamientos...
+              </td>
+            </tr>
+          } @else if (loadError) {
+            <tr>
+              <td colspan="5" class="px-8 py-16">
+                <div class="flex flex-col items-center gap-3 text-center">
+                  <p class="text-sm font-semibold text-text-primary">{{ loadError }}</p>
+                  <button
+                    type="button"
+                    (click)="retryLoadTreatments()"
+                    class="inline-flex items-center rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:opacity-90"
+                  >
+                    Reintentar
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @else if (treatments.length === 0) {
+            <tr>
+              <td colspan="5" class="px-8 py-16 text-center text-sm text-text-secondary">
+                No se encontraron tratamientos.
+              </td>
+            </tr>
+          } @else {
+            @for (treatment of treatments; track trackItem($index, treatment)) {
+              <tr
+                class="cursor-pointer bg-surface align-top transition-colors hover:bg-card"
+                (click)="openTreatmentDetail(treatment)"
+              >
+                <td class="px-8 py-6">
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[15px] font-bold text-text-primary">
+                      {{ buildPatientName(treatment) }}
+                    </span>
+                    <span class="text-xs text-text-secondary">
+                      {{ buildEncounterLabel(treatment) }}
+                    </span>
+                  </div>
+                </td>
+
+                <td class="px-6 py-6">
+                  <span
+                    class="inline-flex rounded-full border px-3 py-1 text-xs font-bold"
+                    [class]="buildStatusClasses(treatment.status)"
+                  >
+                    {{ buildStatusLabel(treatment.status) }}
+                  </span>
+                </td>
+
+                <td class="px-6 py-6">
+                  <div class="flex flex-col gap-1">
+                    <span class="text-sm text-text-primary">
+                      Inicio: {{ buildStartDateLabel(treatment) }}
+                    </span>
+                    <span class="text-sm text-text-primary">
+                      Fin: {{ buildEndDateLabel(treatment) }}
+                    </span>
+                  </div>
+                </td>
+
+                <td class="px-6 py-6">
+                  <span class="text-sm text-text-primary">
+                    {{ buildGeneralInstructions(treatment) }}
+                  </span>
+                </td>
+
+                <td class="px-8 py-6 text-right">
+                  <button
+                    type="button"
+                    (click)="$event.stopPropagation(); openTreatmentDetail(treatment)"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-background text-text-secondary transition-all hover:bg-active-soft hover:text-brand"
+                    aria-label="Ver detalle del tratamiento"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="h-4.5 w-4.5"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="m9 6 6 6-6 6"></path>
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (!isLoading && !loadError) {
+      <app-pagination [meta]="meta" itemLabel="tratamientos" (pageChange)="onPageChange($event)" />
+    }
+  </section>
+</div>
