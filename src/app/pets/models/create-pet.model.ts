@@ -1,3 +1,5 @@
+import { UpsertPetSurgeryRequest } from './pet-surgery.model';
+
 export interface CreatePetRequest {
   clientId?: number;
   name: string;
@@ -12,6 +14,7 @@ export interface CreatePetRequest {
   sterilized?: boolean;
   generalAllergies?: string;
   generalHistory?: string;
+  surgeries?: UpsertPetSurgeryRequest[];
   image?: File;
 }
 
@@ -29,5 +32,6 @@ export interface CreatePetWithoutTutorRequest {
   distinguishingMarks?: string;
   generalAllergies?: string;
   generalHistory?: string;
+  surgeries?: UpsertPetSurgeryRequest[];
   image?: File;
 }

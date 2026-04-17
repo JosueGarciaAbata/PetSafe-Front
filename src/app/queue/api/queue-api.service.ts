@@ -32,6 +32,16 @@ export class QueueApiService {
     return this.http.get<QueueListResponse>(this.baseUrl, { params });
   }
 
+  /** GET /queue/:id */
+  getEntry(entryId: number): Observable<QueueEntryRecord> {
+    return this.http.get<QueueEntryRecord>(`${this.baseUrl}/${entryId}`);
+  }
+
+  /** GET /queue/by-encounter/:encounterId */
+  getEntryByEncounter(encounterId: number): Observable<QueueEntryRecord> {
+    return this.http.get<QueueEntryRecord>(`${this.baseUrl}/by-encounter/${encounterId}`);
+  }
+
   /** POST /queue — registra llegada de paciente */
   createEntry(payload: QueueEntryCreateRequest): Observable<QueueEntryRecord> {
     return this.http.post<QueueEntryRecord>(this.baseUrl, payload);

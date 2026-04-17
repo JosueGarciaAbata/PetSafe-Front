@@ -1,4 +1,5 @@
 import { PetImageApiResponse } from './pet-image.model';
+import { PetSurgeryApiResponse } from './pet-surgery.model';
 
 export interface PetBasicDetailApiResponse {
   id: number;
@@ -16,7 +17,9 @@ export interface PetBasicDetailApiResponse {
   image: PetImageApiResponse | null;
   tutors: PetTutorApiResponse[];
   clinicalObservations: PetClinicalObservationApiResponse[];
-  recentActivity: unknown | null;
+  surgeries: PetSurgeryApiResponse[];
+  procedures: PetProcedureHistoryApiResponse[];
+  recentActivity: PetRecentActivityApiResponse | null;
 }
 
 export interface PetDetailCatalogApiResponse {
@@ -48,4 +51,52 @@ export interface AddPetTutorRequest {
   clientId: number;
   isPrimary?: boolean;
   relationship?: string;
+}
+
+export interface PetRecentConsultationActivityApiResponse {
+  id: number;
+  patientConsultationNumber: number;
+  startTime: string;
+  status: string;
+  clinicianName: string | null;
+  consultationReason: string | null;
+}
+
+export interface PetRecentProcedureActivityApiResponse {
+  id: number;
+  encounterId: number;
+  patientConsultationNumber: number;
+  procedureType: string;
+  performedDate: string;
+  clinicianName: string | null;
+}
+
+export interface PetProcedureHistoryApiResponse {
+  id: number;
+  encounterId: number;
+  patientConsultationNumber: number;
+  procedureType: string;
+  performedDate: string;
+  clinicianName: string | null;
+  description: string | null;
+  result: string | null;
+  notes: string | null;
+}
+
+export interface PetRecentSurgeryActivityApiResponse {
+  id: number;
+  encounterId: number | null;
+  surgeryType: string;
+  activityDate: string;
+  surgeryStatus: string;
+  clinicianName: string | null;
+  isExternal: boolean;
+}
+
+export interface PetRecentActivityApiResponse {
+  windowStart: string;
+  windowEnd: string;
+  consultations: PetRecentConsultationActivityApiResponse[];
+  procedures: PetRecentProcedureActivityApiResponse[];
+  surgeries: PetRecentSurgeryActivityApiResponse[];
 }

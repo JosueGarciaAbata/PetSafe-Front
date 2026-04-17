@@ -1,0 +1,261 @@
+<section class="grid gap-5">
+  <div class="flex flex-col gap-2">
+    <div class="flex flex-wrap items-center gap-3">
+      <h3 class="text-sm font-bold uppercase tracking-wider text-brand">Historial quirúrgico</h3>
+      <span class="rounded-full border border-border bg-surface px-3 py-1 text-[11px] font-semibold text-text-secondary">
+        {{ surgeries.length }} registrada(s)
+      </span>
+    </div>
+    <p class="max-w-3xl text-sm leading-6 text-text-secondary">
+      Registra aquí cirugías longitudinales de la mascota. Las agregadas desde este perfil se manejan como antecedentes externos, y las que nazcan desde una atención también aparecerán en esta ficha.
+    </p>
+  </div>
+
+  <div class="rounded-2xl border border-border bg-background/50 p-5">
+    <div class="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,0.4fr))]">
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-semibold text-text-primary">Cirugía</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
+          <input
+            matInput
+            type="text"
+            [ngModel]="surgeryTypeValue"
+            (ngModelChange)="onSurgeryTypeChanged($event)"
+            [matAutocomplete]="surgeryCatalogAuto"
+            placeholder="Buscar en catálogo o escribir una cirugía externa"
+            autocomplete="off"
+            class="text-sm text-text-primary placeholder:text-text-secondary/50"
+          />
+        </mat-form-field>
+        <mat-autocomplete #surgeryCatalogAuto="matAutocomplete" autoActiveFirstOption>
+          @for (option of filteredCatalog(); track option.id) {
+            <mat-option [value]="option.name" (onSelectionChange)="onCatalogSelection($event.isUserInput, option)">
+              <div class="flex flex-col">
+                <span class="text-sm font-medium text-text-primary">{{ option.name }}</span>
+                @if (showCatalogSupport(option); as supportText) {
+                  <span class="text-xs text-text-secondary">{{ supportText }}</span>
+                }
+              </div>
+            </mat-option>
+          }
+          @if (isCatalogLoading) {
+            <mat-option disabled>Buscando cirugías...</mat-option>
+          } @else if (surgeryTypeValue.trim() && filteredCatalog().length === 0) {
+            <mat-option disabled>Sin coincidencias en catálogo. Se guardará como cirugía externa manual.</mat-option>
+          }
+        </mat-autocomplete>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-semibold text-text-primary">Estado</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
+          <mat-select [ngModel]="surgeryStatus" (ngModelChange)="surgeryStatus = $event">
+            @for (option of surgeryStatusOptions; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-semibold text-text-primary">Fecha realizada</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
+          <input
+            matInput
+            type="date"
+            [ngModel]="performedDate"
+            (ngModelChange)="performedDate = $event"
+            class="text-sm text-text-primary placeholder:text-text-secondary/50"
+          />
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="mt-4 grid gap-4 md:grid-cols-2">
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-semibold text-text-primary">Fecha programada</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
+          <input
+            matInput
+            type="date"
+            [ngModel]="scheduledDate"
+            (ngModelChange)="scheduledDate = $event"
+            class="text-sm text-text-primary placeholder:text-text-secondary/50"
+          />
+        </mat-form-field>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-semibold text-text-primary">Descripción</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
+          <textarea
+            matInput
+            rows="2"
+            [ngModel]="description"
+            (ngModelChange)="description = $event"
+            [attr.maxlength]="textAreaMaxLength"
+            placeholder="Contexto clínico u observaciones relevantes"
+            class="text-sm text-text-primary placeholder:text-text-secondary/50"
+          ></textarea>
+          <mat-hint align="end">{{ description.trim().length }}/{{ textAreaMaxLength }}</mat-hint>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="mt-4 grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-semibold text-text-primary">Instrucciones postoperatorias</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
+          <textarea
+            matInput
+            rows="2"
+            [ngModel]="postoperativeInstructions"
+            (ngModelChange)="postoperativeInstructions = $event"
+            [attr.maxlength]="textAreaMaxLength"
+            placeholder="Cuidados o notas posteriores, si aplica"
+            class="text-sm text-text-primary placeholder:text-text-secondary/50"
+          ></textarea>
+          <mat-hint align="end">{{ postoperativeInstructions.trim().length }}/{{ textAreaMaxLength }}</mat-hint>
+        </mat-form-field>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3">
+        @if (isEditing()) {
+          <button
+            type="button"
+            (click)="cancelEditing()"
+            class="rounded-xl px-4 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-surface"
+          >
+            Cancelar edición
+          </button>
+        }
+
+        <button
+          type="button"
+          (click)="saveSurgery()"
+          class="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90"
+        >
+          {{ isEditing() ? 'Guardar cirugía' : 'Agregar cirugía' }}
+        </button>
+      </div>
+    </div>
+
+    @if (formError || isDateRangeInvalid() || isPerformedDateInFuture() || isDescriptionTooLong() || isPostoperativeInstructionsTooLong()) {
+      <div class="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        @if (formError) {
+          {{ formError }}
+        } @else if (isDateRangeInvalid()) {
+          La fecha de realización no puede ser anterior a la fecha programada.
+        } @else if (isPerformedDateInFuture()) {
+          La fecha de realización no puede ser futura.
+        } @else if (isDescriptionTooLong()) {
+          La descripción no puede superar los {{ textAreaMaxLength }} caracteres.
+        } @else if (isPostoperativeInstructionsTooLong()) {
+          Las instrucciones postoperatorias no pueden superar los {{ textAreaMaxLength }} caracteres.
+        }
+      </div>
+    }
+  </div>
+
+  @if (hasAnySurgery()) {
+    <div class="grid gap-4 xl:grid-cols-2">
+      <div class="rounded-2xl border border-border bg-card p-5">
+        <div class="flex items-center justify-between gap-3">
+          <p class="text-sm font-bold text-text-primary">Gestionadas desde perfil</p>
+          <span class="rounded-full border border-border bg-surface px-3 py-1 text-[11px] font-semibold text-text-secondary">
+            {{ profileManagedSurgeries().length }}
+          </span>
+        </div>
+
+        <div class="mt-4 space-y-3">
+          @if (profileManagedSurgeries().length === 0) {
+            <div class="rounded-xl border border-dashed border-border bg-background/60 px-4 py-4 text-sm text-text-secondary">
+              No hay cirugías externas registradas desde el perfil.
+            </div>
+          } @else {
+            @for (item of profileManagedSurgeries(); track item.id) {
+              <article class="rounded-xl border border-border bg-surface px-4 py-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <p class="text-sm font-bold text-text-primary">{{ item.surgeryType }}</p>
+                      <span class="rounded-full border border-border bg-background px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
+                        {{ buildSourceLabel(item) }}
+                      </span>
+                    </div>
+                    <p class="mt-1 text-xs text-text-secondary">
+                      {{ buildStatusLabel(item.surgeryStatus) }} · {{ buildSurgeryDateMeta(item) }}
+                    </p>
+                  </div>
+
+                  <div class="flex items-center gap-3">
+                    <button type="button" (click)="editSurgery(item)" class="text-xs font-bold text-primary transition hover:text-primary/80">
+                      Editar
+                    </button>
+                    <button type="button" (click)="removeSurgery(item.id)" class="text-xs font-bold text-red-600 transition hover:text-red-700">
+                      Quitar
+                    </button>
+                  </div>
+                </div>
+
+                @if (item.description) {
+                  <p class="mt-2 text-xs leading-5 text-text-secondary">{{ item.description }}</p>
+                }
+
+                @if (item.postoperativeInstructions) {
+                  <p class="mt-2 text-xs leading-5 text-text-secondary">
+                    <span class="font-semibold text-text-primary">Postoperatorio:</span>
+                    {{ item.postoperativeInstructions }}
+                  </p>
+                }
+              </article>
+            }
+          }
+        </div>
+      </div>
+
+      <div class="rounded-2xl border border-border bg-card p-5">
+        <div class="flex items-center justify-between gap-3">
+          <p class="text-sm font-bold text-text-primary">Registradas desde atención</p>
+          <span class="rounded-full border border-border bg-surface px-3 py-1 text-[11px] font-semibold text-text-secondary">
+            {{ encounterLinkedSurgeries().length }}
+          </span>
+        </div>
+
+        <div class="mt-4 space-y-3">
+          @if (encounterLinkedSurgeries().length === 0) {
+            <div class="rounded-xl border border-dashed border-border bg-background/60 px-4 py-4 text-sm text-text-secondary">
+              Las cirugías realizadas en consultas aparecerán aquí automáticamente.
+            </div>
+          } @else {
+            @for (item of encounterLinkedSurgeries(); track item.id) {
+              <article class="rounded-xl border border-border bg-surface px-4 py-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <p class="text-sm font-bold text-text-primary">{{ item.surgeryType }}</p>
+                      <span class="rounded-full border border-border bg-background px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
+                        {{ buildSourceLabel(item) }}
+                      </span>
+                    </div>
+                    <p class="mt-1 text-xs text-text-secondary">
+                      {{ buildStatusLabel(item.surgeryStatus) }} · {{ buildSurgeryDateMeta(item) }}
+                    </p>
+                  </div>
+                </div>
+
+                @if (item.description) {
+                  <p class="mt-2 text-xs leading-5 text-text-secondary">{{ item.description }}</p>
+                }
+              </article>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="rounded-2xl border border-dashed border-border bg-background/60 px-5 py-5 text-sm text-text-secondary">
+      No hay cirugías registradas todavía para esta mascota.
+    </div>
+  }
+</section>
