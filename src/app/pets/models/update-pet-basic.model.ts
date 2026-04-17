@@ -1,3 +1,5 @@
+import { UpsertPetSurgeryRequest } from './pet-surgery.model';
+
 export interface UpdatePetBasicRequest {
   name: string;
   speciesId: number;
@@ -9,5 +11,6 @@ export interface UpdatePetBasicRequest {
   sterilized: boolean;
   generalAllergies?: string;
   generalHistory?: string;
+  surgeries?: UpsertPetSurgeryRequest[];
   image?: File;
 }

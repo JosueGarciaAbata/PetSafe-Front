@@ -48,8 +48,11 @@ import {
   EncounterDetail,
   EncounterEnvironmentalData,
   EncounterPlan,
+  EncounterProcedure,
   EncounterProcedureDraft,
+  EncounterTreatment,
   EncounterTreatmentDraft,
+  EncounterVaccinationEvent,
   EncounterVaccinationDraft,
   HydrationStatus,
   MucosaStatus,
@@ -1502,8 +1505,74 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
     return medications.length > 0 ? medications.join(', ') : 'Tratamiento pendiente';
   }
 
+  protected patientSurgeryHistory() {
+    return this.patientDetail?.surgeries ?? [];
+  }
+
+  protected hasPatientSurgeryHistory(): boolean {
+    return this.patientSurgeryHistory().length > 0;
+  }
+
+  protected patientSurgeryStatusLabel(status: string | null | undefined): string {
+    switch ((status ?? '').trim().toUpperCase()) {
+      case 'PROGRAMADA':
+        return 'Programada';
+      case 'EN_CURSO':
+        return 'En curso';
+      case 'FINALIZADA':
+        return 'Finalizada';
+      case 'CANCELADA':
+        return 'Cancelada';
+      default:
+        return 'Sin estado';
+    }
+  }
+
+  protected patientSurgerySourceLabel(item: {
+    encounterId: number | null;
+    isExternal: boolean;
+  }): string {
+    return item.isExternal || item.encounterId === null ? 'Externa' : 'Desde atención';
+  }
+
+  protected patientSurgeryDateLabel(item: {
+    performedDate: string | null;
+    scheduledDate: string | null;
+  }): string {
+    if (item.performedDate) {
+      return `Realizada ${this.formatDate(item.performedDate)}`;
+    }
+
+    if (item.scheduledDate) {
+      return `Programada ${this.formatDate(item.scheduledDate)}`;
+    }
+
+    return 'Sin fecha registrada';
+  }
+
+  protected legacyPreviousSurgeriesText(): string | null {
+    const value = this.encounter?.anamnesis?.previousSurgeriesText?.trim();
+    return value ? value : null;
+  }
+
+  protected vaccinationEventLabel(event: EncounterVaccinationEvent): string {
+    return event.vaccineName?.trim() || 'Vacunacion registrada';
+  }
+
+  protected treatmentSummary(treatment: EncounterTreatment): string {
+    const medications = treatment.items
+      .map((item) => item.medication.trim())
+      .filter((value) => value.length > 0);
+
+    return medications.length > 0 ? medications.join(', ') : 'Tratamiento registrado';
+  }
+
   protected procedureDraftLabel(draft: EncounterProcedureDraft): string {
     return draft.procedureType?.trim() || 'Procedimiento pendiente';
+  }
+
+  protected procedureLabel(procedure: EncounterProcedure): string {
+    return procedure.procedureType?.trim() || 'Procedimiento registrado';
   }
 
   protected pendingActionsCount(): number {

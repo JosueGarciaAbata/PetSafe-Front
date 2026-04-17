@@ -1,0 +1,170 @@
+@if (open) {
+  <div class="fixed inset-0 z-[120] bg-black/40 backdrop-blur-[2px]" (click)="close()"></div>
+
+  <div class="fixed inset-0 z-[130] flex items-center justify-center p-4">
+    <div class="w-full max-w-3xl overflow-hidden rounded-[24px] border border-border bg-card shadow-2xl">
+      <div class="flex items-start justify-between border-b border-border bg-surface px-6 py-5">
+        <div class="flex flex-col gap-1">
+          <h2 class="text-xl font-bold text-text-primary">{{ buildTitle() }}</h2>
+          <p class="text-sm text-text-secondary">{{ buildDescription() }}</p>
+        </div>
+
+        <button
+          type="button"
+          (click)="close()"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full text-text-secondary transition-all hover:bg-background hover:text-text-primary"
+          aria-label="Cerrar modal"
+        >
+          <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M6 6l12 12M18 6 6 18"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="grid gap-4 p-6">
+        <div class="grid gap-4 md:grid-cols-[minmax(0,1.2fr)_repeat(2,minmax(0,0.4fr))]">
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-text-primary">Cirugía</label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
+              <input
+                matInput
+                type="text"
+                [ngModel]="surgeryTypeValue"
+                (ngModelChange)="onSurgeryTypeChanged($event)"
+                [matAutocomplete]="surgeryCatalogAuto"
+                placeholder="Buscar en catálogo o escribir una cirugía externa"
+                autocomplete="off"
+                class="text-sm text-text-primary placeholder:text-text-secondary/50"
+              />
+            </mat-form-field>
+            <mat-autocomplete #surgeryCatalogAuto="matAutocomplete" autoActiveFirstOption>
+              @for (option of filteredCatalog(); track option.id) {
+                <mat-option [value]="option.name" (onSelectionChange)="onCatalogSelection($event.isUserInput, option)">
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium text-text-primary">{{ option.name }}</span>
+                    @if (showCatalogSupport(option); as supportText) {
+                      <span class="text-xs text-text-secondary">{{ supportText }}</span>
+                    }
+                  </div>
+                </mat-option>
+              }
+              @if (isCatalogLoading) {
+                <mat-option disabled>Buscando cirugías...</mat-option>
+              } @else if (surgeryTypeValue.trim() && filteredCatalog().length === 0) {
+                <mat-option disabled>Sin coincidencias en catálogo. Se guardará como cirugía externa manual.</mat-option>
+              }
+            </mat-autocomplete>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-text-primary">Estado</label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
+              <mat-select [ngModel]="surgeryStatus" (ngModelChange)="surgeryStatus = $event">
+                @for (option of surgeryStatusOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-text-primary">Fecha realizada</label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
+              <input
+                matInput
+                type="date"
+                [ngModel]="performedDate"
+                (ngModelChange)="performedDate = $event"
+                class="text-sm text-text-primary placeholder:text-text-secondary/50"
+              />
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-text-primary">Fecha programada</label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
+              <input
+                matInput
+                type="date"
+                [ngModel]="scheduledDate"
+                (ngModelChange)="scheduledDate = $event"
+                class="text-sm text-text-primary placeholder:text-text-secondary/50"
+              />
+            </mat-form-field>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-text-primary">Descripción</label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
+              <textarea
+                matInput
+                rows="3"
+                [ngModel]="description"
+                (ngModelChange)="description = $event"
+                [attr.maxlength]="textAreaMaxLength"
+                placeholder="Contexto clínico u observaciones relevantes"
+                class="text-sm text-text-primary placeholder:text-text-secondary/50"
+              ></textarea>
+              <mat-hint align="end">{{ description.trim().length }}/{{ textAreaMaxLength }}</mat-hint>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-semibold text-text-primary">Instrucciones postoperatorias</label>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
+            <textarea
+              matInput
+              rows="3"
+              [ngModel]="postoperativeInstructions"
+              (ngModelChange)="postoperativeInstructions = $event"
+              [attr.maxlength]="textAreaMaxLength"
+              placeholder="Cuidados o notas posteriores, si aplica"
+              class="text-sm text-text-primary placeholder:text-text-secondary/50"
+            ></textarea>
+            <mat-hint align="end">{{ postoperativeInstructions.trim().length }}/{{ textAreaMaxLength }}</mat-hint>
+          </mat-form-field>
+        </div>
+
+        @if (submitError || formError || isDateRangeInvalid() || isPerformedDateInFuture() || isDescriptionTooLong() || isPostoperativeInstructionsTooLong()) {
+          <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            @if (submitError) {
+              {{ submitError }}
+            } @else if (formError) {
+              {{ formError }}
+            } @else if (isDateRangeInvalid()) {
+              La fecha de realización no puede ser anterior a la fecha programada.
+            } @else if (isPerformedDateInFuture()) {
+              La fecha de realización no puede ser futura.
+            } @else if (isDescriptionTooLong()) {
+              La descripción no puede superar los {{ textAreaMaxLength }} caracteres.
+            } @else if (isPostoperativeInstructionsTooLong()) {
+              Las instrucciones postoperatorias no pueden superar los {{ textAreaMaxLength }} caracteres.
+            }
+          </div>
+        }
+      </div>
+
+      <div class="flex items-center justify-end gap-3 border-t border-border bg-surface/95 px-6 py-5 backdrop-blur">
+        <button
+          type="button"
+          (click)="close()"
+          [disabled]="isSaving"
+          class="rounded-xl px-5 py-2.5 text-sm font-bold text-text-secondary transition-all hover:bg-background disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="save()"
+          [disabled]="isSaving"
+          class="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {{ isSaving ? 'Guardando...' : (initialSurgery ? 'Guardar cirugía' : 'Agregar cirugía') }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -26,8 +26,6 @@
       </header>
       <div class="flex gap-3">
         <div class="h-11 w-40 animate-pulse rounded-xl bg-background"></div>
-        <div class="h-11 w-40 animate-pulse rounded-xl bg-background"></div>
-        <div class="h-11 w-40 animate-pulse rounded-xl bg-background"></div>
       </div>
     </div>
 
@@ -41,13 +39,12 @@
             <div class="h-24 animate-pulse rounded-2xl bg-background"></div>
             <div class="h-24 animate-pulse rounded-2xl bg-background"></div>
           </div>
-          <div class="h-32 animate-pulse rounded-2xl bg-background"></div>
         </div>
       </div>
     </div>
 
-    <div class="rounded-[16px] border border-border bg-card p-8 shadow-sm">
-      <div class="h-24 animate-pulse rounded-xl bg-background"></div>
+    <div class="rounded-[24px] border border-border bg-card p-8 shadow-sm">
+      <div class="h-56 animate-pulse rounded-2xl bg-background"></div>
     </div>
   } @else if (loadError) {
     <div class="rounded-[16px] border border-border bg-card p-8 text-sm text-text-secondary shadow-sm">
@@ -57,18 +54,18 @@
     <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <header class="flex flex-col gap-1">
         <h1 class="text-[28px] font-bold text-text-primary">{{ pet.name }}</h1>
-        <p class="text-base text-text-secondary">Detalle basico del paciente</p>
+        <p class="text-base text-text-secondary">Ficha clínica base del paciente</p>
       </header>
 
       <div class="flex flex-wrap items-center gap-3">
         <button
           type="button"
           (click)="openEditPetPage()"
-          class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#B7D7D1] bg-[#E8F3F0] px-4 py-2.5 text-sm font-bold text-[#2F605E] shadow-sm transition-all hover:border-[#9CC6BE] hover:bg-[#DDEDE8]"
+          class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background"
         >
           <svg
             viewBox="0 0 24 24"
-            class="h-4 w-4 text-[#2F605E]"
+            class="h-4 w-4"
             fill="none"
             stroke="currentColor"
             stroke-width="1.8"
@@ -83,9 +80,8 @@
       </div>
     </div>
 
-    <div class="rounded-[24px] border border-border bg-card p-8 shadow-sm">
-      <div class="flex flex-col gap-8">
-        <div class="flex flex-col gap-8 lg:flex-row">
+    <section class="rounded-[24px] border border-border bg-card p-8 shadow-sm">
+      <div class="flex flex-col gap-8 lg:flex-row">
         <div class="pet-hero-image flex h-32 w-32 shrink-0 items-center justify-center self-center overflow-hidden rounded-[28px] border-4 border-surface bg-active-soft shadow-md lg:self-start">
           @if (petImageUrl(); as imageUrl) {
             <img
@@ -107,9 +103,7 @@
                 Especie / Raza
               </span>
               <span class="break-words text-sm font-bold text-text-primary">{{ buildSpeciesLabel() }}</span>
-              <span class="break-words text-xs text-text-secondary">
-                {{ buildBreedLabel() }}
-              </span>
+              <span class="break-words text-xs text-text-secondary">{{ buildBreedLabel() }}</span>
             </div>
 
             <div class="flex min-w-0 flex-col gap-1 rounded-2xl border border-border bg-surface p-4 shadow-sm">
@@ -140,272 +134,518 @@
           </div>
         </div>
       </div>
+    </section>
 
-        <section class="flex flex-col gap-4 border-t border-border pt-6">
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-2">
-              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white">
-                <svg
-                  viewBox="0 0 24 24"
-                  class="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M14.5 4.5 19.5 9.5"></path>
-                  <path d="m6 18 9.5-9.5a2.1 2.1 0 0 0-3-3L3 15v6h6Z"></path>
-                  <path d="M16 12 12 8"></path>
-                </svg>
-              </div>
-              <h3 class="text-[17px] font-bold text-text-primary">Vacunación</h3>
-            </div>
-
+    <section class="rounded-[24px] border border-border bg-card shadow-sm">
+      <div class="border-b border-border px-6 pt-5 md:px-7">
+        <nav class="flex flex-wrap gap-8 border-b border-border">
+          @for (tab of detailTabs; track tab.id) {
             <button
               type="button"
-              (click)="openVaccinationPage()"
-              class="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90"
+              (click)="setActiveTab(tab.id)"
+              [class]="
+                isActiveTab(tab.id)
+                  ? 'border-b-2 border-primary pb-4 text-sm font-bold text-text-primary'
+                  : 'border-b-2 border-transparent pb-4 text-sm font-semibold text-text-secondary transition-colors hover:text-text-primary'
+              "
             >
-              <span>Ver vacunación</span>
+              {{ tab.label }}
             </button>
-          </div>
+          }
+        </nav>
+      </div>
 
-          @if (isVaccinationLoading && !vaccinationPlan && !vaccinationLoadError) {
-            <div class="grid gap-4 md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-              <div class="h-36 animate-pulse rounded-2xl bg-background"></div>
-              <div class="h-36 animate-pulse rounded-2xl bg-background"></div>
-            </div>
-          } @else if (vaccinationPlan) {
-            <div class="grid gap-4 md:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
-              <div class="rounded-2xl border border-border bg-surface p-5 shadow-sm">
-                <div class="flex flex-col gap-2">
-                  <div class="flex flex-wrap items-center gap-2">
-                    <span class="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
-                      {{ vaccinationPlan.scheme.name }}
-                    </span>
-                    <span class="rounded-full bg-background px-2.5 py-1 text-[11px] font-semibold text-text-secondary">
-                      v{{ vaccinationPlan.version.version }}
-                    </span>
-                    <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold" [ngClass]="vaccinationCoverageToneClasses()">
-                      {{ vaccinationCoveragePercent() }}% cobertura
-                    </span>
+      <div class="p-6 md:p-7">
+        @if (isActiveTab('OVERVIEW')) {
+          <div class="flex flex-col gap-8">
+            <section class="flex flex-col gap-4">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                  <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white">
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M14.5 4.5 19.5 9.5"></path>
+                      <path d="m6 18 9.5-9.5a2.1 2.1 0 0 0-3-3L3 15v6h6Z"></path>
+                      <path d="M16 12 12 8"></path>
+                    </svg>
                   </div>
-
-                  <p class="text-sm leading-6 text-text-secondary">
-                    Estado resumido del plan vacunal del paciente, con lo aplicado, lo pendiente y las alertas que requieren seguimiento.
-                  </p>
+                  <div class="flex flex-col">
+                    <h3 class="text-[17px] font-bold text-text-primary">Vacunación</h3>
+                    <p class="text-sm text-text-secondary">Estado resumido del carnet y del plan vacunal actual.</p>
+                  </div>
                 </div>
 
-                <div class="mt-5 grid grid-cols-2 gap-3 md:grid-cols-5">
-                  <div class="ps-tone ps-tone--success ps-tone-surface rounded-xl border p-3">
-                    <span class="text-[11px] font-semibold uppercase tracking-wider">Aplicadas</span>
-                    <p class="mt-1 text-xl font-bold">{{ vaccinationPlan.coverage.applied }}</p>
-                  </div>
-                  <div class="ps-tone ps-tone--info ps-tone-surface rounded-xl border p-3">
-                    <span class="text-[11px] font-semibold uppercase tracking-wider">Pendientes</span>
-                    <p class="mt-1 text-xl font-bold">{{ vaccinationPlan.coverage.notApplied }}</p>
-                  </div>
-                  <div class="ps-tone ps-tone--warning ps-tone-surface rounded-xl border p-3">
-                    <span class="text-[11px] font-semibold uppercase tracking-wider">Desconocidas</span>
-                    <p class="mt-1 text-xl font-bold">{{ vaccinationPlan.coverage.unknown }}</p>
-                  </div>
-                  <div class="ps-tone ps-tone--attention ps-tone-surface rounded-xl border p-3">
-                    <span class="text-[11px] font-semibold uppercase tracking-wider">Revisión</span>
-                    <p class="mt-1 text-xl font-bold">{{ vaccinationPlan.coverage.requiresReview }}</p>
-                  </div>
-                  <div class="ps-tone ps-tone--neutral ps-tone-surface rounded-xl border p-3">
-                    <span class="text-[11px] font-semibold uppercase tracking-wider">Bloqueadas</span>
-                    <p class="mt-1 text-xl font-bold">{{ vaccinationPlan.coverage.blocked }}</p>
-                  </div>
-                </div>
+                <button
+                  type="button"
+                  (click)="openVaccinationPage()"
+                  class="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90"
+                >
+                  <span>Ver vacunación</span>
+                </button>
               </div>
 
-              <div class="rounded-2xl border border-border bg-surface p-5 shadow-sm">
-                <div class="flex items-center justify-between gap-3">
-                  <span class="text-sm font-bold text-text-primary">Alertas clínicas</span>
-                  <span class="rounded-full bg-background px-2.5 py-1 text-xs font-semibold text-text-secondary">
-                    {{ vaccinationAlerts().length }}
-                  </span>
+              @if (isVaccinationLoading && !vaccinationPlan && !vaccinationLoadError) {
+                <div class="grid gap-4 md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+                  <div class="h-36 animate-pulse rounded-2xl bg-background"></div>
+                  <div class="h-36 animate-pulse rounded-2xl bg-background"></div>
                 </div>
+              } @else if (vaccinationPlan) {
+                <div class="grid gap-4 md:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
+                  <div class="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+                    <div class="flex flex-col gap-2">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
+                          {{ vaccinationPlan.scheme.name }}
+                        </span>
+                        <span class="rounded-full bg-background px-2.5 py-1 text-[11px] font-semibold text-text-secondary">
+                          v{{ vaccinationPlan.version.version }}
+                        </span>
+                        <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold" [ngClass]="vaccinationCoverageToneClasses()">
+                          {{ vaccinationCoveragePercent() }}% cobertura
+                        </span>
+                      </div>
 
-                @if (vaccinationAlerts().length > 0) {
-                  <div class="mt-4 flex flex-col gap-3">
-                    @for (alert of vaccinationAlerts().slice(0, 3); track alert) {
-                      <div class="ps-tone ps-tone--attention ps-tone-surface rounded-xl border px-3 py-2 text-sm leading-6">
-                        {{ alert }}
+                      <p class="text-sm leading-6 text-text-secondary">
+                        Estado resumido del plan vacunal del paciente, con lo aplicado, lo pendiente y las alertas que requieren seguimiento.
+                      </p>
+                    </div>
+
+                    <div class="mt-5 grid grid-cols-2 gap-3 md:grid-cols-5">
+                      <div class="ps-tone ps-tone--success ps-tone-surface rounded-xl border p-3">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider">Aplicadas</span>
+                        <p class="mt-1 text-xl font-bold">{{ vaccinationPlan.coverage.applied }}</p>
+                      </div>
+                      <div class="ps-tone ps-tone--info ps-tone-surface rounded-xl border p-3">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider">Pendientes</span>
+                        <p class="mt-1 text-xl font-bold">{{ vaccinationPlan.coverage.notApplied }}</p>
+                      </div>
+                      <div class="ps-tone ps-tone--warning ps-tone-surface rounded-xl border p-3">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider">Desconocidas</span>
+                        <p class="mt-1 text-xl font-bold">{{ vaccinationPlan.coverage.unknown }}</p>
+                      </div>
+                      <div class="ps-tone ps-tone--attention ps-tone-surface rounded-xl border p-3">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider">Revisión</span>
+                        <p class="mt-1 text-xl font-bold">{{ vaccinationPlan.coverage.requiresReview }}</p>
+                      </div>
+                      <div class="ps-tone ps-tone--neutral ps-tone-surface rounded-xl border p-3">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider">Bloqueadas</span>
+                        <p class="mt-1 text-xl font-bold">{{ vaccinationPlan.coverage.blocked }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+                    <div class="flex items-center justify-between gap-3">
+                      <span class="text-sm font-bold text-text-primary">Alertas clínicas</span>
+                      <span class="rounded-full bg-background px-2.5 py-1 text-xs font-semibold text-text-secondary">
+                        {{ vaccinationAlerts().length }}
+                      </span>
+                    </div>
+
+                    @if (vaccinationAlerts().length > 0) {
+                      <div class="mt-4 flex flex-col gap-3">
+                        @for (alert of vaccinationAlerts().slice(0, 3); track alert) {
+                          <div class="ps-tone ps-tone--attention ps-tone-surface rounded-xl border px-3 py-2 text-sm leading-6">
+                            {{ alert }}
+                          </div>
+                        }
+                      </div>
+                    } @else {
+                      <div class="mt-4 rounded-xl border border-border bg-background/60 px-4 py-4 text-sm text-text-secondary">
+                        No hay alertas vacunales activas para este paciente.
                       </div>
                     }
                   </div>
-                } @else {
-                  <div class="mt-4 rounded-xl border border-border bg-background/60 px-4 py-4 text-sm text-text-secondary">
-                    No hay alertas vacunales activas para este paciente.
-                  </div>
-                }
-              </div>
-            </div>
-          } @else if (hasMissingVaccinationPlan) {
-            <div class="ps-tone ps-tone--warning ps-tone-surface rounded-2xl border px-5 py-5">
-              <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div class="flex flex-col gap-1">
-                  <span class="text-sm font-bold">Sin plan vacunal generado</span>
-                  <p class="text-sm leading-6">
-                    Esta mascota aún no tiene un plan vacunal asignado. Puedes generarlo ahora si ya existe un esquema utilizable para su especie.
-                  </p>
                 </div>
+              } @else if (hasMissingVaccinationPlan) {
+                <div class="ps-tone ps-tone--warning ps-tone-surface rounded-2xl border px-5 py-5">
+                  <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div class="flex flex-col gap-1">
+                      <span class="text-sm font-bold">Sin plan vacunal generado</span>
+                      <p class="text-sm leading-6">
+                        Esta mascota aún no tiene un plan vacunal asignado. Puedes generarlo ahora si ya existe un esquema utilizable para su especie.
+                      </p>
+                    </div>
 
-                @if (canGenerateVaccinationPlan()) {
-                  <button
-                    type="button"
-                    (click)="openInitializeVaccinationPlanModal()"
-                    [disabled]="isGeneratingVaccinationPlan"
-                    class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
-                  >
-                    <span>{{ isGeneratingVaccinationPlan ? 'Generando...' : 'Generar esquema de vacunación' }}</span>
-                  </button>
-                }
-              </div>
+                    @if (canGenerateVaccinationPlan()) {
+                      <button
+                        type="button"
+                        (click)="openInitializeVaccinationPlanModal()"
+                        [disabled]="isGeneratingVaccinationPlan"
+                        class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
+                      >
+                        <span>{{ isGeneratingVaccinationPlan ? 'Generando...' : 'Generar esquema de vacunación' }}</span>
+                      </button>
+                    }
+                  </div>
 
-              @if (vaccinationLoadError) {
-                <div class="ps-tone ps-tone--danger ps-tone-surface rounded-xl border px-4 py-3 text-sm leading-6">
+                  @if (vaccinationLoadError) {
+                    <div class="ps-tone ps-tone--danger ps-tone-surface rounded-xl border px-4 py-3 text-sm leading-6">
+                      {{ vaccinationLoadError }}
+                    </div>
+                  }
+                </div>
+              } @else if (vaccinationLoadError) {
+                <div class="ps-tone ps-tone--danger ps-tone-surface rounded-2xl border px-5 py-4 text-sm leading-6">
                   {{ vaccinationLoadError }}
                 </div>
               }
-            </div>
-          } @else if (vaccinationLoadError) {
-            <div class="ps-tone ps-tone--danger ps-tone-surface rounded-2xl border px-5 py-4 text-sm leading-6">
-              {{ vaccinationLoadError }}
-            </div>
-          }
-        </section>
+            </section>
 
-        <!-- Control de relaciones tutor-mascota desacoplado para uso futuro.
-             Implementación guardada en `detail/components/pet-tutors-relations.component`. -->
-
-        <section class="flex flex-col gap-4 border-t border-border pt-6">
-          <div class="flex items-center gap-2">
-            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#2F605E] text-white">
-              <svg
-                viewBox="0 0 24 24"
-                class="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M9 3h6l2 2v14l-2 2H9l-2-2V5l2-2Z"></path>
-                <path d="M9 9h6"></path>
-                <path d="M9 13h6"></path>
-              </svg>
-            </div>
-            <h3 class="text-[17px] font-bold text-text-primary">Observaciones clinicas</h3>
-          </div>
-
-          @if (hasClinicalContent()) {
-            <div class="flex flex-col gap-5">
-              @if (hasGeneralClinicalSummary()) {
-                <div class="grid gap-4 md:grid-cols-2">
-                  @if (generalAllergies()) {
-                    <div class="flex min-w-0 flex-col gap-1">
-                      <span
-                        class="text-[11px] font-semibold uppercase tracking-wider text-text-secondary"
-                      >
-                        Alergias generales
-                      </span>
-                      <p class="break-all whitespace-pre-wrap text-sm leading-6 text-text-secondary">{{ generalAllergies() }}</p>
-                    </div>
-                  }
-
-                  @if (generalHistory()) {
-                    <div class="flex min-w-0 flex-col gap-1">
-                      <span
-                        class="text-[11px] font-semibold uppercase tracking-wider text-text-secondary"
-                      >
-                        Historia general
-                      </span>
-                      <p class="break-all whitespace-pre-wrap text-sm leading-6 text-text-secondary">{{ generalHistory() }}</p>
-                    </div>
-                  }
+            <section class="flex flex-col gap-4 border-t border-border pt-8">
+              <div class="flex items-center gap-2">
+                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white">
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M9 3h6l2 2v14l-2 2H9l-2-2V5l2-2Z"></path>
+                    <path d="M9 9h6"></path>
+                    <path d="M9 13h6"></path>
+                  </svg>
                 </div>
-              }
+                <div class="flex flex-col">
+                  <h3 class="text-[17px] font-bold text-text-primary">Observaciones clínicas</h3>
+                  <p class="text-sm text-text-secondary">Resumen longitudinal del paciente y notas de relevancia general.</p>
+                </div>
+              </div>
 
-              @if (clinicalObservations().length > 0) {
-                <div class="divide-y divide-border rounded-2xl border border-border/80 bg-background/40">
-                  @for (observation of clinicalObservations(); track observation.id) {
-                    <div class="min-w-0 px-4 py-4">
-                      <div class="flex flex-wrap items-center gap-2">
-                        <span class="break-words text-sm font-bold text-text-primary">{{ observation.name }}</span>
-                        @if (buildObservationMeta(observation)) {
+              @if (hasClinicalContent()) {
+                <div class="flex flex-col gap-5">
+                  @if (hasGeneralClinicalSummary()) {
+                    <div class="grid gap-4 md:grid-cols-2">
+                      @if (generalAllergies()) {
+                        <div class="rounded-2xl border border-border bg-surface p-5">
                           <span class="text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
-                            {{ buildObservationMeta(observation) }}
+                            Alergias generales
                           </span>
-                        }
-                      </div>
-                      @if (observation.description) {
-                        <p class="mt-1 break-all whitespace-pre-wrap text-sm leading-6 text-text-secondary">{{ observation.description }}</p>
+                          <p class="mt-2 break-all whitespace-pre-wrap text-sm leading-6 text-text-secondary">{{ generalAllergies() }}</p>
+                        </div>
+                      }
+
+                      @if (generalHistory()) {
+                        <div class="rounded-2xl border border-border bg-surface p-5">
+                          <span class="text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+                            Historia general
+                          </span>
+                          <p class="mt-2 break-all whitespace-pre-wrap text-sm leading-6 text-text-secondary">{{ generalHistory() }}</p>
+                        </div>
+                      }
+                    </div>
+                  }
+
+                  @if (clinicalObservations().length > 0) {
+                    <div class="divide-y divide-border rounded-2xl border border-border/80 bg-background/40">
+                      @for (observation of clinicalObservations(); track observation.id) {
+                        <div class="min-w-0 px-4 py-4">
+                          <div class="flex flex-wrap items-center gap-2">
+                            <span class="break-words text-sm font-bold text-text-primary">{{ observation.name }}</span>
+                            @if (buildObservationMeta(observation)) {
+                              <span class="text-[11px] font-semibold uppercase tracking-wider text-text-secondary">
+                                {{ buildObservationMeta(observation) }}
+                              </span>
+                            }
+                          </div>
+                          @if (observation.description) {
+                            <p class="mt-1 break-all whitespace-pre-wrap text-sm leading-6 text-text-secondary">{{ observation.description }}</p>
+                          }
+                        </div>
                       }
                     </div>
                   }
                 </div>
+              } @else {
+                <div class="flex items-center gap-2 text-text-secondary">
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="h-4 w-4 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                  >
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 8v4"></path>
+                    <path d="M12 16h.01"></path>
+                  </svg>
+                  <span class="text-sm italic">Sin observaciones clínicas registradas</span>
+                </div>
+              }
+            </section>
+          </div>
+        }
+
+        @if (isActiveTab('SURGERIES')) {
+          <section class="flex flex-col gap-6">
+            <div class="flex items-center justify-between gap-3">
+              <h3 class="text-[17px] font-bold text-text-primary">Historial quirúrgico</h3>
+
+              @if (canManageSurgeries()) {
+                <button
+                  type="button"
+                  (click)="openCreateSurgeryModal()"
+                  class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M12 5v14"></path>
+                    <path d="M5 12h14"></path>
+                  </svg>
+                  <span>Agregar cirugía</span>
+                </button>
               }
             </div>
-          } @else {
-            <div class="flex items-center gap-2 text-text-secondary">
-              <svg
-                viewBox="0 0 24 24"
-                class="h-4 w-4 shrink-0"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-              >
-                <circle cx="12" cy="12" r="9"></circle>
-                <path d="M12 8v4"></path>
-                <path d="M12 16h.01"></path>
-              </svg>
-              <span class="text-sm italic">Sin observaciones clinicas registradas</span>
+
+            <div class="grid gap-6 xl:grid-cols-2">
+              <div class="flex flex-col gap-3">
+                <div class="flex items-center justify-between gap-3">
+                  <h4 class="text-sm font-bold uppercase tracking-wider text-text-secondary">Desde perfil</h4>
+                  <span class="rounded-full bg-background px-3 py-1 text-xs font-semibold text-text-secondary">
+                    {{ profileManagedSurgeries().length }}
+                  </span>
+                </div>
+
+                @if (profileManagedSurgeries().length > 0) {
+                  <div class="divide-y divide-border rounded-2xl border border-border bg-surface">
+                    @for (item of profileManagedSurgeries(); track item.id) {
+                      <article class="px-4 py-4">
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                          <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-2">
+                              <p class="break-words text-sm font-bold text-text-primary">{{ item.surgeryType }}</p>
+                              <span
+                                class="rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider"
+                                [ngClass]="buildSurgeryStatusClasses(item.surgeryStatus)"
+                              >
+                                {{ buildSurgeryStatusLabel(item.surgeryStatus) }}
+                              </span>
+                            </div>
+                            <p class="mt-1 text-xs text-text-secondary">{{ buildSurgeryDateLabel(item) }}</p>
+                          </div>
+
+                          @if (canEditProfileSurgery(item)) {
+                            <div class="flex shrink-0 items-center gap-2">
+                              <button
+                                type="button"
+                                (click)="openEditSurgeryModal(item)"
+                                [disabled]="isSavingSurgery"
+                                class="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold text-text-secondary transition-all hover:bg-background hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-60"
+                              >
+                                Editar
+                              </button>
+
+                              <button
+                                type="button"
+                                (click)="deleteProfileSurgery(item)"
+                                [disabled]="isSavingSurgery"
+                                class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-60 ps-tone ps-tone--danger ps-tone-surface"
+                              >
+                                Eliminar
+                              </button>
+                            </div>
+                          }
+                        </div>
+
+                        @if (item.description) {
+                          <p class="mt-2 text-sm leading-6 text-text-secondary">{{ item.description }}</p>
+                        }
+
+                        @if (item.postoperativeInstructions) {
+                          <p class="mt-2 text-sm leading-6 text-text-secondary">
+                            <span class="font-semibold text-text-primary">Postoperatorio:</span>
+                            {{ item.postoperativeInstructions }}
+                          </p>
+                        }
+                      </article>
+                    }
+                  </div>
+                } @else {
+                  <div class="rounded-2xl border border-dashed border-border bg-background/50 px-4 py-6 text-sm text-text-secondary">
+                    Sin cirugías registradas desde perfil.
+                  </div>
+                }
+              </div>
+
+              <div class="flex flex-col gap-3">
+                <div class="flex items-center justify-between gap-3">
+                  <h4 class="text-sm font-bold uppercase tracking-wider text-text-secondary">Desde atención</h4>
+                  <span class="rounded-full bg-background px-3 py-1 text-xs font-semibold text-text-secondary">
+                    {{ encounterLinkedSurgeries().length }}
+                  </span>
+                </div>
+
+                @if (encounterLinkedSurgeries().length > 0) {
+                  <div class="divide-y divide-border rounded-2xl border border-border bg-surface">
+                    @for (item of encounterLinkedSurgeries(); track item.id) {
+                      <article class="px-4 py-4">
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                          <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-2">
+                              <p class="break-words text-sm font-bold text-text-primary">{{ item.surgeryType }}</p>
+                              <span
+                                class="rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider"
+                                [ngClass]="buildSurgeryStatusClasses(item.surgeryStatus)"
+                              >
+                                {{ buildSurgeryStatusLabel(item.surgeryStatus) }}
+                              </span>
+                              <span class="rounded-full border border-border bg-card px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
+                                Atención #{{ item.encounterId }}
+                              </span>
+                            </div>
+                            <p class="mt-1 text-xs text-text-secondary">{{ buildSurgeryDateLabel(item) }}</p>
+                          </div>
+                        </div>
+
+                        @if (item.description) {
+                          <p class="mt-2 text-sm leading-6 text-text-secondary">{{ item.description }}</p>
+                        }
+
+                        @if (item.postoperativeInstructions) {
+                          <p class="mt-2 text-sm leading-6 text-text-secondary">
+                            <span class="font-semibold text-text-primary">Postoperatorio:</span>
+                            {{ item.postoperativeInstructions }}
+                          </p>
+                        }
+                      </article>
+                    }
+                  </div>
+                } @else {
+                  <div class="rounded-2xl border border-dashed border-border bg-background/50 px-4 py-6 text-sm text-text-secondary">
+                    Sin cirugías registradas desde atención.
+                  </div>
+                }
+              </div>
             </div>
-          }
-        </section>
-      </div>
-    </div>
+          </section>
+        }
 
-    <section class="flex flex-col gap-4">
-      <div class="flex items-center gap-2 px-1">
-        <svg
-          viewBox="0 0 24 24"
-          class="h-5 w-5 text-brand"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-        >
-          <path d="M12 8v4l3 2"></path>
-          <circle cx="12" cy="12" r="9"></circle>
-        </svg>
-        <h3 class="text-[17px] font-bold text-text-primary">Actividad reciente</h3>
-      </div>
+        @if (isActiveTab('PROCEDURES')) {
+          <section class="flex flex-col gap-4">
+            <div class="flex flex-col gap-1">
+              <h3 class="text-[17px] font-bold text-text-primary">Procedimientos</h3>
+            </div>
 
-      <div class="rounded-[16px] border border-border bg-card p-8 shadow-sm">
-        <div class="flex flex-col items-center gap-3 text-center">
-          <div class="flex h-12 w-12 items-center justify-center rounded-full bg-background text-text-secondary">
-            <svg
-              viewBox="0 0 24 24"
-              class="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-            >
-              <path d="M12 8v4l3 2"></path>
-              <circle cx="12" cy="12" r="9"></circle>
-            </svg>
-          </div>
-          <div class="flex flex-col gap-1">
-            <span class="text-sm font-bold text-text-primary">Sin actividad reciente</span>
-            <p class="text-xs text-text-secondary">
-              Aqui se mostrara la actividad reciente de la mascota.
-            </p>
-          </div>
-        </div>
+            @if (hasProcedureHistory()) {
+              <div class="divide-y divide-border rounded-2xl border border-border bg-surface">
+                @for (item of procedureHistory(); track item.id) {
+                  <article class="px-4 py-4">
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                      <div class="min-w-0 flex-1">
+                        <p class="break-words text-sm font-bold text-text-primary">{{ item.procedureType }}</p>
+                        <p class="mt-1 text-xs text-text-secondary">
+                          {{ item.performedDate.slice(0, 10) }} · {{ buildProcedureHistoryMeta(item) }}
+                        </p>
+                        @if (item.description) {
+                          <p class="mt-2 text-sm leading-6 text-text-secondary">{{ item.description }}</p>
+                        }
+                        @if (item.result) {
+                          <p class="mt-2 text-sm leading-6 text-text-secondary">
+                            <span class="font-semibold text-text-primary">Resultado:</span>
+                            {{ item.result }}
+                          </p>
+                        }
+                        @if (item.notes) {
+                          <p class="mt-2 text-sm leading-6 text-text-secondary">
+                            <span class="font-semibold text-text-primary">Notas:</span>
+                            {{ item.notes }}
+                          </p>
+                        }
+                      </div>
+                      <span class="rounded-full border border-border bg-card px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
+                        Consulta #{{ item.patientConsultationNumber }}
+                      </span>
+                    </div>
+                  </article>
+                }
+              </div>
+            } @else {
+              <div class="rounded-2xl border border-dashed border-border bg-background/50 px-4 py-6 text-sm text-text-secondary">
+                Sin procedimientos registrados para este paciente.
+              </div>
+            }
+          </section>
+        }
+
+        @if (isActiveTab('ACTIVITY')) {
+          <section class="flex flex-col gap-4">
+            <div class="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
+              <h3 class="text-[17px] font-bold text-text-primary">Actividad reciente</h3>
+              <span class="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">
+                {{ recentActivityWindowLabel() }}
+              </span>
+            </div>
+
+            @if (hasRecentConsultations()) {
+              <div class="divide-y divide-border rounded-2xl border border-border bg-surface">
+                @for (item of recentConsultations(); track item.id) {
+                  <button
+                    type="button"
+                    class="flex w-full items-start justify-between gap-3 px-4 py-4 text-left transition-colors hover:bg-background/50"
+                    [disabled]="isRecentConsultationLoading(item)"
+                    (click)="openRecentConsultationDetail(item)"
+                  >
+                    <div class="min-w-0 flex-1">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <p class="text-sm font-bold text-text-primary">
+                          {{ buildRecentConsultationTitle(item) }}
+                        </p>
+                        <span
+                          class="rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider"
+                          [ngClass]="buildEncounterStatusClasses(item.status)"
+                        >
+                          {{ buildEncounterStatusLabel(item.status) }}
+                        </span>
+                      </div>
+                      <p class="mt-1 text-xs text-text-secondary">{{ item.startTime.slice(0, 10) }}</p>
+                      <p class="mt-2 text-sm leading-6 text-text-secondary">{{ buildRecentConsultationMeta(item) }}</p>
+                    </div>
+
+                    <span class="inline-flex items-center gap-2 text-xs font-semibold text-text-secondary">
+                      @if (isRecentConsultationLoading(item)) {
+                        <span>Cargando...</span>
+                      } @else {
+                        <span>Ver detalle operativo</span>
+                      }
+                      <svg
+                        viewBox="0 0 24 24"
+                        class="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="m9 6 6 6-6 6"></path>
+                      </svg>
+                    </span>
+                  </button>
+                }
+              </div>
+            } @else {
+              <div class="rounded-2xl border border-dashed border-border bg-background/50 px-4 py-6 text-sm text-text-secondary">
+                Sin consultas registradas en el último mes.
+              </div>
+            }
+          </section>
+        }
       </div>
     </section>
   }
@@ -420,4 +660,25 @@
   [submitError]="initializePlanSubmitError"
   (closed)="closeInitializeVaccinationPlanModal()"
   (submitted)="generateVaccinationPlan($event)"
+/>
+
+<app-pet-surgery-modal
+  [open]="isSurgeryModalOpen"
+  [patientName]="pet?.name || 'Paciente'"
+  [catalog]="surgeryCatalog"
+  [isCatalogLoading]="isSurgeryCatalogLoading"
+  [initialSurgery]="editingSurgery"
+  [isSaving]="isSavingSurgery"
+  [submitError]="surgerySubmitError"
+  (closed)="closeSurgeryModal()"
+  (submitted)="submitSurgery($event)"
+/>
+
+<app-queue-entry-detail-modal
+  [open]="isRecentConsultationModalOpen"
+  [entry]="selectedRecentConsultationEntry"
+  [allowQueueStateActions]="false"
+  (closed)="closeRecentConsultationModal()"
+  (reactivateRequested)="reactivateRecentConsultation($event)"
+  (viewEncounterRequested)="viewEncounterFromRecentConsultation($event)"
 />

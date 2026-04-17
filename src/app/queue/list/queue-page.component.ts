@@ -17,6 +17,7 @@ import { PaginationComponent } from '@app/shared/pagination/pagination.component
 import { EMPTY_PAGINATION_META, PaginationMeta } from '@app/shared/pagination/pagination.model';
 import { QueueApiService } from '../api/queue-api.service';
 import { EncountersApiService } from '@app/encounters/api/encounters-api.service';
+import { QueueEntryDetailModalComponent } from '../components/queue-entry-detail-modal.component';
 import {
   EMPTY_QUEUE_SUMMARY,
   QUEUE_STATUS_FILTERS,
@@ -35,7 +36,7 @@ import {
 @Component({
   selector: 'app-queue-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PaginationComponent],
+  imports: [CommonModule, ReactiveFormsModule, PaginationComponent, QueueEntryDetailModalComponent],
   templateUrl: './queue-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
