@@ -73,6 +73,17 @@ export class PetDetailComponent implements OnInit, AfterViewInit {
   private backTarget: readonly (string | number)[] = ['/pets'];
   protected backLabel = 'Volver a mascotas';
   protected activeTab: PetDetailTab = 'OVERVIEW';
+  protected showQrPanel = false;
+
+  protected toggleQrPanel(): void {
+    this.showQrPanel = !this.showQrPanel;
+    this.cdr.markForCheck();
+  }
+
+  protected closeQrPanel(): void {
+    this.showQrPanel = false;
+    this.cdr.markForCheck();
+  }
   protected readonly detailTabs: Array<{ id: PetDetailTab; label: string }> = [
     { id: 'OVERVIEW', label: 'Resumen' },
     { id: 'SURGERIES', label: 'Cirugías' },
