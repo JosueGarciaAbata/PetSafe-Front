@@ -27,6 +27,13 @@ export const routes: Routes = [
     component: ErrorPageComponent,
   },
   {
+    path: 'mascota/:qrToken',
+    loadComponent: () =>
+      import('@app/pets/public/pet-public-profile.component').then(
+        (m) => m.PetPublicProfileComponent,
+      ),
+  },
+  {
     path: 'unauthorized',
     loadComponent: () =>
       import('@app/unauthorized/unauthorized-page.component').then(

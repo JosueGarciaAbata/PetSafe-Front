@@ -5,6 +5,7 @@ import { ClinicalCaseSummary } from '@app/clinical-cases/models/clinical-case.mo
 export interface PetBasicDetailApiResponse {
   id: number;
   name: string;
+  qrToken: string | null;
   species: PetDetailCatalogApiResponse | null;
   breed: PetDetailCatalogApiResponse | null;
   sex: string | null;
