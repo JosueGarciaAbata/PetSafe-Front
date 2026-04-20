@@ -15,6 +15,11 @@ import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util'
 import { AuthService } from '@app/core/auth/auth.service';
 import { AppToastService } from '@app/core/ui/app-toast.service';
 import { EncountersApiService } from '@app/encounters/api/encounters-api.service';
+import { ClinicalCasesApiService } from '@app/clinical-cases/api/clinical-cases-api.service';
+import {
+  ClinicalCaseDetail,
+  ClinicalCaseSummary,
+} from '@app/clinical-cases/models/clinical-case.model';
 import { InitializeVaccinationPlanModalComponent } from '../vaccination/initialize-vaccination-plan-modal.component';
 import {
   PetBasicDetailApiResponse,
@@ -39,7 +44,7 @@ import { QueueApiService } from '@app/queue/api/queue-api.service';
 import { QueueEntryRecord } from '@app/queue/models/queue.model';
 import { QueueEntryDetailModalComponent } from '@app/queue/components/queue-entry-detail-modal.component';
 
-type PetDetailTab = 'OVERVIEW' | 'SURGERIES' | 'PROCEDURES' | 'ACTIVITY';
+type PetDetailTab = 'OVERVIEW' | 'SURGERIES' | 'PROCEDURES' | 'CASES' | 'ACTIVITY';
 
 @Component({
   selector: 'app-pet-detail',
@@ -60,12 +65,14 @@ export class PetDetailComponent implements OnInit {
   private readonly vaccinationApi = inject(PatientVaccinationApiService);
   private readonly queueApi = inject(QueueApiService);
   private readonly encountersApi = inject(EncountersApiService);
+  private readonly clinicalCasesApi = inject(ClinicalCasesApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly authService = inject(AuthService);
   private readonly toast = inject(AppToastService);
   private requestVersion = 0;
+  private readonly clinicalCaseDetailCache = new Map<number, ClinicalCaseDetail>();
   private backTarget: readonly (string | number)[] = ['/pets'];
   protected backLabel = 'Volver a mascotas';
   protected activeTab: PetDetailTab = 'OVERVIEW';
@@ -73,6 +80,7 @@ export class PetDetailComponent implements OnInit {
     { id: 'OVERVIEW', label: 'Resumen' },
     { id: 'SURGERIES', label: 'Cirugías' },
     { id: 'PROCEDURES', label: 'Procedimientos' },
+    { id: 'CASES', label: 'Casos clínicos' },
     { id: 'ACTIVITY', label: 'Actividad reciente' },
   ];
   // El control de relaciones tutor-mascota ya existe y quedó desacoplado
@@ -104,6 +112,11 @@ export class PetDetailComponent implements OnInit {
       this.isRecentConsultationModalOpen = false;
       this.selectedRecentConsultationEntry = null;
       this.recentConsultationLoadingEncounterId = null;
+      this.selectedClinicalCaseId = null;
+      this.selectedClinicalCaseDetail = null;
+      this.clinicalCaseDetailError = null;
+      this.clinicalCaseLoadingId = null;
+      this.clinicalCaseDetailCache.clear();
       this.activeTab = 'OVERVIEW';
       this.cdr.detectChanges();
       void this.loadPet(petId, requestToken);
@@ -130,6 +143,10 @@ export class PetDetailComponent implements OnInit {
   protected isRecentConsultationModalOpen = false;
   protected selectedRecentConsultationEntry: QueueEntryRecord | null = null;
   protected recentConsultationLoadingEncounterId: number | null = null;
+  protected selectedClinicalCaseId: number | null = null;
+  protected selectedClinicalCaseDetail: ClinicalCaseDetail | null = null;
+  protected clinicalCaseLoadingId: number | null = null;
+  protected clinicalCaseDetailError: string | null = null;
 
   protected goBack(): void {
     void this.router.navigate(this.backTarget, { replaceUrl: true });
@@ -163,6 +180,10 @@ export class PetDetailComponent implements OnInit {
 
   protected setActiveTab(tab: PetDetailTab): void {
     this.activeTab = tab;
+
+    if (tab === 'CASES' && !this.selectedClinicalCaseDetail && this.clinicalCases().length > 0) {
+      void this.selectClinicalCase(this.clinicalCases()[0].id);
+    }
   }
 
   protected isActiveTab(tab: PetDetailTab): boolean {
@@ -507,6 +528,108 @@ export class PetDetailComponent implements OnInit {
     return this.procedureHistory().length > 0;
   }
 
+  protected clinicalCases(): ClinicalCaseSummary[] {
+    return this.pet?.clinicalCases ?? [];
+  }
+
+  protected hasClinicalCases(): boolean {
+    return this.clinicalCases().length > 0;
+  }
+
+  protected isClinicalCaseSelected(caseId: number): boolean {
+    return this.selectedClinicalCaseId === caseId;
+  }
+
+  protected selectedClinicalCaseSummary(): ClinicalCaseSummary | null {
+    if (!this.selectedClinicalCaseId) {
+      return null;
+    }
+
+    return this.clinicalCases().find((item) => item.id === this.selectedClinicalCaseId) ?? null;
+  }
+
+  protected buildClinicalCaseStatusLabel(status: string | null | undefined): string {
+    switch ((status ?? '').trim().toUpperCase()) {
+      case 'ABIERTO':
+        return 'Abierto';
+      case 'CERRADO':
+        return 'Resuelto';
+      case 'CANCELADO':
+        return 'Cancelado';
+      default:
+        return 'Sin estado';
+    }
+  }
+
+  protected buildClinicalCaseStatusClasses(status: string | null | undefined): string {
+    switch ((status ?? '').trim().toUpperCase()) {
+      case 'ABIERTO':
+        return 'ps-tone ps-tone--info ps-tone-surface';
+      case 'CERRADO':
+        return 'ps-tone ps-tone--success ps-tone-surface';
+      case 'CANCELADO':
+        return 'ps-tone ps-tone--danger ps-tone-surface';
+      default:
+        return 'rounded-full border border-border bg-background text-text-secondary';
+    }
+  }
+
+  protected buildTreatmentEvolutionLabel(eventType: string | null | undefined): string {
+    switch ((eventType ?? '').trim().toUpperCase()) {
+      case 'CONTINUA':
+        return 'Continuado';
+      case 'SUSPENDE':
+        return 'Suspendido';
+      case 'FINALIZA':
+        return 'Finalizado';
+      case 'REEMPLAZA':
+        return 'Reemplazado';
+      default:
+        return 'Sin evolución';
+    }
+  }
+
+  protected buildTreatmentEvolutionClasses(eventType: string | null | undefined): string {
+    switch ((eventType ?? '').trim().toUpperCase()) {
+      case 'CONTINUA':
+        return 'ps-tone ps-tone--info ps-tone-surface';
+      case 'SUSPENDE':
+        return 'ps-tone ps-tone--warning ps-tone-surface';
+      case 'FINALIZA':
+        return 'ps-tone ps-tone--danger ps-tone-surface';
+      case 'REEMPLAZA':
+        return 'ps-tone ps-tone--attention ps-tone-surface';
+      default:
+        return 'rounded-full border border-border bg-background text-text-secondary';
+    }
+  }
+
+  protected buildCaseTreatmentStatusLabel(status: string | null | undefined): string {
+    switch ((status ?? '').trim().toUpperCase()) {
+      case 'FINALIZADO':
+        return 'Finalizado';
+      case 'SUSPENDIDO':
+        return 'Suspendido';
+      case 'CANCELADO':
+        return 'Cancelado';
+      default:
+        return 'Activo';
+    }
+  }
+
+  protected buildCaseTreatmentStatusClasses(status: string | null | undefined): string {
+    switch ((status ?? '').trim().toUpperCase()) {
+      case 'FINALIZADO':
+        return 'ps-tone ps-tone--success ps-tone-surface';
+      case 'SUSPENDIDO':
+        return 'ps-tone ps-tone--warning ps-tone-surface';
+      case 'CANCELADO':
+        return 'ps-tone ps-tone--danger ps-tone-surface';
+      default:
+        return 'ps-tone ps-tone--info ps-tone-surface';
+    }
+  }
+
   protected recentActivityWindowLabel(): string {
     const start = this.pet?.recentActivity?.windowStart;
     return start ? `Último mes · desde ${start.slice(0, 10)}` : 'Último mes';
@@ -563,31 +686,49 @@ export class PetDetailComponent implements OnInit {
     return this.recentConsultationLoadingEncounterId === item.id;
   }
 
-  protected async openRecentConsultationDetail(
-    item: PetRecentConsultationActivityApiResponse,
-  ): Promise<void> {
-    if (this.recentConsultationLoadingEncounterId !== null) {
+  protected async selectClinicalCase(caseId: number): Promise<void> {
+    if (this.clinicalCaseLoadingId !== null && this.clinicalCaseLoadingId !== caseId) {
       return;
     }
 
-    this.recentConsultationLoadingEncounterId = item.id;
+    this.selectedClinicalCaseId = caseId;
+    this.clinicalCaseDetailError = null;
+
+    const cached = this.clinicalCaseDetailCache.get(caseId);
+    if (cached) {
+      this.selectedClinicalCaseDetail = cached;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.clinicalCaseLoadingId = caseId;
     this.cdr.detectChanges();
 
     try {
-      this.selectedRecentConsultationEntry = await firstValueFrom(
-        this.queueApi.getEntryByEncounter(item.id),
-      );
-      this.isRecentConsultationModalOpen = true;
+      const detail = await firstValueFrom(this.clinicalCasesApi.getById(caseId));
+      this.clinicalCaseDetailCache.set(caseId, detail);
+      if (this.selectedClinicalCaseId === caseId) {
+        this.selectedClinicalCaseDetail = detail;
+      }
     } catch (error: unknown) {
-      this.toast.error(
-        resolveApiErrorMessage(error, {
-          defaultMessage: 'No se pudo abrir el detalle operativo de la consulta.',
-        }),
-      );
+      if (this.selectedClinicalCaseId === caseId) {
+        this.selectedClinicalCaseDetail = null;
+        this.clinicalCaseDetailError = resolveApiErrorMessage(error, {
+          defaultMessage: 'No se pudo cargar el detalle del caso clínico.',
+        });
+      }
     } finally {
-      this.recentConsultationLoadingEncounterId = null;
+      if (this.clinicalCaseLoadingId === caseId) {
+        this.clinicalCaseLoadingId = null;
+      }
       this.cdr.detectChanges();
     }
+  }
+
+  protected async openRecentConsultationDetail(
+    item: PetRecentConsultationActivityApiResponse,
+  ): Promise<void> {
+    await this.openEncounterOperationalDetail(item.id);
   }
 
   protected closeRecentConsultationModal(): void {
@@ -630,6 +771,18 @@ export class PetDetailComponent implements OnInit {
         }),
       );
     }
+  }
+
+  protected isClinicalCaseLoading(caseId: number): boolean {
+    return this.clinicalCaseLoadingId === caseId;
+  }
+
+  protected async openCaseConsultationDetail(encounterId: number): Promise<void> {
+    await this.openEncounterOperationalDetail(encounterId);
+  }
+
+  protected isEncounterOperationalDetailLoading(encounterId: number): boolean {
+    return this.recentConsultationLoadingEncounterId === encounterId;
   }
 
   protected vaccinationCoveragePercent(): number {
@@ -746,6 +899,31 @@ export class PetDetailComponent implements OnInit {
     }
 
     this.pet = await firstValueFrom(this.petsApi.getBasicById(this.pet.id));
+  }
+
+  private async openEncounterOperationalDetail(encounterId: number): Promise<void> {
+    if (this.recentConsultationLoadingEncounterId !== null) {
+      return;
+    }
+
+    this.recentConsultationLoadingEncounterId = encounterId;
+    this.cdr.detectChanges();
+
+    try {
+      this.selectedRecentConsultationEntry = await firstValueFrom(
+        this.queueApi.getEntryByEncounter(encounterId),
+      );
+      this.isRecentConsultationModalOpen = true;
+    } catch (error: unknown) {
+      this.toast.error(
+        resolveApiErrorMessage(error, {
+          defaultMessage: 'No se pudo abrir el detalle operativo de la consulta.',
+        }),
+      );
+    } finally {
+      this.recentConsultationLoadingEncounterId = null;
+      this.cdr.detectChanges();
+    }
   }
 
   private normalizePlan(plan: PatientVaccinationPlan): PatientVaccinationPlan {

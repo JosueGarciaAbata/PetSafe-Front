@@ -25,6 +25,13 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
+import {
+  ClinicalCaseActiveTreatment,
+  ClinicalCaseOutcome,
+  ClinicalCasePlanLinkMode,
+  ClinicalCaseSummary,
+  TreatmentEvolutionAction,
+} from '@app/clinical-cases/models/clinical-case.model';
 import { PetBasicDetailApiResponse } from '@app/pets/models/pet-detail.model';
 import { PetsApiService } from '@app/pets/services/pets-api.service';
 import { CreateVaccineApplicationModalComponent } from '@app/pets/vaccination/create-vaccine-application-modal.component';
@@ -52,6 +59,8 @@ import {
   EncounterProcedureDraft,
   EncounterTreatment,
   EncounterTreatmentDraft,
+  EncounterTreatmentEvolutionEvent,
+  EncounterTreatmentReviewDraft,
   EncounterVaccinationEvent,
   EncounterVaccinationDraft,
   HydrationStatus,
@@ -150,9 +159,12 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
   protected pendingVaccinations: EncounterVaccinationDraft[] = [];
   protected pendingTreatments: EncounterTreatmentDraft[] = [];
   protected pendingProcedures: EncounterProcedureDraft[] = [];
+  protected treatmentReviewDrafts: EncounterTreatmentReviewDraft[] = [];
+  protected treatmentEvolutionEvents: EncounterTreatmentEvolutionEvent[] = [];
   protected editingVaccinationDraftId: number | null = null;
   protected editingTreatmentDraftId: number | null = null;
   protected editingProcedureDraftId: number | null = null;
+  protected replacementSourceTreatmentId: number | null = null;
   protected readonly clinicalTextMaxLength = CLINICAL_TEXT_MAX_LENGTH;
   protected readonly clinicalShortTextMaxLength = CLINICAL_SHORT_TEXT_MAX_LENGTH;
   protected readonly clinicalTemperatureMin = CLINICAL_TEMPERATURE_MIN;
@@ -359,6 +371,14 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
     }),
     requiresFollowUp: new FormControl<boolean | null>(false),
     suggestedFollowUpDate: new FormControl(''),
+    caseLinkMode: new FormControl<ClinicalCasePlanLinkMode>('NONE', {
+      nonNullable: true,
+    }),
+    clinicalCaseId: new FormControl<number | null>(null),
+    problemSummary: new FormControl('', {
+      validators: [Validators.maxLength(CLINICAL_TEXT_MAX_LENGTH)],
+    }),
+    caseOutcome: new FormControl<ClinicalCaseOutcome | null>(null),
     planNotes: new FormControl('', {
       validators: [Validators.maxLength(CLINICAL_TEXT_MAX_LENGTH)],
     }),
@@ -697,6 +717,7 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
 
     this.expandedActionPanel = 'TREATMENTS';
     this.editingTreatmentDraftId = null;
+    this.replacementSourceTreatmentId = null;
     this.treatmentError = null;
     this.treatmentForm.reset({
       startDate: this.todayDate(),
@@ -714,6 +735,7 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
 
     this.expandedActionPanel = 'TREATMENTS';
     this.editingTreatmentDraftId = draft.id;
+    this.replacementSourceTreatmentId = draft.replacesTreatmentId ?? null;
     this.treatmentError = null;
     this.treatmentForm.reset({
       startDate: draft.startDate,
@@ -740,7 +762,26 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
     }
 
     this.editingTreatmentDraftId = null;
+    this.replacementSourceTreatmentId = null;
     this.isTreatmentModalOpen = false;
+  }
+
+  protected openReplacementTreatmentModal(sourceTreatmentId: number): void {
+    if (!this.isEncounterEditable()) {
+      return;
+    }
+
+    this.expandedActionPanel = 'TREATMENTS';
+    this.editingTreatmentDraftId = null;
+    this.replacementSourceTreatmentId = sourceTreatmentId;
+    this.treatmentError = null;
+    this.treatmentForm.reset({
+      startDate: this.todayDate(),
+      endDate: '',
+      generalInstructions: '',
+    });
+    this.treatmentItems = [this.createEmptyTreatmentItem()];
+    this.isTreatmentModalOpen = true;
   }
 
   protected addTreatmentItem(): void {
@@ -816,6 +857,7 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
       startDate: raw.startDate.trim(),
       endDate: raw.endDate?.trim() || undefined,
       generalInstructions: raw.generalInstructions?.trim() || undefined,
+      replacesTreatmentId: this.replacementSourceTreatmentId ?? undefined,
       items: items.map((item) => ({
         medication: item.medication,
         dose: item.dose,
@@ -845,6 +887,60 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
     } catch (error) {
       this.treatmentError = resolveApiErrorMessage(error, {
         defaultMessage: 'No se pudo guardar el tratamiento pendiente.',
+      });
+    } finally {
+      this.isSubmittingAction = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  protected async setTreatmentReviewAction(
+    sourceTreatmentId: number,
+    action: Exclude<TreatmentEvolutionAction, 'REEMPLAZA'>,
+  ): Promise<void> {
+    if (!this.encounter || this.isSubmittingAction || !this.isEncounterEditable()) {
+      return;
+    }
+
+    this.isSubmittingAction = true;
+    this.treatmentError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const updated = await firstValueFrom(
+        this.encountersApi.upsertTreatmentReviewDraft(this.encounter.id, {
+          sourceTreatmentId,
+          action,
+        }),
+      );
+      this.applyEncounter(updated);
+    } catch (error) {
+      this.treatmentError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo registrar la evolución terapéutica pendiente.',
+      });
+    } finally {
+      this.isSubmittingAction = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  protected async removeTreatmentReviewDraft(draftId: number): Promise<void> {
+    if (!this.encounter || this.isSubmittingAction || !this.isEncounterEditable()) {
+      return;
+    }
+
+    this.isSubmittingAction = true;
+    this.treatmentError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const updated = await firstValueFrom(
+        this.encountersApi.deleteTreatmentReviewDraft(this.encounter.id, draftId),
+      );
+      this.applyEncounter(updated);
+    } catch (error) {
+      this.treatmentError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo quitar la revisión terapéutica pendiente.',
       });
     } finally {
       this.isSubmittingAction = false;
@@ -1243,6 +1339,12 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
       if (tab === 'PLAN' && controlName === 'suggestedFollowUpDate') {
         return 'La fecha de seguimiento es obligatoria cuando indicas que requiere control.';
       }
+      if (tab === 'PLAN' && controlName === 'clinicalCaseId') {
+        return 'Debes seleccionar el caso clínico existente para continuar el seguimiento.';
+      }
+      if (tab === 'PLAN' && controlName === 'problemSummary') {
+        return 'Debes resumir el problema clínico para abrir un caso nuevo.';
+      }
     }
 
     if (control.errors['min']) {
@@ -1268,6 +1370,10 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
 
     if (control.errors['invalidTodayOrFutureDate']) {
       return 'La fecha sugerida debe ser hoy o futura.';
+    }
+
+    if (control.errors['caseLinkModeRequired']) {
+      return 'Debes decidir si el seguimiento abrirá un caso nuevo o se vinculará a uno existente.';
     }
 
     return 'Revisa el valor ingresado.';
@@ -1381,6 +1487,253 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
     return this.editingProcedureDraftId !== null
       ? (this.pendingProcedures.find((item) => item.id === this.editingProcedureDraftId) ?? null)
       : null;
+  }
+
+  protected hasEncounterClinicalCase(): boolean {
+    return Boolean(this.encounter?.clinicalCaseSummary);
+  }
+
+  protected clinicalCaseSummary(): ClinicalCaseSummary | null {
+    return this.encounter?.clinicalCaseSummary ?? null;
+  }
+
+  protected availableClinicalCases(): ClinicalCaseSummary[] {
+    return [...(this.patientDetail?.clinicalCases ?? [])].sort((left, right) => {
+      if (left.status !== right.status) {
+        return left.status === 'ABIERTO' ? -1 : 1;
+      }
+
+      return right.openedAt.localeCompare(left.openedAt);
+    });
+  }
+
+  protected availableOpenClinicalCases(): ClinicalCaseSummary[] {
+    return this.availableClinicalCases().filter((item) => item.status === 'ABIERTO');
+  }
+
+  protected selectedPlanClinicalCase(): ClinicalCaseSummary | null {
+    const selectedId = this.planForm.controls.clinicalCaseId.value;
+    if (!selectedId) {
+      return null;
+    }
+
+    return this.availableClinicalCases().find((item) => item.id === selectedId) ?? null;
+  }
+
+  protected planCasePreview(): ClinicalCaseSummary | null {
+    return this.clinicalCaseSummary() ?? this.selectedPlanClinicalCase();
+  }
+
+  protected isCaseLinkSelectionLocked(): boolean {
+    return this.hasEncounterClinicalCase();
+  }
+
+  protected shouldShowCaseLinkControls(): boolean {
+    return this.planForm.controls.requiresFollowUp.value === true && !this.isCaseLinkSelectionLocked();
+  }
+
+  protected shouldShowExistingCaseSelector(): boolean {
+    return (
+      this.shouldShowCaseLinkControls()
+      && this.planForm.controls.caseLinkMode.value === 'EXISTING'
+    );
+  }
+
+  protected shouldShowNewCaseSummaryField(): boolean {
+    return (
+      this.shouldShowCaseLinkControls()
+      && this.planForm.controls.caseLinkMode.value === 'NEW'
+    );
+  }
+
+  protected shouldShowCaseOutcomeSelector(): boolean {
+    return this.hasEncounterClinicalCase();
+  }
+
+  protected currentCaseOutcome(): ClinicalCaseOutcome {
+    return this.planForm.controls.caseOutcome.value ?? 'CONTINUA';
+  }
+
+  protected willGenerateFollowUpAppointment(): boolean {
+    return (
+      this.planForm.controls.requiresFollowUp.value === true
+      && this.currentCaseOutcome() === 'CONTINUA'
+    );
+  }
+
+  protected leavesCaseOpenWithoutFollowUp(): boolean {
+    return (
+      this.hasEncounterClinicalCase()
+      && this.planForm.controls.requiresFollowUp.value !== true
+      && this.currentCaseOutcome() === 'CONTINUA'
+    );
+  }
+
+  protected selectCaseLinkMode(mode: ClinicalCasePlanLinkMode): void {
+    if (!this.isEncounterEditable() || this.isCaseLinkSelectionLocked()) {
+      return;
+    }
+
+    this.planForm.controls.caseLinkMode.setValue(mode);
+    if (mode === 'EXISTING') {
+      this.planForm.controls.problemSummary.setValue('');
+      if (!this.planForm.controls.clinicalCaseId.value) {
+        const firstOpenCase = this.availableOpenClinicalCases()[0];
+        this.planForm.controls.clinicalCaseId.setValue(firstOpenCase?.id ?? null);
+      }
+    } else if (mode === 'NEW') {
+      this.planForm.controls.clinicalCaseId.setValue(null);
+    } else {
+      this.planForm.controls.clinicalCaseId.setValue(null);
+      this.planForm.controls.problemSummary.setValue('');
+    }
+  }
+
+  protected buildClinicalCaseStatusLabel(status: string | null | undefined): string {
+    switch ((status ?? '').trim().toUpperCase()) {
+      case 'ABIERTO':
+        return 'Abierto';
+      case 'CERRADO':
+        return 'Resuelto';
+      case 'CANCELADO':
+        return 'Cancelado';
+      default:
+        return 'Sin estado';
+    }
+  }
+
+  protected buildClinicalCaseStatusClasses(status: string | null | undefined): string {
+    switch ((status ?? '').trim().toUpperCase()) {
+      case 'ABIERTO':
+        return 'ps-tone ps-tone--info ps-tone-surface';
+      case 'CERRADO':
+        return 'ps-tone ps-tone--success ps-tone-surface';
+      case 'CANCELADO':
+        return 'ps-tone ps-tone--danger ps-tone-surface';
+      default:
+        return 'rounded-full border border-border bg-background text-text-secondary';
+    }
+  }
+
+  protected buildClinicalCaseOutcomeLabel(outcome: ClinicalCaseOutcome | null | undefined): string {
+    switch (outcome) {
+      case 'RESUELTO':
+        return 'Marcar como resuelto';
+      case 'CANCELADO':
+        return 'Cancelar caso';
+      default:
+        return 'Mantener en seguimiento';
+    }
+  }
+
+  protected buildFollowUpStatusLabel(status: string | null | undefined): string {
+    switch ((status ?? '').trim().toUpperCase()) {
+      case 'PROGRAMADO':
+        return 'Programado';
+      case 'EN_ATENCION':
+        return 'En atención';
+      case 'COMPLETADO':
+        return 'Completado';
+      case 'CANCELADO':
+        return 'Cancelado';
+      default:
+        return 'Sin estado';
+    }
+  }
+
+  protected activeCaseTreatments(): ClinicalCaseActiveTreatment[] {
+    return this.clinicalCaseSummary()?.activeTreatments ?? [];
+  }
+
+  protected treatmentReviewDraftForSourceTreatment(
+    treatmentId: number,
+  ): EncounterTreatmentReviewDraft | null {
+    return this.treatmentReviewDrafts.find((draft) => draft.sourceTreatmentId === treatmentId) ?? null;
+  }
+
+  protected replacementDraftForSourceTreatment(
+    treatmentId: number,
+  ): EncounterTreatmentDraft | null {
+    return this.pendingTreatments.find((draft) => draft.replacesTreatmentId === treatmentId) ?? null;
+  }
+
+  protected hasPendingCaseTreatmentDecision(treatmentId: number): boolean {
+    return Boolean(
+      this.treatmentReviewDraftForSourceTreatment(treatmentId)
+      || this.replacementDraftForSourceTreatment(treatmentId),
+    );
+  }
+
+  protected replacementSourceTreatment(): ClinicalCaseActiveTreatment | null {
+    if (!this.replacementSourceTreatmentId) {
+      return null;
+    }
+
+    return this.activeCaseTreatments().find((item) => item.id === this.replacementSourceTreatmentId) ?? null;
+  }
+
+  protected replacementSourceTreatmentSummary(): string | null {
+    return this.replacementSourceTreatment()?.summary ?? null;
+  }
+
+  protected buildTreatmentReviewActionLabel(
+    action: Exclude<TreatmentEvolutionAction, 'REEMPLAZA'>,
+  ): string {
+    switch (action) {
+      case 'CONTINUA':
+        return 'Continúa';
+      case 'SUSPENDE':
+        return 'Suspender';
+      case 'FINALIZA':
+        return 'Finalizar';
+      default:
+        return action;
+    }
+  }
+
+  protected buildTreatmentReviewActionClasses(
+    action: Exclude<TreatmentEvolutionAction, 'REEMPLAZA'>,
+  ): string {
+    switch (action) {
+      case 'CONTINUA':
+        return 'ps-tone ps-tone--info ps-tone-surface';
+      case 'SUSPENDE':
+        return 'ps-tone ps-tone--warning ps-tone-surface';
+      case 'FINALIZA':
+        return 'ps-tone ps-tone--danger ps-tone-surface';
+      default:
+        return 'rounded-full border border-border bg-background text-text-secondary';
+    }
+  }
+
+  protected buildTreatmentEvolutionEventLabel(event: EncounterTreatmentEvolutionEvent): string {
+    switch (event.eventType) {
+      case 'CONTINUA':
+        return 'Continuado';
+      case 'SUSPENDE':
+        return 'Suspendido';
+      case 'FINALIZA':
+        return 'Finalizado';
+      case 'REEMPLAZA':
+        return 'Reemplazado';
+      default:
+        return event.eventType;
+    }
+  }
+
+  protected buildTreatmentEvolutionEventClasses(eventType: TreatmentEvolutionAction): string {
+    switch (eventType) {
+      case 'CONTINUA':
+        return 'ps-tone ps-tone--info ps-tone-surface';
+      case 'SUSPENDE':
+        return 'ps-tone ps-tone--warning ps-tone-surface';
+      case 'FINALIZA':
+        return 'ps-tone ps-tone--danger ps-tone-surface';
+      case 'REEMPLAZA':
+        return 'ps-tone ps-tone--attention ps-tone-surface';
+      default:
+        return 'rounded-full border border-border bg-background text-text-secondary';
+    }
   }
 
   protected buildAppetiteLabel(value: AppetiteStatus | null | undefined): string {
@@ -1505,6 +1858,38 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
     return medications.length > 0 ? medications.join(', ') : 'Tratamiento pendiente';
   }
 
+  protected treatmentDraftReplacementLabel(draft: EncounterTreatmentDraft): string | null {
+    if (!draft.replacesTreatmentId) {
+      return null;
+    }
+
+    const sourceTreatment = this.activeCaseTreatments().find(
+      (item) => item.id === draft.replacesTreatmentId,
+    );
+
+    return sourceTreatment?.summary ?? `Tratamiento #${draft.replacesTreatmentId}`;
+  }
+
+  protected treatmentReplacementLabel(treatment: EncounterTreatment): string | null {
+    if (!treatment.replacesTreatmentId) {
+      return null;
+    }
+
+    const sourceTreatment = this.activeCaseTreatments().find(
+      (item) => item.id === treatment.replacesTreatmentId,
+    );
+
+    return sourceTreatment?.summary ?? `Tratamiento #${treatment.replacesTreatmentId}`;
+  }
+
+  protected treatmentEvolutionDescription(event: EncounterTreatmentEvolutionEvent): string {
+    if (event.eventType === 'REEMPLAZA' && event.replacementTreatmentSummary) {
+      return `Nuevo tratamiento: ${event.replacementTreatmentSummary}`;
+    }
+
+    return event.notes?.trim() || 'Evolución terapéutica registrada en esta atención.';
+  }
+
   protected patientSurgeryHistory() {
     return this.patientDetail?.surgeries ?? [];
   }
@@ -1577,7 +1962,10 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
 
   protected pendingActionsCount(): number {
     return (
-      this.pendingVaccinations.length + this.pendingTreatments.length + this.pendingProcedures.length
+      this.pendingVaccinations.length
+      + this.pendingTreatments.length
+      + this.pendingProcedures.length
+      + this.treatmentReviewDrafts.length
     );
   }
 
@@ -1651,16 +2039,64 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
 
   private configurePlanValidation(): void {
     const followUpControl = this.planForm.controls.suggestedFollowUpDate;
-    const applyValidators = (requiresFollowUp: boolean): void => {
+    const caseLinkModeControl = this.planForm.controls.caseLinkMode;
+    const clinicalCaseControl = this.planForm.controls.clinicalCaseId;
+    const problemSummaryControl = this.planForm.controls.problemSummary;
+    const caseOutcomeControl = this.planForm.controls.caseOutcome;
+
+    const applyValidators = (): void => {
+      const hasLinkedCase = this.hasEncounterClinicalCase();
+      const requiresFollowUp = this.planForm.controls.requiresFollowUp.value === true;
+      const linkMode = caseLinkModeControl.value;
+      const caseOutcome = caseOutcomeControl.value ?? 'CONTINUA';
+      const mustGenerateFollowUp = requiresFollowUp && caseOutcome === 'CONTINUA';
+
       followUpControl.setValidators(
-        requiresFollowUp ? [Validators.required, this.todayOrFutureDateValidator()] : [],
+        mustGenerateFollowUp ? [Validators.required, this.todayOrFutureDateValidator()] : [],
       );
+      caseLinkModeControl.setValidators(
+        mustGenerateFollowUp && !hasLinkedCase ? [this.caseLinkModeRequiredValidator()] : [],
+      );
+      clinicalCaseControl.setValidators(
+        mustGenerateFollowUp && !hasLinkedCase && linkMode === 'EXISTING'
+          ? [Validators.required]
+          : [],
+      );
+      problemSummaryControl.setValidators(
+        mustGenerateFollowUp && !hasLinkedCase && linkMode === 'NEW'
+          ? [Validators.required, Validators.maxLength(CLINICAL_TEXT_MAX_LENGTH)]
+          : [Validators.maxLength(CLINICAL_TEXT_MAX_LENGTH)],
+      );
+
+      if (caseOutcome !== 'CONTINUA') {
+        this.planForm.controls.requiresFollowUp.setValue(false, { emitEvent: false });
+        followUpControl.setValue('', { emitEvent: false });
+      }
+
       followUpControl.updateValueAndValidity({ emitEvent: false });
+      caseLinkModeControl.updateValueAndValidity({ emitEvent: false });
+      clinicalCaseControl.updateValueAndValidity({ emitEvent: false });
+      problemSummaryControl.updateValueAndValidity({ emitEvent: false });
     };
 
-    applyValidators(this.planForm.controls.requiresFollowUp.value === true);
-    this.planForm.controls.requiresFollowUp.valueChanges.subscribe((requiresFollowUp) => {
-      applyValidators(requiresFollowUp === true);
+    applyValidators();
+    this.planForm.controls.requiresFollowUp.valueChanges.subscribe(() => {
+      applyValidators();
+    });
+    this.planForm.controls.caseLinkMode.valueChanges.subscribe((mode) => {
+      if (mode === 'EXISTING') {
+        this.planForm.controls.problemSummary.setValue('', { emitEvent: false });
+      } else if (mode === 'NEW') {
+        this.planForm.controls.clinicalCaseId.setValue(null, { emitEvent: false });
+      } else {
+        this.planForm.controls.clinicalCaseId.setValue(null, { emitEvent: false });
+        this.planForm.controls.problemSummary.setValue('', { emitEvent: false });
+      }
+
+      applyValidators();
+    });
+    this.planForm.controls.caseOutcome.valueChanges.subscribe(() => {
+      applyValidators();
     });
   }
 
@@ -1775,6 +2211,9 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
       case 'PLAN':
         return (
           this.controlErrorMessage(tab, 'suggestedFollowUpDate')
+          ?? this.controlErrorMessage(tab, 'caseLinkMode')
+          ?? this.controlErrorMessage(tab, 'clinicalCaseId')
+          ?? this.controlErrorMessage(tab, 'problemSummary')
           ?? 'Revisa los datos de seguimiento antes de guardar.'
         );
       default:
@@ -1821,6 +2260,13 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
       today.setHours(0, 0, 0, 0);
 
       return candidate >= today ? null : { invalidTodayOrFutureDate: true };
+    };
+  }
+
+  private caseLinkModeRequiredValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = typeof control.value === 'string' ? control.value.trim().toUpperCase() : '';
+      return value && value !== 'NONE' ? null : { caseLinkModeRequired: true };
     };
   }
 
@@ -1938,9 +2384,12 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
     this.pendingVaccinations = encounter.vaccinationDrafts ?? [];
     this.pendingTreatments = encounter.treatmentDrafts ?? [];
     this.pendingProcedures = encounter.procedureDrafts ?? [];
+    this.treatmentReviewDrafts = encounter.treatmentReviewDrafts ?? [];
+    this.treatmentEvolutionEvents = encounter.treatmentEvolutionEvents ?? [];
     this.editingVaccinationDraftId = null;
     this.editingTreatmentDraftId = null;
     this.editingProcedureDraftId = null;
+    this.replacementSourceTreatmentId = null;
     this.suppressFormTracking.value = true;
 
     this.reasonForm.patchValue({
@@ -2002,6 +2451,12 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
       clinicalPlan: encounter.plan?.clinicalPlan ?? '',
       requiresFollowUp: encounter.plan?.requiresFollowUp ?? false,
       suggestedFollowUpDate: encounter.plan?.suggestedFollowUpDate ?? '',
+      caseLinkMode:
+        encounter.plan?.caseLinkMode
+        ?? (encounter.clinicalCaseSummary ? 'EXISTING' : 'NONE'),
+      clinicalCaseId: encounter.plan?.clinicalCaseId ?? encounter.clinicalCaseSummary?.id ?? null,
+      problemSummary: encounter.plan?.problemSummary ?? '',
+      caseOutcome: encounter.plan?.caseOutcome ?? (encounter.clinicalCaseSummary ? 'CONTINUA' : null),
       planNotes: encounter.plan?.planNotes ?? '',
     });
 
@@ -2154,13 +2609,37 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
 
   private planPayload(): EncounterPlan {
     const raw = this.planForm.getRawValue();
+    const linkedClinicalCaseId = this.encounter?.clinicalCaseSummary?.id ?? null;
+    const hasLinkedCase = linkedClinicalCaseId !== null;
+    const caseOutcome = hasLinkedCase ? (raw.caseOutcome ?? 'CONTINUA') : undefined;
+    const requiresFollowUp =
+      (raw.requiresFollowUp ?? false) && caseOutcome !== 'RESUELTO' && caseOutcome !== 'CANCELADO';
+    const caseLinkMode = hasLinkedCase
+      ? 'EXISTING'
+      : requiresFollowUp
+        ? raw.caseLinkMode ?? 'NONE'
+        : 'NONE';
+    const clinicalCaseId = hasLinkedCase
+      ? linkedClinicalCaseId
+      : caseLinkMode === 'EXISTING'
+        ? raw.clinicalCaseId ?? null
+        : null;
+    const problemSummary =
+      !hasLinkedCase && caseLinkMode === 'NEW'
+        ? raw.problemSummary?.trim() || null
+        : null;
+
     return {
       clinicalPlan: raw.clinicalPlan?.trim() || null,
-      requiresFollowUp: raw.requiresFollowUp ?? false,
+      requiresFollowUp,
       suggestedFollowUpDate:
-        raw.requiresFollowUp && raw.suggestedFollowUpDate?.trim()
+        requiresFollowUp && raw.suggestedFollowUpDate?.trim()
           ? raw.suggestedFollowUpDate.trim()
           : undefined,
+      caseLinkMode,
+      clinicalCaseId,
+      problemSummary,
+      caseOutcome,
       planNotes: raw.planNotes?.trim() || null,
     };
   }
@@ -2269,6 +2748,17 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
             this.encounter?.plan?.requiresFollowUp && this.encounter?.plan?.suggestedFollowUpDate
               ? this.encounter.plan.suggestedFollowUpDate.trim()
               : undefined,
+          caseLinkMode:
+            this.encounter?.plan?.caseLinkMode
+            ?? (this.encounter?.clinicalCaseSummary ? 'EXISTING' : 'NONE'),
+          clinicalCaseId:
+            this.encounter?.plan?.clinicalCaseId
+            ?? this.encounter?.clinicalCaseSummary?.id
+            ?? null,
+          problemSummary: this.trimOrNull(this.encounter?.plan?.problemSummary),
+          caseOutcome:
+            this.encounter?.plan?.caseOutcome
+            ?? (this.encounter?.clinicalCaseSummary ? 'CONTINUA' : undefined),
           planNotes: this.trimOrNull(this.encounter?.plan?.planNotes),
         };
     }

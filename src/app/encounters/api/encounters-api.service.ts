@@ -16,6 +16,7 @@ import {
   EncounterClinicalImpression,
   EncounterPlan,
 } from '../models/encounter.model';
+import { TreatmentEvolutionAction } from '@app/clinical-cases/models/clinical-case.model';
 
 @Injectable({
   providedIn: 'root',
@@ -133,6 +134,27 @@ export class EncountersApiService {
   deleteTreatmentDraft(id: number, draftId: number): Observable<EncounterDetail> {
     return this.http.patch<EncounterDetail>(
       `${this.baseUrl}/${id}/treatment-drafts/${draftId}/delete`,
+      {},
+    );
+  }
+
+  upsertTreatmentReviewDraft(
+    id: number,
+    payload: {
+      sourceTreatmentId: number;
+      action: Exclude<TreatmentEvolutionAction, 'REEMPLAZA'>;
+      notes?: string;
+    },
+  ): Observable<EncounterDetail> {
+    return this.http.post<EncounterDetail>(
+      `${this.baseUrl}/${id}/treatment-review-drafts`,
+      payload,
+    );
+  }
+
+  deleteTreatmentReviewDraft(id: number, draftId: number): Observable<EncounterDetail> {
+    return this.http.patch<EncounterDetail>(
+      `${this.baseUrl}/${id}/treatment-review-drafts/${draftId}/delete`,
       {},
     );
   }

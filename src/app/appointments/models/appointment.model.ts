@@ -31,7 +31,7 @@ export interface AppointmentRecord {
   patientName: string | null;
   ownerName: string | null;
   scheduledDate: string;
-  startsAt: string;
+  startsAt: string | null;
   endsAt: string | null;
   reason: AppointmentReason | null;
   notes: string | null;

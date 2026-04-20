@@ -1,5 +1,6 @@
 import { PetImageApiResponse } from './pet-image.model';
 import { PetSurgeryApiResponse } from './pet-surgery.model';
+import { ClinicalCaseSummary } from '@app/clinical-cases/models/clinical-case.model';
 
 export interface PetBasicDetailApiResponse {
   id: number;
@@ -19,6 +20,7 @@ export interface PetBasicDetailApiResponse {
   clinicalObservations: PetClinicalObservationApiResponse[];
   surgeries: PetSurgeryApiResponse[];
   procedures: PetProcedureHistoryApiResponse[];
+  clinicalCases: ClinicalCaseSummary[];
   recentActivity: PetRecentActivityApiResponse | null;
 }
 
