@@ -4,6 +4,9 @@ import {
   Component,
   OnInit,
   inject,
+  ElementRef,
+  ViewChild,
+  AfterViewInit,
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
@@ -54,7 +57,8 @@ type PetDetailTab = 'OVERVIEW' | 'SURGERIES' | 'PROCEDURES' | 'ACTIVITY';
   styleUrl: './pet-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PetDetailComponent implements OnInit {
+export class PetDetailComponent implements OnInit, AfterViewInit {
+  @ViewChild('qrCanvas') qrCanvasRef?: ElementRef<HTMLCanvasElement>;
   private readonly petsApi = inject(PetsApiService);
   private readonly catalogAdminApi = inject(CatalogAdminApiService);
   private readonly vaccinationApi = inject(PatientVaccinationApiService);
@@ -114,6 +118,7 @@ export class PetDetailComponent implements OnInit {
   protected isLoading = false;
   protected loadError: string | null = null;
   protected pet: PetBasicDetailApiResponse | null = null;
+  protected qrDataUrl: string | null = null;
   protected isVaccinationLoading = false;
   protected vaccinationLoadError: string | null = null;
   protected vaccinationPlan: PatientVaccinationPlan | null = null;
@@ -660,6 +665,38 @@ export class PetDetailComponent implements OnInit {
     return labels.join(' - ');
   }
 
+  ngAfterViewInit(): void {}
+
+  protected petQrUrl(): string {
+    if (!this.pet?.qrToken) return '';
+    return `${window.location.origin}/mascota/${this.pet.qrToken}`;
+  }
+
+  protected downloadQr(): void {
+    if (!this.qrDataUrl || !this.pet) return;
+    const link = document.createElement('a');
+    link.href = this.qrDataUrl;
+    link.download = `qr-${this.pet.name.toLowerCase().replace(/\s+/g, '-')}.png`;
+    link.click();
+  }
+
+  private async generateQr(): Promise<void> {
+    const url = this.petQrUrl();
+    if (!url) return;
+
+    try {
+      const QRCode = await import('qrcode');
+      this.qrDataUrl = await QRCode.default.toDataURL(url, {
+        width: 256,
+        margin: 2,
+        color: { dark: '#1a1a2e', light: '#ffffff' },
+      });
+      this.cdr.detectChanges();
+    } catch {
+      this.qrDataUrl = null;
+    }
+  }
+
   private async loadPet(petId: string, requestToken: number): Promise<void> {
     try {
       const response = await firstValueFrom(this.petsApi.getBasicById(petId));
@@ -670,6 +707,7 @@ export class PetDetailComponent implements OnInit {
 
       this.pet = response;
       void this.ensureSurgeryCatalogLoaded();
+      void this.generateQr();
     } catch {
       if (requestToken !== this.requestVersion) {
         return;

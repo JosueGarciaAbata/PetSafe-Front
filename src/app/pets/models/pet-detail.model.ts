@@ -4,6 +4,7 @@ import { PetSurgeryApiResponse } from './pet-surgery.model';
 export interface PetBasicDetailApiResponse {
   id: number;
   name: string;
+  qrToken: string | null;
   species: PetDetailCatalogApiResponse | null;
   breed: PetDetailCatalogApiResponse | null;
   sex: string | null;
