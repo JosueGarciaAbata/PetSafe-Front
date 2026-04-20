@@ -136,6 +136,73 @@
       </div>
     </section>
 
+    @if (pet.qrToken) {
+      <section class="rounded-[24px] border border-border bg-card p-6 shadow-sm">
+        <div class="mb-4 flex items-center gap-2">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-text-secondary">
+            Código QR de identificación
+          </h2>
+          <div
+            class="group relative flex h-4 w-4 shrink-0 cursor-default items-center justify-center rounded-full bg-border text-[10px] font-bold text-text-secondary"
+            title="El código QR contiene un enlace al perfil público de esta mascota. Al escanearlo con cualquier celular se abre una página con sus datos y el contacto del propietario."
+          >
+            !
+            <div class="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-64 -translate-x-1/2 rounded-xl border border-border bg-card px-3 py-2 text-xs text-text-secondary opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+              Escanear este QR con cualquier celular abre una página con los datos de {{ pet.name }} y el contacto del propietario — útil si la mascota se pierde.
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+          @if (qrDataUrl) {
+            <img
+              [src]="qrDataUrl"
+              alt="Código QR de identificación"
+              class="h-36 w-36 shrink-0 rounded-xl border border-border bg-white p-1 shadow-sm"
+            />
+          } @else {
+            <div class="flex h-36 w-36 shrink-0 items-center justify-center rounded-xl border border-border bg-surface">
+              <div class="h-8 w-8 animate-pulse rounded bg-background"></div>
+            </div>
+          }
+          <div class="flex flex-col gap-2">
+            <p class="text-sm text-text-secondary">
+              Imprime o comparte este QR para que cualquier persona pueda identificar a
+              <strong class="font-semibold text-text-primary">{{ pet.name }}</strong>
+              si se pierde.
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <button
+                type="button"
+                (click)="downloadQr()"
+                [disabled]="!qrDataUrl"
+                class="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-text-primary shadow-sm transition-all hover:bg-background disabled:opacity-50"
+              >
+                <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Descargar QR
+              </button>
+              <a
+                [href]="petQrUrl()"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-text-primary shadow-sm transition-all hover:bg-background"
+              >
+                <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+                Ver ficha de {{ pet.name }}
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+
     <section class="rounded-[24px] border border-border bg-card shadow-sm">
       <div class="border-b border-border px-6 pt-5 md:px-7">
         <nav class="flex flex-wrap gap-8 border-b border-border">
