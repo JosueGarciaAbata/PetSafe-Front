@@ -1,3 +1,10 @@
+import {
+  ClinicalCaseOutcome,
+  ClinicalCasePlanLinkMode,
+  ClinicalCaseSummary,
+  TreatmentEvolutionAction,
+} from '@app/clinical-cases/models/clinical-case.model';
+
 export type AppetiteStatus = 'NORMAL' | 'AUMENTADO' | 'DISMINUIDO' | 'ANOREXIA';
 export type WaterIntakeStatus = 'NORMAL' | 'AUMENTADO' | 'DISMINUIDO';
 export type MucosaStatus =
@@ -81,6 +88,10 @@ export interface EncounterPlan {
   clinicalPlan?: string | null;
   requiresFollowUp?: boolean | null;
   suggestedFollowUpDate?: string | null;
+  caseLinkMode?: ClinicalCasePlanLinkMode | null;
+  clinicalCaseId?: number | null;
+  problemSummary?: string | null;
+  caseOutcome?: ClinicalCaseOutcome | null;
   planNotes?: string | null;
 }
 
@@ -129,6 +140,7 @@ export interface EncounterTreatment {
   startDate: string;
   endDate: string | null;
   generalInstructions: string | null;
+  replacesTreatmentId: number | null;
   items: EncounterTreatmentItem[];
 }
 
@@ -148,7 +160,27 @@ export interface EncounterTreatmentDraft {
   startDate: string;
   endDate: string | null;
   generalInstructions: string | null;
+  replacesTreatmentId: number | null;
   items: EncounterTreatmentDraftItem[];
+}
+
+export interface EncounterTreatmentReviewDraft {
+  id: number;
+  sourceTreatmentId: number;
+  sourceTreatmentSummary: string;
+  action: Exclude<TreatmentEvolutionAction, 'REEMPLAZA'>;
+  notes: string | null;
+}
+
+export interface EncounterTreatmentEvolutionEvent {
+  id: number;
+  treatmentId: number;
+  treatmentSummary: string;
+  eventType: TreatmentEvolutionAction;
+  notes: string | null;
+  replacementTreatmentId: number | null;
+  replacementTreatmentSummary: string | null;
+  createdAt: string;
 }
 
 export interface EncounterProcedure {
@@ -217,6 +249,7 @@ export interface CreateEncounterTreatmentRequest {
   startDate: string;
   endDate?: string;
   generalInstructions?: string;
+  replacesTreatmentId?: number;
   items?: CreateEncounterTreatmentItemRequest[];
 }
 
@@ -252,11 +285,14 @@ export interface EncounterDetail {
   environmentalData?: EncounterEnvironmentalData | null;
   clinicalImpression?: EncounterClinicalImpression | null;
   plan?: EncounterPlan | null;
+  clinicalCaseSummary: ClinicalCaseSummary | null;
   vaccinationEvents: EncounterVaccinationEvent[];
   vaccinationDrafts: EncounterVaccinationDraft[];
   dewormingEvents: EncounterDewormingEvent[];
   treatments: EncounterTreatment[];
   treatmentDrafts: EncounterTreatmentDraft[];
+  treatmentReviewDrafts: EncounterTreatmentReviewDraft[];
+  treatmentEvolutionEvents: EncounterTreatmentEvolutionEvent[];
   surgeries: EncounterSurgery[];
   procedures: EncounterProcedure[];
   procedureDrafts: EncounterProcedureDraft[];

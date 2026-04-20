@@ -16,6 +16,7 @@ import {
   PetRecentActivityApiResponse,
   PetTutorApiResponse,
 } from '../models/pet-detail.model';
+import { ClinicalCaseSummary } from '@app/clinical-cases/models/clinical-case.model';
 import { PetListApiResponse, PetListQuery } from '../models/pet-list.model';
 import {
   PetSurgeryApiResponse,
@@ -239,6 +240,7 @@ export class PetsApiService {
       clinicalObservations: response.conditions ?? response.clinicalObservations ?? [],
       surgeries: response.surgeries ?? [],
       procedures: response.procedures ?? [],
+      clinicalCases: response.clinicalCases ?? [],
       recentActivity: response.recentActivity ?? null,
     };
   }
@@ -318,5 +320,6 @@ interface PatientDetailResponse {
   clinicalObservations?: PetClinicalObservationApiResponse[];
   surgeries?: PetSurgeryApiResponse[];
   procedures?: PetProcedureHistoryApiResponse[];
+  clinicalCases?: ClinicalCaseSummary[];
   recentActivity?: PetRecentActivityApiResponse | null;
 }
