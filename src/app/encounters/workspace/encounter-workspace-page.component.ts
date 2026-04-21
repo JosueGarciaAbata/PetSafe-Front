@@ -8,6 +8,7 @@ import {
   OnInit,
   inject,
 } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -50,6 +51,7 @@ import {
   CreateEncounterTreatmentRequest,
   CreateEncounterVaccinationRequest,
   EncounterAnamnesis,
+  EncounterAttachment,
   EncounterClinicalExam,
   EncounterClinicalImpression,
   EncounterDetail,
@@ -121,6 +123,7 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly sanitizer = inject(DomSanitizer);
 
   private readonly tabByBlock = TAB_BY_BLOCK;
   private readonly suppressFormTracking = { value: false };
@@ -165,6 +168,13 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
   protected editingTreatmentDraftId: number | null = null;
   protected editingProcedureDraftId: number | null = null;
   protected replacementSourceTreatmentId: number | null = null;
+  protected attachments: EncounterAttachment[] = [];
+  protected isUploadingAttachment = false;
+  protected attachmentError: string | null = null;
+  protected attachmentPreview: EncounterAttachment | null = null;
+  protected attachmentPreviewUrl: SafeResourceUrl | null = null;
+  protected pendingDeleteAttachment: EncounterAttachment | null = null;
+  protected isDeletingAttachment = false;
   protected readonly clinicalTextMaxLength = CLINICAL_TEXT_MAX_LENGTH;
   protected readonly clinicalShortTextMaxLength = CLINICAL_SHORT_TEXT_MAX_LENGTH;
   protected readonly clinicalTemperatureMin = CLINICAL_TEMPERATURE_MIN;
@@ -184,17 +194,12 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
     },
     EXAM: {
       title: 'Referencia clínica rápida',
-      description: 'Datos base y estado vacunal útiles mientras registras el examen físico.',
+      description: 'Datos base y estado vacunal útiles mientras registras los datos fisiológicos.',
       sections: ['overview', 'vaccination'],
-    },
-    ENVIRONMENT: {
-      title: 'Contexto del entorno',
-      description: 'Referencia general e histórico útil para interpretar hábitos, convivencia y ambiente.',
-      sections: ['overview', 'notes', 'history'],
     },
     IMPRESSION: {
       title: 'Apoyo diagnóstico',
-      description: 'Resumen de datos base, vacunas y antecedentes para sostener la impresión clínica.',
+      description: 'Resumen de datos base, vacunas y antecedentes para sostener el diagnóstico clínico.',
       sections: ['overview', 'vaccination', 'notes', 'history'],
     },
     ACTIONS: {
@@ -212,7 +217,6 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
     REASON: { status: 'clean', error: null },
     ANAMNESIS: { status: 'clean', error: null },
     EXAM: { status: 'clean', error: null },
-    ENVIRONMENT: { status: 'clean', error: null },
     IMPRESSION: { status: 'clean', error: null },
     ACTIONS: { status: 'clean', error: null },
     PLAN: { status: 'clean', error: null },
@@ -451,6 +455,10 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
 
   protected isEncounterEditable(): boolean {
     return this.isEncounterStatusEditable(this.encounter?.status);
+  }
+
+  protected isTabEditable(_tab: TabView): boolean {
+    return this.isEncounterEditable();
   }
 
   protected canReactivateEncounter(): boolean {
@@ -2037,6 +2045,231 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
     }
   }
 
+  // ── Attachments ────────────────────────────────────────────────────────────
+
+  private async loadAttachments(encounterId: number): Promise<void> {
+    try {
+      this.attachments = await firstValueFrom(this.encountersApi.listAttachments(encounterId));
+    } catch (error) {
+      console.error('Error loading attachments:', error);
+    }
+  }
+
+  protected async onFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file || !this.encounter) return;
+
+    const preparedFile = await this.prepareAttachmentFile(file);
+
+    if (preparedFile.size > 10 * 1024 * 1024) {
+      this.attachmentError = 'El archivo excede el tamaño máximo permitido de 10MB.';
+      input.value = '';
+      return;
+    }
+
+    this.isUploadingAttachment = true;
+    this.attachmentError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const attachment = await firstValueFrom(
+        this.encountersApi.uploadAttachment(this.encounter.id, preparedFile),
+      );
+      this.attachments = [...this.attachments, attachment];
+    } catch (error: any) {
+      this.attachmentError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo subir el archivo.',
+      });
+    } finally {
+      this.isUploadingAttachment = false;
+      input.value = '';
+      this.cdr.detectChanges();
+    }
+  }
+
+  protected openAttachmentPreview(attachment: EncounterAttachment): void {
+    this.attachmentPreview = attachment;
+    this.attachmentPreviewUrl = this.isPdfAttachment(attachment)
+      ? this.sanitizer.bypassSecurityTrustResourceUrl(attachment.url)
+      : null;
+  }
+
+  protected closeAttachmentPreview(): void {
+    this.attachmentPreview = null;
+    this.attachmentPreviewUrl = null;
+  }
+
+  protected promptDeleteAttachment(attachment: EncounterAttachment): void {
+    if (!this.isEncounterEditable()) {
+      return;
+    }
+
+    this.pendingDeleteAttachment = attachment;
+  }
+
+  protected closeDeleteAttachmentDialog(): void {
+    if (this.isDeletingAttachment) {
+      return;
+    }
+
+    this.pendingDeleteAttachment = null;
+  }
+
+  protected async confirmDeleteAttachment(): Promise<void> {
+    if (!this.encounter || !this.pendingDeleteAttachment) {
+      return;
+    }
+
+    this.isDeletingAttachment = true;
+    this.attachmentError = null;
+    this.cdr.detectChanges();
+
+    try {
+      await firstValueFrom(
+        this.encountersApi.deleteAttachment(this.encounter.id, this.pendingDeleteAttachment.id),
+      );
+      this.attachments = this.attachments.filter((a) => a.id !== this.pendingDeleteAttachment?.id);
+
+      if (this.attachmentPreview?.id === this.pendingDeleteAttachment.id) {
+        this.closeAttachmentPreview();
+      }
+
+      this.pendingDeleteAttachment = null;
+    } catch (error: any) {
+      this.attachmentError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo eliminar el archivo.',
+      });
+    } finally {
+      this.isDeletingAttachment = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  protected isPdfAttachment(attachment: EncounterAttachment): boolean {
+    return attachment.mimeType?.includes('pdf') ?? false;
+  }
+
+  protected isImageAttachment(attachment: EncounterAttachment): boolean {
+    return attachment.mimeType?.includes('image') ?? attachment.mediaType === 'IMAGEN';
+  }
+
+  protected formatAttachmentSize(sizeBytes: number | null): string {
+    if (!sizeBytes || sizeBytes <= 0) {
+      return 'Tamano desconocido';
+    }
+
+    const mb = sizeBytes / 1024 / 1024;
+    if (mb >= 1) {
+      return `${mb.toFixed(2)} MB`;
+    }
+
+    const kb = sizeBytes / 1024;
+    return `${kb.toFixed(0)} KB`;
+  }
+
+  protected attachmentDisplayName(attachment: EncounterAttachment): string {
+    return this.normalizeAttachmentNameForDisplay(attachment.originalName);
+  }
+
+  protected getFileIcon(mimeType: string | null): string {
+    if (mimeType?.includes('pdf')) return 'description';
+    if (mimeType?.includes('image')) return 'image';
+    return 'insert_drive_file';
+  }
+
+  private async prepareAttachmentFile(file: File): Promise<File> {
+    this.attachmentError = null;
+
+    if (!file.type.startsWith('image/')) {
+      return file;
+    }
+
+    if (file.size <= 900 * 1024) {
+      return file;
+    }
+
+    try {
+      return await this.compressImageForUpload(file);
+    } catch (error) {
+      console.warn('No se pudo comprimir la imagen antes de subirla.', error);
+      return file;
+    }
+  }
+
+  private async compressImageForUpload(file: File): Promise<File> {
+    const image = await this.readImageFile(file);
+    const maxDimension = 1400;
+    const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
+    const targetWidth = Math.max(1, Math.round(image.width * scale));
+    const targetHeight = Math.max(1, Math.round(image.height * scale));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+
+    const context = canvas.getContext('2d');
+    if (!context) {
+      return file;
+    }
+
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+    context.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+    const bestBlob = await this.canvasToBlob(canvas, 'image/webp', 0.7);
+
+    if (!bestBlob || bestBlob.size >= file.size * 0.98) {
+      return file;
+    }
+
+    const compressedName = file.name.replace(/\.[^.]+$/, '') + '.webp';
+    return new File([bestBlob], compressedName, {
+      type: 'image/webp',
+      lastModified: Date.now(),
+    });
+  }
+
+  private async readImageFile(file: File): Promise<HTMLImageElement> {
+    return await new Promise((resolve, reject) => {
+      const objectUrl = URL.createObjectURL(file);
+      const image = new Image();
+      image.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(image);
+      };
+      image.onerror = (error) => {
+        URL.revokeObjectURL(objectUrl);
+        reject(error);
+      };
+      image.src = objectUrl;
+    });
+  }
+
+  private async canvasToBlob(
+    canvas: HTMLCanvasElement,
+    type: string,
+    quality: number,
+  ): Promise<Blob | null> {
+    return await new Promise((resolve) => {
+      canvas.toBlob((blob) => resolve(blob), type, quality);
+    });
+  }
+
+  private normalizeAttachmentNameForDisplay(value: string): string {
+    if (!/[ÃÂ]/.test(value)) {
+      return value;
+    }
+
+    try {
+      const bytes = Uint8Array.from([...value].map((character) => character.charCodeAt(0)));
+      const decoded = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+      return decoded.includes('�') ? value : decoded;
+    } catch {
+      return value;
+    }
+  }
+
   private configurePlanValidation(): void {
     const followUpControl = this.planForm.controls.suggestedFollowUpDate;
     const caseLinkModeControl = this.planForm.controls.caseLinkMode;
@@ -2108,7 +2341,7 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
         { tab: 'REASON', form: this.reasonForm },
         { tab: 'ANAMNESIS', form: this.anamnesisForm },
         { tab: 'EXAM', form: this.examForm },
-        { tab: 'ENVIRONMENT', form: this.environmentForm },
+        { tab: 'ANAMNESIS', form: this.environmentForm },
         { tab: 'IMPRESSION', form: this.impressionForm },
         { tab: 'PLAN', form: this.planForm },
       ];
@@ -2160,7 +2393,7 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
         },
       },
       {
-        tab: 'ENVIRONMENT',
+        tab: 'ANAMNESIS',
         block: 'environment',
         defaultMessage: 'No se pudo guardar el contexto del paciente.',
         execute: () =>
@@ -2231,8 +2464,6 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
         return this.anamnesisForm;
       case 'EXAM':
         return this.examForm;
-      case 'ENVIRONMENT':
-        return this.environmentForm;
       case 'IMPRESSION':
         return this.impressionForm;
       case 'PLAN':
@@ -2291,7 +2522,11 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
       const encounter = await firstValueFrom(this.encountersApi.getById(id));
       this.applyEncounter(encounter);
 
-      await Promise.all([this.loadPatientContext(encounter.patientId), this.loadReferenceData()]);
+      await Promise.all([
+        this.loadPatientContext(encounter.patientId),
+        this.loadReferenceData(),
+        this.loadAttachments(id),
+      ]);
     } catch (error) {
       this.loadError = resolveApiErrorMessage(error, {
         defaultMessage: 'No se pudo cargar la consulta médica.',

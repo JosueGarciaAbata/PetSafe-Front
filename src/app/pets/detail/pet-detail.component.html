@@ -465,6 +465,78 @@
           </div>
         }
 
+        @if (isActiveTab('TREATMENTS')) {
+          <section class="flex flex-col gap-4">
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex flex-col gap-1">
+                <h3 class="text-[17px] font-bold text-text-primary">Tratamientos activos</h3>
+                <p class="text-sm text-text-secondary">Seguimiento vigente del paciente con acceso directo al detalle.</p>
+              </div>
+
+              <span class="rounded-full bg-background px-3 py-1 text-xs font-semibold text-text-secondary">
+                {{ treatmentHistory().length }}
+              </span>
+            </div>
+
+            @if (hasTreatmentHistory()) {
+              <div class="divide-y divide-border rounded-2xl border border-border bg-surface">
+                @for (item of treatmentHistory(); track item.id) {
+                  <button
+                    type="button"
+                    class="flex w-full items-start justify-between gap-3 px-4 py-4 text-left transition-colors hover:bg-background/50"
+                    (click)="openTreatmentDetail(item.id)"
+                  >
+                    <div class="min-w-0 flex-1">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <p class="text-sm font-bold text-text-primary">{{ item.summary }}</p>
+                        <span
+                          class="rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider"
+                          [ngClass]="buildCaseTreatmentStatusClasses(item.status)"
+                        >
+                          {{ buildCaseTreatmentStatusLabel(item.status) }}
+                        </span>
+                        @if (item.clinicalCaseProblem) {
+                          <span class="rounded-full border border-border bg-card px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
+                            {{ item.clinicalCaseProblem }}
+                          </span>
+                        }
+                        <span class="rounded-full border border-border bg-card px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
+                          Consulta #{{ item.patientConsultationNumber }}
+                        </span>
+                      </div>
+
+                      <p class="mt-1 text-xs text-text-secondary">{{ buildTreatmentHistoryMeta(item) }}</p>
+
+                      @if (item.generalInstructions) {
+                        <p class="mt-2 text-sm leading-6 text-text-secondary">{{ item.generalInstructions }}</p>
+                      }
+                    </div>
+
+                    <span class="inline-flex items-center gap-2 text-xs font-semibold text-text-secondary">
+                      Ver detalle
+                      <svg
+                        viewBox="0 0 24 24"
+                        class="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="m9 6 6 6-6 6"></path>
+                      </svg>
+                    </span>
+                  </button>
+                }
+              </div>
+            } @else {
+              <div class="rounded-2xl border border-dashed border-border bg-background/50 px-4 py-6 text-sm text-text-secondary">
+                Sin tratamientos registrados para este paciente.
+              </div>
+            }
+          </section>
+        }
+
         @if (isActiveTab('SURGERIES')) {
           <section class="flex flex-col gap-6">
             <div class="flex items-center justify-between gap-3">
@@ -866,11 +938,55 @@
         @if (isActiveTab('ACTIVITY')) {
           <section class="flex flex-col gap-4">
             <div class="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
-              <h3 class="text-[17px] font-bold text-text-primary">Actividad reciente</h3>
+              <h3 class="text-[17px] font-bold text-text-primary">Actividad clínica</h3>
               <span class="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary">
                 {{ recentActivityWindowLabel() }}
               </span>
             </div>
+
+            <div class="grid gap-3 rounded-2xl border border-border bg-surface p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto] md:items-end">
+              <label class="flex flex-col gap-2 text-sm font-semibold text-text-primary">
+                Desde
+                <input
+                  type="date"
+                  [(ngModel)]="activityDateFrom"
+                  class="rounded-xl border border-border bg-card px-3 py-2.5 text-sm text-text-primary outline-none transition-colors focus:border-primary"
+                />
+              </label>
+
+              <label class="flex flex-col gap-2 text-sm font-semibold text-text-primary">
+                Hasta
+                <input
+                  type="date"
+                  [(ngModel)]="activityDateTo"
+                  class="rounded-xl border border-border bg-card px-3 py-2.5 text-sm text-text-primary outline-none transition-colors focus:border-primary"
+                />
+              </label>
+
+              <button
+                type="button"
+                (click)="applyActivityFilters()"
+                [disabled]="isActivityLoading"
+                class="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {{ isActivityLoading ? 'Buscando...' : 'Aplicar filtro' }}
+              </button>
+
+              <button
+                type="button"
+                (click)="resetActivityFilters()"
+                [disabled]="isActivityLoading"
+                class="inline-flex items-center justify-center rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold text-text-primary transition-all hover:bg-background disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                Último mes
+              </button>
+            </div>
+
+            @if (activityLoadError) {
+              <div class="ps-tone ps-tone--danger ps-tone-surface rounded-2xl border px-4 py-4 text-sm leading-6">
+                {{ activityLoadError }}
+              </div>
+            }
 
             @if (hasRecentConsultations()) {
               <div class="divide-y divide-border rounded-2xl border border-border bg-surface">
@@ -918,9 +1034,13 @@
                   </button>
                 }
               </div>
+            } @else if (isActivityLoading) {
+              <div class="rounded-2xl border border-border bg-surface px-4 py-6 text-sm text-text-secondary">
+                Cargando consultas...
+              </div>
             } @else {
               <div class="rounded-2xl border border-dashed border-border bg-background/50 px-4 py-6 text-sm text-text-secondary">
-                Sin consultas registradas en el último mes.
+                Sin consultas registradas en ese rango.
               </div>
             }
           </section>

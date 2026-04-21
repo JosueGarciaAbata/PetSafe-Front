@@ -302,3 +302,13 @@ export interface EncounterDetail {
   surgeriesCount: number;
   proceduresCount: number;
 }
+
+export interface EncounterAttachment {
+  id: number;
+  url: string;
+  originalName: string;
+  mimeType: string | null;
+  sizeBytes: number | null;
+  mediaType: string;
+  createdAt: string;
+}

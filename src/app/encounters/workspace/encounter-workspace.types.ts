@@ -2,7 +2,6 @@ export type TabView =
   | 'REASON'
   | 'ANAMNESIS'
   | 'EXAM'
-  | 'ENVIRONMENT'
   | 'IMPRESSION'
   | 'ACTIONS'
   | 'PLAN';
