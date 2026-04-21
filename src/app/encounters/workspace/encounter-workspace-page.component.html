@@ -285,42 +285,40 @@
                     </div>
                   </div>
 
+                  <div>
+                    <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
+                      <span>Enfermedad actual</span>
+                      <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                    </label>
+                    <textarea formControlName="currentIllnessHistory" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Inicio, evolución y signos actuales."></textarea>
+                    <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
+                      <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
+                      <span>{{ controlTextLength(reasonForm, 'currentIllnessHistory') }} caracteres</span>
+                    </div>
+                  </div>
+
                   <div class="grid gap-5 xl:grid-cols-2">
                     <div>
                       <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                        <span>Enfermedad actual</span>
+                        <span>Diagnósticos previos referidos</span>
                         <span class="text-xs font-medium text-text-secondary">Opcional</span>
                       </label>
-                      <textarea formControlName="currentIllnessHistory" [attr.maxlength]="clinicalTextMaxLength" rows="5" class="min-h-[140px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Inicio, evolución y signos actuales."></textarea>
+                      <textarea formControlName="referredPreviousDiagnoses" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Si el tutor trae diagnósticos previos, resúmelos aquí."></textarea>
                       <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                         <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                        <span>{{ controlTextLength(reasonForm, 'currentIllnessHistory') }} caracteres</span>
+                        <span>{{ controlTextLength(reasonForm, 'referredPreviousDiagnoses') }} caracteres</span>
                       </div>
                     </div>
 
-                    <div class="space-y-5">
-                      <div>
-                        <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                          <span>Diagnósticos previos referidos</span>
-                          <span class="text-xs font-medium text-text-secondary">Opcional</span>
-                        </label>
-                        <textarea formControlName="referredPreviousDiagnoses" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[110px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Si el tutor trae diagnósticos previos, resúmelos aquí."></textarea>
-                        <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
-                          <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                          <span>{{ controlTextLength(reasonForm, 'referredPreviousDiagnoses') }} caracteres</span>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                          <span>Tratamientos previos referidos</span>
-                          <span class="text-xs font-medium text-text-secondary">Opcional</span>
-                        </label>
-                        <textarea formControlName="referredPreviousTreatments" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[110px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Medicaciones o medidas previas reportadas por el tutor."></textarea>
-                        <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
-                          <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                          <span>{{ controlTextLength(reasonForm, 'referredPreviousTreatments') }} caracteres</span>
-                        </div>
+                    <div>
+                      <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
+                        <span>Tratamientos previos referidos</span>
+                        <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                      </label>
+                      <textarea formControlName="referredPreviousTreatments" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Medicaciones o medidas previas reportadas por el tutor."></textarea>
+                      <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
+                        <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
+                        <span>{{ controlTextLength(reasonForm, 'referredPreviousTreatments') }} caracteres</span>
                       </div>
                     </div>
                   </div>
@@ -547,6 +545,78 @@
                     </div>
                   </div>
 
+                  <div class="rounded-[24px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.72),rgba(255,255,255,0.96))] px-5 py-5">
+                    <div class="border-b border-slate-200/80 pb-4">
+                      <p class="text-[11px] font-black uppercase tracking-[0.22em] text-primary/70">Entorno</p>
+                      <h3 class="mt-1 text-lg font-black tracking-tight text-text-primary">Contexto ambiental y estilo de vida</h3>
+                      <p class="mt-1 text-sm text-text-secondary">
+                        Este bloque complementa la anamnesis con el ambiente del paciente, su alimentación y factores cotidianos que pueden influir en el cuadro.
+                      </p>
+                    </div>
+
+                    <div class="mt-5 grid gap-5 xl:grid-cols-2">
+                      <div>
+                        <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
+                          <span>Ambiente</span>
+                          <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                        </label>
+                        <textarea [formControl]="environmentForm.controls.environmentNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Vivienda, patio, higiene, exposición o convivencia relevante."></textarea>
+                        <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
+                          <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
+                          <span>{{ controlTextLength(environmentForm, 'environmentNotes') }} caracteres</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
+                          <span>Nutrición</span>
+                          <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                        </label>
+                        <textarea [formControl]="environmentForm.controls.nutritionNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Tipo de dieta, frecuencia y cambios recientes."></textarea>
+                        <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
+                          <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
+                          <span>{{ controlTextLength(environmentForm, 'nutritionNotes') }} caracteres</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
+                          <span>Estilo de vida</span>
+                          <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                        </label>
+                        <textarea [formControl]="environmentForm.controls.lifestyleNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Actividad, paseos, contacto con otros animales o rutinas."></textarea>
+                        <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
+                          <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
+                          <span>{{ controlTextLength(environmentForm, 'lifestyleNotes') }} caracteres</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
+                          <span>Tipo de alimentación</span>
+                          <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                        </label>
+                        <textarea [formControl]="environmentForm.controls.feedingTypeNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Balanceado, casera, mixta, premios u otras observaciones."></textarea>
+                        <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
+                          <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
+                          <span>{{ controlTextLength(environmentForm, 'feedingTypeNotes') }} caracteres</span>
+                        </div>
+                      </div>
+
+                      <div class="xl:col-span-2">
+                        <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
+                          <span>Notas del entorno</span>
+                          <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                        </label>
+                        <textarea [formControl]="environmentForm.controls.notes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Contexto adicional útil para interpretar la anamnesis."></textarea>
+                        <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
+                          <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
+                          <span>{{ controlTextLength(environmentForm, 'notes') }} caracteres</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div>
                     <label class="mb-2 block text-sm font-bold text-text-primary">Notas adicionales <span class="font-medium text-slate-400">(Opcional)</span></label>
                     <textarea formControlName="notes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Detalles clínicos relevantes no cubiertos arriba."></textarea>
@@ -564,9 +634,9 @@
               <section class="bg-card px-1 pb-5 pt-6 lg:px-1 lg:pb-6 lg:pt-6">
                 <div class="flex flex-col gap-2 border-b border-slate-200 pb-5">
                   <p class="text-[11px] font-black uppercase tracking-[0.28em] text-primary/70">Bloque clínico</p>
-                  <h2 class="text-2xl font-black tracking-tight text-text-primary">Examen clínico</h2>
+                  <h2 class="text-2xl font-black tracking-tight text-text-primary">Datos fisiológicos</h2>
                   <p class="text-sm leading-6 text-text-secondary">
-                    Captura los signos vitales y principales hallazgos físicos de esta atención.
+                    Captura los signos vitales, hallazgos físicos y sube archivos de la atención (imágenes médicas y PDFs).
                   </p>
                 </div>
 
@@ -662,76 +732,132 @@
                   </div>
 
                 </form>
-              </section>
-            }
 
-            @if (activeTab === 'ENVIRONMENT') {
-              <section class="bg-card px-1 pb-5 pt-6 lg:px-1 lg:pb-6 lg:pt-6">
-                <div class="flex flex-col gap-2 border-b border-slate-200 pb-5">
-                  <p class="text-[11px] font-black uppercase tracking-[0.28em] text-primary/70">Bloque clínico</p>
-                  <h2 class="text-2xl font-black tracking-tight text-text-primary">Entorno del paciente</h2>
+                <div class="mt-8 flex flex-col gap-2 border-b border-slate-200 pb-5">
+                  <p class="text-[11px] font-black uppercase tracking-[0.28em] text-primary/70">Archivos adjuntos</p>
+                  <h3 class="text-xl font-black tracking-tight text-text-primary">Documentos e imágenes</h3>
                   <p class="text-sm leading-6 text-text-secondary">
-                    Documenta ambiente, nutrición y estilo de vida para entender factores asociados al cuadro.
+                    Agrega resultados de laboratorio en PDF o fotografías relevantes al estado del paciente.
                   </p>
                 </div>
 
-                <form class="mt-6 grid gap-5 xl:grid-cols-2" [formGroup]="environmentForm">
-                  <div>
-                    <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                      <span>Ambiente</span>
-                      <span class="text-xs font-medium text-text-secondary">Opcional</span>
-                    </label>
-                    <textarea formControlName="environmentNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Vivienda, patio, convivencia, higiene, exposición."></textarea>
-                    <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
-                      <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                      <span>{{ controlTextLength(environmentForm, 'environmentNotes') }} caracteres</span>
+                <div class="mt-6 space-y-5">
+                  <div class="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
+                    <div>
+                      <div class="mb-3 flex items-center justify-between gap-3">
+                        <p class="text-sm font-black text-text-primary">Agregar soporte clínico</p>
+                        <span class="text-xs text-text-secondary">JPG, PNG, WEBP y PDF · máximo 10 MB</span>
+                      </div>
+
+                      <div class="relative overflow-hidden rounded-[24px] border border-dashed border-primary/30 bg-background/60">
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,application/pdf"
+                          (change)="onFileSelected($event)"
+                          [disabled]="isUploadingAttachment || !isTabEditable('EXAM')"
+                          class="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+                        />
+
+                        <div class="flex min-h-[220px] flex-col items-center justify-center px-8 py-10 text-center">
+                          @if (isUploadingAttachment) {
+                            <div class="h-2 w-24 rounded-full bg-primary/15"></div>
+                            <p class="mt-4 text-sm font-bold text-text-primary">Subiendo archivo...</p>
+                            <p class="mt-1 text-xs text-text-secondary">Las imágenes se optimizan para ocupar menos espacio.</p>
+                          } @else {
+                            <div class="rounded-full border border-primary/20 bg-primary/8 px-4 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-primary/80">
+                              Subir archivo
+                            </div>
+                            <p class="mt-4 text-base font-black text-text-primary">Selecciona una imagen o PDF</p>
+                            <p class="mt-2 max-w-sm text-sm leading-6 text-text-secondary">
+                              Ideal para radiografías, resultados escaneados, consentimientos o evidencia fotográfica.
+                            </p>
+                          }
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="px-1 py-1">
+                      <div class="flex items-center justify-between gap-3">
+                        <div>
+                          <p class="text-sm font-black text-text-primary">Resumen de adjuntos</p>
+                          <p class="mt-1 text-xs text-text-secondary">
+                            {{ attachments.length }} archivo{{ attachments.length === 1 ? '' : 's' }} en esta atención
+                          </p>
+                        </div>
+                      </div>
+
+                      @if (attachmentError) {
+                        <div class="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
+                          <p class="text-sm font-medium text-red-800">{{ attachmentError }}</p>
+                        </div>
+                      }
+
+                      @if (attachments.length > 0) {
+                        <div class="mt-4 space-y-3">
+                          @for (file of attachments; track file.id) {
+                            <div class="group rounded-2xl border border-slate-200/90 bg-background/70 px-4 py-3 transition hover:border-primary/30 hover:bg-background">
+                              <div class="flex items-start gap-3">
+                                <button
+                                  type="button"
+                                  class="flex min-w-0 flex-1 items-start gap-3 text-left"
+                                  (click)="openAttachmentPreview(file)"
+                                  [title]="'Previsualizar ' + attachmentDisplayName(file)"
+                                >
+                                  <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-card">
+                                    @if (isImageAttachment(file)) {
+                                      <img [src]="file.url" [alt]="attachmentDisplayName(file)" class="h-full w-full object-cover" />
+                                    } @else {
+                                      <span class="text-xs font-black uppercase tracking-[0.2em] text-primary/80">PDF</span>
+                                    }
+                                  </div>
+
+                                  <div class="min-w-0 flex-1">
+                                    <p class="truncate text-sm font-bold text-text-primary transition group-hover:text-primary">
+                                      {{ attachmentDisplayName(file) }}
+                                    </p>
+                                    <p class="mt-1 text-xs text-text-secondary">
+                                      {{ formatAttachmentSize(file.sizeBytes) }} · {{ file.createdAt | date:'short' }}
+                                    </p>
+                                    <p class="mt-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-secondary">
+                                      {{ isPdfAttachment(file) ? 'Documento PDF' : 'Imagen clínica' }}
+                                    </p>
+                                  </div>
+                                </button>
+
+                                <div class="flex shrink-0 items-center gap-3 self-center pl-2">
+                                  <button
+                                    type="button"
+                                    class="text-xs font-bold text-primary transition hover:text-primary/80"
+                                    (click)="openAttachmentPreview(file)"
+                                    title="Previsualizar"
+                                  >
+                                    Ver
+                                  </button>
+                                  @if (isTabEditable('EXAM')) {
+                                    <button
+                                      type="button"
+                                      class="text-xs font-bold text-slate-500 transition hover:text-red-600"
+                                      (click)="promptDeleteAttachment(file)"
+                                      title="Eliminar archivo"
+                                    >
+                                      Eliminar
+                                    </button>
+                                  }
+                                </div>
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      } @else {
+                        <div class="mt-4 rounded-2xl border border-dashed border-slate-200 bg-background/50 px-4 py-6 text-center">
+                          <p class="text-sm font-medium text-text-primary">Todavía no hay archivos adjuntos.</p>
+                          <p class="mt-1 text-xs text-text-secondary">Los archivos que subas aquí quedarán vinculados a esta atención.</p>
+                        </div>
+                      }
                     </div>
                   </div>
-                  <div>
-                    <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                      <span>Nutrición</span>
-                      <span class="text-xs font-medium text-text-secondary">Opcional</span>
-                    </label>
-                    <textarea formControlName="nutritionNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Tipo de dieta, frecuencia, cambios recientes."></textarea>
-                    <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
-                      <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                      <span>{{ controlTextLength(environmentForm, 'nutritionNotes') }} caracteres</span>
-                    </div>
-                  </div>
-                  <div>
-                    <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                      <span>Estilo de vida</span>
-                      <span class="text-xs font-medium text-text-secondary">Opcional</span>
-                    </label>
-                    <textarea formControlName="lifestyleNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Actividad, paseos, contacto con otros animales."></textarea>
-                    <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
-                      <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                      <span>{{ controlTextLength(environmentForm, 'lifestyleNotes') }} caracteres</span>
-                    </div>
-                  </div>
-                  <div>
-                    <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                      <span>Tipo de alimentación</span>
-                      <span class="text-xs font-medium text-text-secondary">Opcional</span>
-                    </label>
-                    <textarea formControlName="feedingTypeNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Balanceado, casera, mixta, premios u otros detalles."></textarea>
-                    <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
-                      <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                      <span>{{ controlTextLength(environmentForm, 'feedingTypeNotes') }} caracteres</span>
-                    </div>
-                  </div>
-                  <div class="xl:col-span-2">
-                    <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                      <span>Notas complementarias</span>
-                      <span class="text-xs font-medium text-text-secondary">Opcional</span>
-                    </label>
-                    <textarea formControlName="notes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Elementos contextuales importantes para esta consulta."></textarea>
-                    <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
-                      <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                      <span>{{ controlTextLength(environmentForm, 'notes') }} caracteres</span>
-                    </div>
-                  </div>
-                </form>
+                </div>
+
               </section>
             }
 
@@ -739,9 +865,9 @@
               <section class="bg-card px-1 pb-5 pt-6 lg:px-1 lg:pb-6 lg:pt-6">
                 <div class="flex flex-col gap-2 border-b border-slate-200 pb-5">
                   <p class="text-[11px] font-black uppercase tracking-[0.28em] text-primary/70">Bloque clínico</p>
-                  <h2 class="text-2xl font-black tracking-tight text-text-primary">Impresión clínica</h2>
+                  <h2 class="text-2xl font-black tracking-tight text-text-primary">Diagnóstico</h2>
                   <p class="text-sm leading-6 text-text-secondary">
-                    Consolida la interpretación clínica del caso y el criterio médico actual.
+                    Consolida la interpretación clínica del caso y el criterio diagnóstico actual.
                   </p>
                 </div>
 
@@ -1915,6 +2041,73 @@
         </div>
       </div>
     }
+
+    @if (attachmentPreview; as preview) {
+      <div class="fixed inset-0 z-[140] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm" (click)="closeAttachmentPreview()">
+        <div class="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-[28px] border border-white/10 bg-card shadow-2xl" (click)="$event.stopPropagation()">
+          <div class="flex items-start justify-between gap-4 border-b border-slate-200/80 px-6 py-5">
+            <div class="min-w-0">
+              <p class="text-[11px] font-black uppercase tracking-[0.22em] text-primary/70">
+                {{ isPdfAttachment(preview) ? 'Documento PDF' : 'Imagen clínica' }}
+              </p>
+              <h3 class="mt-1 truncate text-lg font-black tracking-tight text-text-primary">{{ attachmentDisplayName(preview) }}</h3>
+              <p class="mt-1 text-sm text-text-secondary">{{ formatAttachmentSize(preview.sizeBytes) }} · {{ preview.createdAt | date:'medium' }}</p>
+            </div>
+
+            <div class="flex shrink-0 items-center gap-2">
+              <a
+                [href]="preview.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex rounded-xl border border-slate-200 bg-card px-3 py-2 text-sm font-bold text-slate-600 transition hover:border-primary/30 hover:text-primary"
+                title="Abrir en una pestaña nueva"
+              >
+                Abrir aparte
+              </a>
+              <button
+                type="button"
+                class="inline-flex rounded-xl border border-slate-200 bg-card px-3 py-2 text-sm font-bold text-slate-600 transition hover:border-slate-300 hover:text-text-primary"
+                (click)="closeAttachmentPreview()"
+                title="Cerrar previsualización"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+
+          <div class="min-h-0 flex-1 bg-slate-950/5 p-4">
+            @if (isImageAttachment(preview)) {
+              <div class="flex h-full max-h-[72vh] items-center justify-center overflow-auto rounded-[24px] bg-slate-950/5 p-4">
+                <img [src]="preview.url" [alt]="preview.originalName" class="max-h-[68vh] w-auto max-w-full rounded-2xl object-contain shadow-lg" />
+              </div>
+            } @else if (isPdfAttachment(preview) && attachmentPreviewUrl) {
+              <iframe
+                [src]="attachmentPreviewUrl"
+                class="h-[72vh] w-full rounded-[24px] border border-slate-200 bg-white"
+                title="Vista previa del documento"
+              ></iframe>
+            } @else {
+              <div class="flex h-[72vh] flex-col items-center justify-center rounded-[24px] border border-dashed border-slate-300 bg-background px-6 text-center">
+                <span class="text-xs font-black uppercase tracking-[0.22em] text-slate-400">{{ isPdfAttachment(preview) ? 'PDF' : 'Archivo' }}</span>
+                <p class="mt-4 text-sm font-bold text-text-primary">No hay vista previa embebida para este archivo.</p>
+                <p class="mt-1 text-xs text-text-secondary">Puedes abrirlo en una pestaña nueva desde el botón superior derecho.</p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <app-confirm-dialog
+      [open]="!!pendingDeleteAttachment"
+      title="Eliminar archivo adjunto"
+      [message]="'Se eliminará ' + (pendingDeleteAttachment ? attachmentDisplayName(pendingDeleteAttachment) : 'este archivo') + ' de esta atención.'"
+      confirmLabel="Eliminar archivo"
+      busyLabel="Eliminando..."
+      [isBusy]="isDeletingAttachment"
+      (closed)="closeDeleteAttachmentDialog()"
+      (confirmed)="confirmDeleteAttachment()"
+    ></app-confirm-dialog>
 
     <app-confirm-dialog
       [open]="isFinishConfirmOpen"

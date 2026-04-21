@@ -7,6 +7,7 @@ import {
   CreateEncounterProcedureRequest,
   CreateEncounterTreatmentRequest,
   CreateEncounterVaccinationRequest,
+  EncounterAttachment,
   EncounterDetail,
   ProcedureCatalogItem,
   EncounterReason,
@@ -192,5 +193,21 @@ export class EncountersApiService {
     return this.http.get<ProcedureCatalogItem[]>(buildApiUrl('catalogs/procedures'), {
       params: { includeInactive: String(includeInactive) },
     });
+  }
+
+  // ── Attachments ──────────────────────────────────────────────────────────
+
+  listAttachments(id: number): Observable<EncounterAttachment[]> {
+    return this.http.get<EncounterAttachment[]>(`${this.baseUrl}/${id}/attachments`);
+  }
+
+  uploadAttachment(id: number, file: File): Observable<EncounterAttachment> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<EncounterAttachment>(`${this.baseUrl}/${id}/attachments`, formData);
+  }
+
+  deleteAttachment(id: number, fileId: number): Observable<{ success: boolean }> {
+    return this.http.delete<{ success: boolean }>(`${this.baseUrl}/${id}/attachments/${fileId}`);
   }
 }

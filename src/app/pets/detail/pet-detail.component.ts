@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { CatalogAdminApiService } from '@app/catalogs/admin/api/catalog-admin-api.service';
@@ -27,8 +28,10 @@ import { InitializeVaccinationPlanModalComponent } from '../vaccination/initiali
 import {
   PetBasicDetailApiResponse,
   PetClinicalObservationApiResponse,
+  PetRecentActivityApiResponse,
   PetRecentConsultationActivityApiResponse,
   PetProcedureHistoryApiResponse,
+  PetTreatmentHistoryApiResponse,
 } from '../models/pet-detail.model';
 import {
   PetSurgeryApiResponse,
@@ -47,13 +50,14 @@ import { QueueApiService } from '@app/queue/api/queue-api.service';
 import { QueueEntryRecord } from '@app/queue/models/queue.model';
 import { QueueEntryDetailModalComponent } from '@app/queue/components/queue-entry-detail-modal.component';
 
-type PetDetailTab = 'OVERVIEW' | 'SURGERIES' | 'PROCEDURES' | 'CASES' | 'ACTIVITY';
+type PetDetailTab = 'OVERVIEW' | 'SURGERIES' | 'TREATMENTS' | 'PROCEDURES' | 'CASES' | 'ACTIVITY';
 
 @Component({
   selector: 'app-pet-detail',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     InitializeVaccinationPlanModalComponent,
     PetSurgeryModalComponent,
     QueueEntryDetailModalComponent,
@@ -83,6 +87,7 @@ export class PetDetailComponent implements OnInit, AfterViewInit {
   protected readonly detailTabs: Array<{ id: PetDetailTab; label: string }> = [
     { id: 'OVERVIEW', label: 'Resumen' },
     { id: 'SURGERIES', label: 'Cirugías' },
+    { id: 'TREATMENTS', label: 'Tratamientos' },
     { id: 'PROCEDURES', label: 'Procedimientos' },
     { id: 'CASES', label: 'Casos clínicos' },
     { id: 'ACTIVITY', label: 'Actividad reciente' },
@@ -116,6 +121,11 @@ export class PetDetailComponent implements OnInit, AfterViewInit {
       this.isRecentConsultationModalOpen = false;
       this.selectedRecentConsultationEntry = null;
       this.recentConsultationLoadingEncounterId = null;
+      this.activityData = null;
+      this.isActivityLoading = false;
+      this.activityLoadError = null;
+      this.activityDateFrom = '';
+      this.activityDateTo = '';
       this.selectedClinicalCaseId = null;
       this.selectedClinicalCaseDetail = null;
       this.clinicalCaseDetailError = null;
@@ -148,6 +158,11 @@ export class PetDetailComponent implements OnInit, AfterViewInit {
   protected isRecentConsultationModalOpen = false;
   protected selectedRecentConsultationEntry: QueueEntryRecord | null = null;
   protected recentConsultationLoadingEncounterId: number | null = null;
+  protected activityData: PetRecentActivityApiResponse | null = null;
+  protected isActivityLoading = false;
+  protected activityLoadError: string | null = null;
+  protected activityDateFrom = '';
+  protected activityDateTo = '';
   protected selectedClinicalCaseId: number | null = null;
   protected selectedClinicalCaseDetail: ClinicalCaseDetail | null = null;
   protected clinicalCaseLoadingId: number | null = null;
@@ -518,15 +533,23 @@ export class PetDetailComponent implements OnInit, AfterViewInit {
   }
 
   protected recentConsultations(): PetRecentConsultationActivityApiResponse[] {
-    return this.pet?.recentActivity?.consultations ?? [];
+    return this.activityData?.consultations ?? [];
   }
 
   protected procedureHistory(): PetProcedureHistoryApiResponse[] {
     return this.pet?.procedures ?? [];
   }
 
+  protected treatmentHistory(): PetTreatmentHistoryApiResponse[] {
+    return this.pet?.treatments ?? [];
+  }
+
   protected hasRecentConsultations(): boolean {
     return this.recentConsultations().length > 0;
+  }
+
+  protected hasTreatmentHistory(): boolean {
+    return this.treatmentHistory().length > 0;
   }
 
   protected hasProcedureHistory(): boolean {
@@ -636,8 +659,11 @@ export class PetDetailComponent implements OnInit, AfterViewInit {
   }
 
   protected recentActivityWindowLabel(): string {
-    const start = this.pet?.recentActivity?.windowStart;
-    return start ? `Último mes · desde ${start.slice(0, 10)}` : 'Último mes';
+    if (!this.activityData) {
+      return 'Sin rango cargado';
+    }
+
+    return `${this.activityData.windowStart.slice(0, 10)} · ${this.activityData.windowEnd.slice(0, 10)}`;
   }
 
   protected buildEncounterStatusLabel(status: string | null | undefined): string {
@@ -683,6 +709,62 @@ export class PetDetailComponent implements OnInit, AfterViewInit {
 
   protected buildProcedureHistoryMeta(item: PetProcedureHistoryApiResponse): string {
     return item.clinicianName?.trim() || 'Sin MVZ registrado';
+  }
+
+  protected buildTreatmentHistoryMeta(item: PetTreatmentHistoryApiResponse): string {
+    const parts = [
+      `Consulta #${item.patientConsultationNumber}`,
+      `Inicio ${item.startDate.slice(0, 10)}`,
+    ];
+    if (item.clinicalCaseProblem?.trim()) {
+      parts.push(item.clinicalCaseProblem.trim());
+    }
+
+    return parts.join(' · ');
+  }
+
+  protected openTreatmentDetail(treatmentId: number): void {
+    if (!this.pet) {
+      return;
+    }
+
+    void this.router.navigate(['/treatments', treatmentId], {
+      state: {
+        backTarget: ['/pets', this.pet.id],
+        backLabel: 'Volver al detalle de mascota',
+      },
+    });
+  }
+
+  protected setActivityRangePresetToLastMonth(): void {
+    const end = new Date();
+    const start = new Date(end);
+    start.setMonth(start.getMonth() - 1);
+    this.activityDateFrom = this.toDateInputValue(start);
+    this.activityDateTo = this.toDateInputValue(end);
+  }
+
+  protected async applyActivityFilters(): Promise<void> {
+    if (!this.pet || this.isActivityLoading) {
+      return;
+    }
+
+    await this.loadActivity(this.pet.id, this.requestVersion, {
+      from: this.activityDateFrom || null,
+      to: this.activityDateTo || null,
+    });
+  }
+
+  protected async resetActivityFilters(): Promise<void> {
+    if (!this.pet || this.isActivityLoading) {
+      return;
+    }
+
+    this.setActivityRangePresetToLastMonth();
+    await this.loadActivity(this.pet.id, this.requestVersion, {
+      from: this.activityDateFrom,
+      to: this.activityDateTo,
+    });
   }
 
   protected isRecentConsultationLoading(
@@ -859,6 +941,13 @@ export class PetDetailComponent implements OnInit, AfterViewInit {
       }
 
       this.pet = response;
+      this.activityData = response.recentActivity ?? null;
+      if (this.activityData) {
+        this.activityDateFrom = this.activityData.windowStart.slice(0, 10);
+        this.activityDateTo = this.activityData.windowEnd.slice(0, 10);
+      } else {
+        this.setActivityRangePresetToLastMonth();
+      }
       void this.ensureSurgeryCatalogLoaded();
       void this.generateQr();
     } catch {
@@ -937,6 +1026,50 @@ export class PetDetailComponent implements OnInit, AfterViewInit {
     }
 
     this.pet = await firstValueFrom(this.petsApi.getBasicById(this.pet.id));
+    this.activityData = this.pet.recentActivity ?? this.activityData;
+  }
+
+  private async loadActivity(
+    petId: number | string,
+    requestToken: number,
+    range?: { from?: string | null; to?: string | null },
+  ): Promise<void> {
+    this.isActivityLoading = true;
+    this.activityLoadError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const response = await firstValueFrom(this.petsApi.getActivity(petId, range));
+      if (requestToken !== this.requestVersion) {
+        return;
+      }
+
+      this.activityData = response;
+      this.activityDateFrom = response.windowStart.slice(0, 10);
+      this.activityDateTo = response.windowEnd.slice(0, 10);
+    } catch (error: unknown) {
+      if (requestToken !== this.requestVersion) {
+        return;
+      }
+
+      this.activityLoadError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo cargar la actividad clínica del paciente.',
+      });
+    } finally {
+      if (requestToken !== this.requestVersion) {
+        return;
+      }
+
+      this.isActivityLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  private toDateInputValue(value: Date): string {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   private async openEncounterOperationalDetail(encounterId: number): Promise<void> {
