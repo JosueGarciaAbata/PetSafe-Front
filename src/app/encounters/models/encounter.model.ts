@@ -1,6 +1,4 @@
 import {
-  ClinicalCaseOutcome,
-  ClinicalCasePlanLinkMode,
   ClinicalCaseSummary,
   TreatmentEvolutionAction,
 } from '@app/clinical-cases/models/clinical-case.model';
@@ -21,6 +19,13 @@ export type HydrationStatus =
 export type EncounterStatus = 'ACTIVA' | 'REACTIVADA' | 'FINALIZADA' | 'ANULADA';
 export type TreatmentStatus = 'ACTIVO' | 'FINALIZADO' | 'SUSPENDIDO' | 'CANCELADO';
 export type TreatmentItemStatus = 'ACTIVO' | 'SUSPENDIDO' | 'FINALIZADO' | 'CANCELADO';
+export type EncounterClinicalCaseLinkMode = 'EXISTING' | 'NEW' | 'UNLINK';
+export type EncounterFollowUpAction =
+  | 'NONE'
+  | 'KEEP_OPEN'
+  | 'SCHEDULE_CONTROL'
+  | 'RESOLVE'
+  | 'CANCEL';
 
 export interface EncounterPatient {
   id: number;
@@ -86,13 +91,11 @@ export interface EncounterClinicalImpression {
 
 export interface EncounterPlan {
   clinicalPlan?: string | null;
-  requiresFollowUp?: boolean | null;
-  suggestedFollowUpDate?: string | null;
-  caseLinkMode?: ClinicalCasePlanLinkMode | null;
-  clinicalCaseId?: number | null;
-  problemSummary?: string | null;
-  caseOutcome?: ClinicalCaseOutcome | null;
   planNotes?: string | null;
+}
+
+export interface EncounterFollowUpConfig {
+  action: EncounterFollowUpAction;
 }
 
 export interface EncounterVaccinationEvent {
@@ -262,6 +265,23 @@ export interface CreateEncounterProcedureRequest {
   notes?: string;
 }
 
+export interface UpsertEncounterClinicalCaseLinkRequest {
+  mode: EncounterClinicalCaseLinkMode;
+  clinicalCaseId?: number;
+  problemSummary?: string;
+}
+
+export interface UpsertEncounterFollowUpConfigRequest {
+  action: EncounterFollowUpAction;
+}
+
+export interface ScheduleControlAppointmentRequest {
+  scheduledDate: string;
+  scheduledTime: string;
+  endTime: string;
+  notes?: string | null;
+}
+
 export interface EncounterDetail {
   id: number;
   patientId: number;
@@ -285,6 +305,7 @@ export interface EncounterDetail {
   environmentalData?: EncounterEnvironmentalData | null;
   clinicalImpression?: EncounterClinicalImpression | null;
   plan?: EncounterPlan | null;
+  followUpConfig: EncounterFollowUpConfig | null;
   clinicalCaseSummary: ClinicalCaseSummary | null;
   vaccinationEvents: EncounterVaccinationEvent[];
   vaccinationDrafts: EncounterVaccinationDraft[];

@@ -28,11 +28,10 @@ import { firstValueFrom } from 'rxjs';
 import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util';
 import {
   ClinicalCaseActiveTreatment,
-  ClinicalCaseOutcome,
-  ClinicalCasePlanLinkMode,
   ClinicalCaseSummary,
   TreatmentEvolutionAction,
 } from '@app/clinical-cases/models/clinical-case.model';
+import { CreateAppointmentModalComponent } from '@app/appointments/components/create-appointment-modal.component';
 import { PetBasicDetailApiResponse } from '@app/pets/models/pet-detail.model';
 import { PetsApiService } from '@app/pets/services/pets-api.service';
 import { CreateVaccineApplicationModalComponent } from '@app/pets/vaccination/create-vaccine-application-modal.component';
@@ -54,11 +53,14 @@ import {
   EncounterAttachment,
   EncounterClinicalExam,
   EncounterClinicalImpression,
+  EncounterClinicalCaseLinkMode,
   EncounterDetail,
   EncounterEnvironmentalData,
+  EncounterFollowUpAction,
   EncounterPlan,
   EncounterProcedure,
   EncounterProcedureDraft,
+  ScheduleControlAppointmentRequest,
   EncounterTreatment,
   EncounterTreatmentDraft,
   EncounterTreatmentEvolutionEvent,
@@ -97,6 +99,8 @@ interface PatientSummaryContext {
   sections: readonly PatientSummarySectionKey[];
 }
 
+const ENCOUNTER_TAB_QUERY_PARAM = 'tab';
+
 @Component({
   selector: 'app-encounter-workspace-page',
   standalone: true,
@@ -111,6 +115,7 @@ interface PatientSummaryContext {
     ShellIconComponent,
     ConfirmDialogComponent,
     CreateVaccineApplicationModalComponent,
+    CreateAppointmentModalComponent,
   ],
   templateUrl: './encounter-workspace-page.component.html',
   styleUrl: './encounter-workspace-page.component.css',
@@ -129,6 +134,7 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
   private readonly suppressFormTracking = { value: false };
   private reactivationGraceTimerId: ReturnType<typeof setInterval> | null = null;
   private autoTriggerValidation = false;
+  private currentEncounterId: number | null = null;
 
   protected encounter: EncounterDetail | null = null;
   protected patientDetail: PetBasicDetailApiResponse | null = null;
@@ -157,6 +163,7 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
   protected isVaccinationModalOpen = false;
   protected isTreatmentModalOpen = false;
   protected isProcedureModalOpen = false;
+  protected isControlAppointmentModalOpen = false;
   protected expandedActionPanel: EncounterActionPanel | null = 'VACCINATIONS';
   protected procedureCatalogSearch = '';
   protected pendingVaccinations: EncounterVaccinationDraft[] = [];
@@ -175,6 +182,7 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
   protected attachmentPreviewUrl: SafeResourceUrl | null = null;
   protected pendingDeleteAttachment: EncounterAttachment | null = null;
   protected isDeletingAttachment = false;
+  protected controlAppointmentError: string | null = null;
   protected readonly clinicalTextMaxLength = CLINICAL_TEXT_MAX_LENGTH;
   protected readonly clinicalShortTextMaxLength = CLINICAL_SHORT_TEXT_MAX_LENGTH;
   protected readonly clinicalTemperatureMin = CLINICAL_TEMPERATURE_MIN;
@@ -208,8 +216,8 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
       sections: ['vaccination', 'history'],
     },
     PLAN: {
-      title: 'Contexto para el plan',
-      description: 'Datos de referencia y notas longitudinales para definir seguimiento y próximos pasos.',
+      title: 'Contexto para el plan clínico',
+      description: 'Datos de referencia y notas longitudinales para sostener el plan y el seguimiento del caso.',
       sections: ['overview', 'vaccination', 'notes'],
     },
   };
@@ -373,16 +381,16 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
     clinicalPlan: new FormControl('', {
       validators: [Validators.maxLength(CLINICAL_TEXT_MAX_LENGTH)],
     }),
-    requiresFollowUp: new FormControl<boolean | null>(false),
-    suggestedFollowUpDate: new FormControl(''),
-    caseLinkMode: new FormControl<ClinicalCasePlanLinkMode>('NONE', {
+    caseLinkMode: new FormControl<EncounterClinicalCaseLinkMode>('UNLINK', {
       nonNullable: true,
     }),
     clinicalCaseId: new FormControl<number | null>(null),
     problemSummary: new FormControl('', {
       validators: [Validators.maxLength(CLINICAL_TEXT_MAX_LENGTH)],
     }),
-    caseOutcome: new FormControl<ClinicalCaseOutcome | null>(null),
+    followUpAction: new FormControl<EncounterFollowUpAction>('NONE', {
+      nonNullable: true,
+    }),
     planNotes: new FormControl('', {
       validators: [Validators.maxLength(CLINICAL_TEXT_MAX_LENGTH)],
     }),
@@ -446,7 +454,7 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
   }
 
   protected setTab(tab: TabView): void {
-    this.activeTab = tab;
+    this.updateActiveTab(tab);
   }
 
   protected togglePatientSummary(): void {
@@ -530,11 +538,7 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    await this.persistSection(
-      'plan',
-      this.encountersApi.updatePlan(this.encounter.id, this.planPayload()),
-      'No se pudo guardar el plan clínico.',
-    );
+    await this.persistPlanSection();
   }
 
   protected async saveAllSections(): Promise<void> {
@@ -600,7 +604,10 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
 
         try {
-          const updated = await firstValueFrom(step.execute());
+          const updated =
+            step.block === 'plan'
+              ? await this.executePlanSaveSequence()
+              : await firstValueFrom(step.execute());
           this.applyEncounterPreservingUnsavedChanges(updated, step.block);
           if (step.onAfterSave) {
             await step.onAfterSave();
@@ -618,7 +625,7 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
       }
 
       if (firstErrorTab) {
-        this.activeTab = firstErrorTab;
+        this.updateActiveTab(firstErrorTab);
         this.sectionError =
           'Se guardaron algunas secciones, pero todavía hay pestañas con errores que debes revisar.';
         if (fromFinishFlow) {
@@ -1132,12 +1139,7 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
   }
 
   protected finishEncounter(): void {
-    if (!this.encounter || !this.isEncounterEditable()) {
-      return;
-    }
-
-    this.actionError = null;
-    this.isFinishConfirmOpen = true;
+    void this.beginFinishFlow();
   }
 
   protected closeFinishConfirmDialog(): void {
@@ -1150,32 +1152,8 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
   }
 
   protected async confirmFinishEncounter(): Promise<void> {
-    if (!this.encounter || !this.isEncounterEditable()) {
-      return;
-    }
-
-    this.isSubmittingAction = true;
     this.isFinishConfirmOpen = false;
-    this.actionError = null;
-    this.cdr.detectChanges();
-
-    try {
-      const saved = await this.saveAllProgress(true);
-      if (!saved) {
-        return;
-      }
-
-      const updated = await firstValueFrom(this.encountersApi.finish(this.encounter.id));
-      this.applyEncounter(updated);
-      await this.loadPatientContext(updated.patientId);
-    } catch (error) {
-      this.actionError = resolveApiErrorMessage(error, {
-        defaultMessage: 'No se pudo finalizar la atención médica.',
-      });
-    } finally {
-      this.isSubmittingAction = false;
-      this.cdr.detectChanges();
-    }
+    await this.completeFinish();
   }
 
   protected goBack(): void {
@@ -1199,6 +1177,69 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
       this.actionError = resolveApiErrorMessage(error, {
         defaultMessage: 'No se pudo reactivar la atención médica.',
       });
+    } finally {
+      this.isSubmittingAction = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  protected controlAppointmentPresetPatientLabel(): string {
+    const patientName = this.encounter?.patient.name?.trim() ?? 'Mascota';
+    const tutorName = this.primaryTutorName().trim();
+    return tutorName ? `${patientName} - ${tutorName}` : patientName;
+  }
+
+  private async beginFinishFlow(): Promise<void> {
+    if (!this.encounter || !this.isEncounterEditable() || this.isSubmittingAction || this.isSavingAll) {
+      return;
+    }
+
+    this.actionError = null;
+    this.controlAppointmentError = null;
+    this.cdr.detectChanges();
+
+    const saved = await this.saveAllProgress(true);
+    if (!saved) {
+      return;
+    }
+
+    if (this.encounter?.followUpConfig?.action === 'SCHEDULE_CONTROL') {
+      this.isControlAppointmentModalOpen = true;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.isFinishConfirmOpen = true;
+    this.cdr.detectChanges();
+  }
+
+  private async completeFinish(controlAppointment?: ScheduleControlAppointmentRequest): Promise<void> {
+    if (!this.encounter || !this.isEncounterEditable()) {
+      return;
+    }
+
+    this.isSubmittingAction = true;
+    this.actionError = null;
+    this.controlAppointmentError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const updated = await firstValueFrom(
+        this.encountersApi.finish(this.encounter.id, controlAppointment),
+      );
+      this.applyEncounter(updated);
+      this.isControlAppointmentModalOpen = false;
+      await this.loadPatientContext(updated.patientId);
+    } catch (error) {
+      const message = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo finalizar la atención médica.',
+      });
+      if (controlAppointment) {
+        this.controlAppointmentError = message;
+        this.isControlAppointmentModalOpen = true;
+      } else {
+        this.actionError = message;
+      }
     } finally {
       this.isSubmittingAction = false;
       this.cdr.detectChanges();
@@ -1344,9 +1385,6 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
       if (tab === 'REASON' && controlName === 'consultationReason') {
         return 'El motivo principal es obligatorio.';
       }
-      if (tab === 'PLAN' && controlName === 'suggestedFollowUpDate') {
-        return 'La fecha de seguimiento es obligatoria cuando indicas que requiere control.';
-      }
       if (tab === 'PLAN' && controlName === 'clinicalCaseId') {
         return 'Debes seleccionar el caso clínico existente para continuar el seguimiento.';
       }
@@ -1376,15 +1414,37 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
       return `No puede superar los ${control.errors['maxlength'].requiredLength} caracteres.`;
     }
 
-    if (control.errors['invalidTodayOrFutureDate']) {
-      return 'La fecha sugerida debe ser hoy o futura.';
-    }
-
     if (control.errors['caseLinkModeRequired']) {
-      return 'Debes decidir si el seguimiento abrirá un caso nuevo o se vinculará a uno existente.';
+      return 'Debes abrir un caso nuevo o vincular este encounter a un caso existente antes de dejar seguimiento.';
     }
 
     return 'Revisa el valor ingresado.';
+  }
+
+  protected closeControlAppointmentModal(): void {
+    if (this.isSubmittingAction) {
+      return;
+    }
+
+    this.isControlAppointmentModalOpen = false;
+    this.controlAppointmentError = null;
+    this.cdr.detectChanges();
+  }
+
+  protected async submitControlAppointment(
+    payload: {
+      scheduledDate: string;
+      scheduledTime: string;
+      endTime: string;
+      notes?: string | null;
+    },
+  ): Promise<void> {
+    await this.completeFinish({
+      scheduledDate: payload.scheduledDate,
+      scheduledTime: payload.scheduledTime,
+      endTime: payload.endTime,
+      notes: payload.notes ?? null,
+    });
   }
 
   protected treatmentItemLength(item: TreatmentItemDraft, field: keyof TreatmentItemDraft): number {
@@ -1505,6 +1565,28 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
     return this.encounter?.clinicalCaseSummary ?? null;
   }
 
+  protected openAssociatedClinicalCase(clinicalCaseId?: number | null): void {
+    if (!this.encounter) {
+      return;
+    }
+
+    const resolvedCaseId = clinicalCaseId ?? this.encounter.clinicalCaseSummary?.id ?? null;
+    if (!resolvedCaseId) {
+      return;
+    }
+
+    void this.router.navigate(['/pets', this.encounter.patientId], {
+      queryParams: {
+        tab: 'CASES',
+        caseId: resolvedCaseId,
+      },
+      state: {
+        backTarget: ['/encounters', this.encounter.id],
+        backLabel: 'Volver a la atención',
+      },
+    });
+  }
+
   protected availableClinicalCases(): ClinicalCaseSummary[] {
     return [...(this.patientDetail?.clinicalCases ?? [])].sort((left, right) => {
       if (left.status !== right.status) {
@@ -1537,7 +1619,7 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
   }
 
   protected shouldShowCaseLinkControls(): boolean {
-    return this.planForm.controls.requiresFollowUp.value === true && !this.isCaseLinkSelectionLocked();
+    return !this.isCaseLinkSelectionLocked();
   }
 
   protected shouldShowExistingCaseSelector(): boolean {
@@ -1554,30 +1636,23 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
     );
   }
 
-  protected shouldShowCaseOutcomeSelector(): boolean {
-    return this.hasEncounterClinicalCase();
+  protected canConfigureFollowUpAction(): boolean {
+    return this.hasEncounterClinicalCase() || this.planForm.controls.caseLinkMode.value !== 'UNLINK';
   }
 
-  protected currentCaseOutcome(): ClinicalCaseOutcome {
-    return this.planForm.controls.caseOutcome.value ?? 'CONTINUA';
+  protected currentFollowUpAction(): EncounterFollowUpAction {
+    return this.planForm.controls.followUpAction.value ?? 'NONE';
   }
 
-  protected willGenerateFollowUpAppointment(): boolean {
-    return (
-      this.planForm.controls.requiresFollowUp.value === true
-      && this.currentCaseOutcome() === 'CONTINUA'
-    );
+  protected willScheduleControlAppointment(): boolean {
+    return this.currentFollowUpAction() === 'SCHEDULE_CONTROL';
   }
 
-  protected leavesCaseOpenWithoutFollowUp(): boolean {
-    return (
-      this.hasEncounterClinicalCase()
-      && this.planForm.controls.requiresFollowUp.value !== true
-      && this.currentCaseOutcome() === 'CONTINUA'
-    );
+  protected keepsCaseOpenWithoutScheduling(): boolean {
+    return this.currentFollowUpAction() === 'KEEP_OPEN';
   }
 
-  protected selectCaseLinkMode(mode: ClinicalCasePlanLinkMode): void {
+  protected selectCaseLinkMode(mode: EncounterClinicalCaseLinkMode): void {
     if (!this.isEncounterEditable() || this.isCaseLinkSelectionLocked()) {
       return;
     }
@@ -1595,6 +1670,14 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
       this.planForm.controls.clinicalCaseId.setValue(null);
       this.planForm.controls.problemSummary.setValue('');
     }
+  }
+
+  protected selectFollowUpAction(action: EncounterFollowUpAction): void {
+    if (!this.isEncounterEditable() || !this.canConfigureFollowUpAction()) {
+      return;
+    }
+
+    this.planForm.controls.followUpAction.setValue(action);
   }
 
   protected buildClinicalCaseStatusLabel(status: string | null | undefined): string {
@@ -1623,14 +1706,33 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
     }
   }
 
-  protected buildClinicalCaseOutcomeLabel(outcome: ClinicalCaseOutcome | null | undefined): string {
-    switch (outcome) {
-      case 'RESUELTO':
-        return 'Marcar como resuelto';
-      case 'CANCELADO':
+  protected buildFollowUpActionLabel(action: EncounterFollowUpAction): string {
+    switch (action) {
+      case 'KEEP_OPEN':
+        return 'Mantener abierto';
+      case 'SCHEDULE_CONTROL':
+        return 'Programar control al finalizar';
+      case 'RESOLVE':
+        return 'Marcar resuelto';
+      case 'CANCEL':
         return 'Cancelar caso';
       default:
-        return 'Mantener en seguimiento';
+        return 'Sin seguimiento';
+    }
+  }
+
+  protected buildFollowUpActionDescription(action: EncounterFollowUpAction): string {
+    switch (action) {
+      case 'KEEP_OPEN':
+        return 'El caso queda abierto, pero no se agenda un turno todavía.';
+      case 'SCHEDULE_CONTROL':
+        return 'Al finalizar se abrirá el modal del turno de control usando la agenda real.';
+      case 'RESOLVE':
+        return 'El caso se cerrará cuando finalice esta consulta.';
+      case 'CANCEL':
+        return 'El caso se cancelará cuando finalice esta consulta.';
+      default:
+        return 'Esta consulta no deja ninguna decisión operativa de seguimiento.';
     }
   }
 
@@ -2271,51 +2373,36 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
   }
 
   private configurePlanValidation(): void {
-    const followUpControl = this.planForm.controls.suggestedFollowUpDate;
     const caseLinkModeControl = this.planForm.controls.caseLinkMode;
     const clinicalCaseControl = this.planForm.controls.clinicalCaseId;
     const problemSummaryControl = this.planForm.controls.problemSummary;
-    const caseOutcomeControl = this.planForm.controls.caseOutcome;
+    const followUpActionControl = this.planForm.controls.followUpAction;
 
     const applyValidators = (): void => {
       const hasLinkedCase = this.hasEncounterClinicalCase();
-      const requiresFollowUp = this.planForm.controls.requiresFollowUp.value === true;
       const linkMode = caseLinkModeControl.value;
-      const caseOutcome = caseOutcomeControl.value ?? 'CONTINUA';
-      const mustGenerateFollowUp = requiresFollowUp && caseOutcome === 'CONTINUA';
+      const followUpAction = followUpActionControl.value ?? 'NONE';
+      const requiresCaseLink = followUpAction !== 'NONE' && !hasLinkedCase;
 
-      followUpControl.setValidators(
-        mustGenerateFollowUp ? [Validators.required, this.todayOrFutureDateValidator()] : [],
-      );
       caseLinkModeControl.setValidators(
-        mustGenerateFollowUp && !hasLinkedCase ? [this.caseLinkModeRequiredValidator()] : [],
+        requiresCaseLink ? [this.caseLinkModeRequiredValidator()] : [],
       );
       clinicalCaseControl.setValidators(
-        mustGenerateFollowUp && !hasLinkedCase && linkMode === 'EXISTING'
+        !hasLinkedCase && linkMode === 'EXISTING'
           ? [Validators.required]
           : [],
       );
       problemSummaryControl.setValidators(
-        mustGenerateFollowUp && !hasLinkedCase && linkMode === 'NEW'
+        !hasLinkedCase && linkMode === 'NEW'
           ? [Validators.required, Validators.maxLength(CLINICAL_TEXT_MAX_LENGTH)]
           : [Validators.maxLength(CLINICAL_TEXT_MAX_LENGTH)],
       );
-
-      if (caseOutcome !== 'CONTINUA') {
-        this.planForm.controls.requiresFollowUp.setValue(false, { emitEvent: false });
-        followUpControl.setValue('', { emitEvent: false });
-      }
-
-      followUpControl.updateValueAndValidity({ emitEvent: false });
       caseLinkModeControl.updateValueAndValidity({ emitEvent: false });
       clinicalCaseControl.updateValueAndValidity({ emitEvent: false });
       problemSummaryControl.updateValueAndValidity({ emitEvent: false });
     };
 
     applyValidators();
-    this.planForm.controls.requiresFollowUp.valueChanges.subscribe(() => {
-      applyValidators();
-    });
     this.planForm.controls.caseLinkMode.valueChanges.subscribe((mode) => {
       if (mode === 'EXISTING') {
         this.planForm.controls.problemSummary.setValue('', { emitEvent: false });
@@ -2328,7 +2415,7 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
 
       applyValidators();
     });
-    this.planForm.controls.caseOutcome.valueChanges.subscribe(() => {
+    this.planForm.controls.followUpAction.valueChanges.subscribe(() => {
       applyValidators();
     });
   }
@@ -2443,11 +2530,10 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
         );
       case 'PLAN':
         return (
-          this.controlErrorMessage(tab, 'suggestedFollowUpDate')
-          ?? this.controlErrorMessage(tab, 'caseLinkMode')
+          this.controlErrorMessage(tab, 'caseLinkMode')
           ?? this.controlErrorMessage(tab, 'clinicalCaseId')
           ?? this.controlErrorMessage(tab, 'problemSummary')
-          ?? 'Revisa los datos de seguimiento antes de guardar.'
+          ?? 'Revisa el plan clínico y la configuración del caso antes de guardar.'
         );
       default:
         return 'Revisa los datos de esta sección antes de guardar.';
@@ -2475,29 +2561,10 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
     return this.formForTab(tab).get(controlName);
   }
 
-  private todayOrFutureDateValidator(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const raw = typeof control.value === 'string' ? control.value.trim() : '';
-      if (!raw) {
-        return null;
-      }
-
-      const candidate = new Date(`${raw}T00:00:00`);
-      if (Number.isNaN(candidate.getTime())) {
-        return { invalidTodayOrFutureDate: true };
-      }
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      return candidate >= today ? null : { invalidTodayOrFutureDate: true };
-    };
-  }
-
   private caseLinkModeRequiredValidator(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       const value = typeof control.value === 'string' ? control.value.trim().toUpperCase() : '';
-      return value && value !== 'NONE' ? null : { caseLinkModeRequired: true };
+      return value && value !== 'UNLINK' ? null : { caseLinkModeRequired: true };
     };
   }
 
@@ -2520,7 +2587,9 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
 
     try {
       const encounter = await firstValueFrom(this.encountersApi.getById(id));
+      this.currentEncounterId = encounter.id;
       this.applyEncounter(encounter);
+      this.restoreActiveTab(encounter.id);
 
       await Promise.all([
         this.loadPatientContext(encounter.patientId),
@@ -2684,14 +2753,10 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
 
     this.planForm.patchValue({
       clinicalPlan: encounter.plan?.clinicalPlan ?? '',
-      requiresFollowUp: encounter.plan?.requiresFollowUp ?? false,
-      suggestedFollowUpDate: encounter.plan?.suggestedFollowUpDate ?? '',
-      caseLinkMode:
-        encounter.plan?.caseLinkMode
-        ?? (encounter.clinicalCaseSummary ? 'EXISTING' : 'NONE'),
-      clinicalCaseId: encounter.plan?.clinicalCaseId ?? encounter.clinicalCaseSummary?.id ?? null,
-      problemSummary: encounter.plan?.problemSummary ?? '',
-      caseOutcome: encounter.plan?.caseOutcome ?? (encounter.clinicalCaseSummary ? 'CONTINUA' : null),
+      caseLinkMode: encounter.clinicalCaseSummary ? 'EXISTING' : 'UNLINK',
+      clinicalCaseId: encounter.clinicalCaseSummary?.id ?? null,
+      problemSummary: '',
+      followUpAction: encounter.followUpConfig?.action ?? (encounter.clinicalCaseSummary ? 'KEEP_OPEN' : 'NONE'),
       planNotes: encounter.plan?.planNotes ?? '',
     });
 
@@ -2707,6 +2772,45 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
 
     this.sectionError = null;
     this.actionError = null;
+  }
+
+  private updateActiveTab(tab: TabView): void {
+    this.activeTab = tab;
+    this.persistActiveTab(tab);
+  }
+
+  private persistActiveTab(tab: TabView): void {
+    if (!this.currentEncounterId) {
+      return;
+    }
+
+    localStorage.setItem(this.encounterTabStorageKey(this.currentEncounterId), tab);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        [ENCOUNTER_TAB_QUERY_PARAM]: tab,
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  private restoreActiveTab(encounterId: number): void {
+    const queryTab = this.parseEncounterTab(this.route.snapshot.queryParamMap.get(ENCOUNTER_TAB_QUERY_PARAM));
+    const storedTab = this.parseEncounterTab(
+      localStorage.getItem(this.encounterTabStorageKey(encounterId)),
+    );
+    this.activeTab = queryTab ?? storedTab ?? 'REASON';
+    this.persistActiveTab(this.activeTab);
+  }
+
+  private parseEncounterTab(value: string | null): TabView | null {
+    const normalized = (value ?? '').trim().toUpperCase();
+    return this.tabOrder.includes(normalized as TabView) ? (normalized as TabView) : null;
+  }
+
+  private encounterTabStorageKey(encounterId: number): string {
+    return `encounter-workspace-tab:${encounterId}`;
   }
 
   private async persistSection(
@@ -2731,7 +2835,7 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
         status: 'dirty',
         error: validationMessage,
       });
-      this.activeTab = tab;
+      this.updateActiveTab(tab);
       this.sectionError = validationMessage;
       this.cdr.detectChanges();
       return;
@@ -2761,7 +2865,63 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
         status: 'error',
         error: message,
       });
-      this.activeTab = tab;
+      this.updateActiveTab(tab);
+    } finally {
+      this.savingSection = null;
+      this.cdr.detectChanges();
+    }
+  }
+
+  private async persistPlanSection(): Promise<void> {
+    const tab: ClinicalTabView = 'PLAN';
+    if (!this.encounter) {
+      return;
+    }
+
+    if (!this.sectionHasChanges('plan')) {
+      this.setTabMeta(tab, {
+        status: 'clean',
+        error: null,
+      });
+      this.sectionError = null;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const validationMessage = this.validateClinicalStep('plan');
+    if (validationMessage) {
+      this.setTabMeta(tab, {
+        status: 'dirty',
+        error: validationMessage,
+      });
+      this.updateActiveTab(tab);
+      this.sectionError = validationMessage;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.savingSection = 'plan';
+    this.sectionError = null;
+    this.setTabMeta(tab, {
+      status: 'saving',
+      error: this.tabState[tab].error,
+    });
+    this.cdr.detectChanges();
+
+    try {
+      const updated = await this.executePlanSaveSequence();
+      this.applyEncounterPreservingUnsavedChanges(updated, 'plan');
+      this.markTabSaved(tab);
+    } catch (error) {
+      const message = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo guardar el plan clínico.',
+      });
+      this.sectionError = message;
+      this.setTabMeta(tab, {
+        status: 'error',
+        error: message,
+      });
+      this.updateActiveTab(tab);
     } finally {
       this.savingSection = null;
       this.cdr.detectChanges();
@@ -2844,38 +3004,67 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
 
   private planPayload(): EncounterPlan {
     const raw = this.planForm.getRawValue();
-    const linkedClinicalCaseId = this.encounter?.clinicalCaseSummary?.id ?? null;
-    const hasLinkedCase = linkedClinicalCaseId !== null;
-    const caseOutcome = hasLinkedCase ? (raw.caseOutcome ?? 'CONTINUA') : undefined;
-    const requiresFollowUp =
-      (raw.requiresFollowUp ?? false) && caseOutcome !== 'RESUELTO' && caseOutcome !== 'CANCELADO';
-    const caseLinkMode = hasLinkedCase
-      ? 'EXISTING'
-      : requiresFollowUp
-        ? raw.caseLinkMode ?? 'NONE'
-        : 'NONE';
-    const clinicalCaseId = hasLinkedCase
-      ? linkedClinicalCaseId
-      : caseLinkMode === 'EXISTING'
-        ? raw.clinicalCaseId ?? null
-        : null;
-    const problemSummary =
-      !hasLinkedCase && caseLinkMode === 'NEW'
-        ? raw.problemSummary?.trim() || null
-        : null;
-
     return {
       clinicalPlan: raw.clinicalPlan?.trim() || null,
-      requiresFollowUp,
-      suggestedFollowUpDate:
-        requiresFollowUp && raw.suggestedFollowUpDate?.trim()
-          ? raw.suggestedFollowUpDate.trim()
-          : undefined,
-      caseLinkMode,
-      clinicalCaseId,
-      problemSummary,
-      caseOutcome,
       planNotes: raw.planNotes?.trim() || null,
+    };
+  }
+
+  private async executePlanSaveSequence(): Promise<EncounterDetail> {
+    if (!this.encounter) {
+      throw new Error('Consulta no disponible.');
+    }
+
+    let updated = await firstValueFrom(
+      this.encountersApi.updatePlan(this.encounter.id, this.planPayload()),
+    );
+    updated = await firstValueFrom(
+      this.encountersApi.updateClinicalCaseLink(updated.id, this.clinicalCaseLinkPayload()),
+    );
+    updated = await firstValueFrom(
+      this.encountersApi.updateFollowUpConfig(updated.id, this.followUpConfigPayload()),
+    );
+
+    return updated;
+  }
+
+  private clinicalCaseLinkPayload(): {
+    mode: EncounterClinicalCaseLinkMode;
+    clinicalCaseId?: number;
+    problemSummary?: string;
+  } {
+    const raw = this.planForm.getRawValue();
+    if (this.encounter?.clinicalCaseSummary) {
+      return {
+        mode: 'EXISTING',
+        clinicalCaseId: this.encounter.clinicalCaseSummary.id,
+      };
+    }
+
+    if (raw.caseLinkMode === 'EXISTING') {
+      return {
+        mode: 'EXISTING',
+        clinicalCaseId: raw.clinicalCaseId ?? undefined,
+      };
+    }
+
+    if (raw.caseLinkMode === 'NEW') {
+      return {
+        mode: 'NEW',
+        problemSummary: raw.problemSummary?.trim() || undefined,
+      };
+    }
+
+    return { mode: 'UNLINK' };
+  }
+
+  private followUpConfigPayload(): {
+    action: EncounterFollowUpAction;
+  } {
+    const raw = this.planForm.getRawValue();
+    const hasLinkedCase = Boolean(this.encounter?.clinicalCaseSummary) || raw.caseLinkMode !== 'UNLINK';
+    return {
+      action: hasLinkedCase ? (raw.followUpAction ?? 'NONE') : 'NONE',
     };
   }
 
@@ -2978,22 +3167,12 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
       case 'plan':
         return {
           clinicalPlan: this.trimOrNull(this.encounter?.plan?.clinicalPlan),
-          requiresFollowUp: this.encounter?.plan?.requiresFollowUp ?? false,
-          suggestedFollowUpDate:
-            this.encounter?.plan?.requiresFollowUp && this.encounter?.plan?.suggestedFollowUpDate
-              ? this.encounter.plan.suggestedFollowUpDate.trim()
-              : undefined,
-          caseLinkMode:
-            this.encounter?.plan?.caseLinkMode
-            ?? (this.encounter?.clinicalCaseSummary ? 'EXISTING' : 'NONE'),
-          clinicalCaseId:
-            this.encounter?.plan?.clinicalCaseId
-            ?? this.encounter?.clinicalCaseSummary?.id
-            ?? null,
-          problemSummary: this.trimOrNull(this.encounter?.plan?.problemSummary),
-          caseOutcome:
-            this.encounter?.plan?.caseOutcome
-            ?? (this.encounter?.clinicalCaseSummary ? 'CONTINUA' : undefined),
+          caseLinkMode: this.encounter?.clinicalCaseSummary ? 'EXISTING' : 'UNLINK',
+          clinicalCaseId: this.encounter?.clinicalCaseSummary?.id ?? null,
+          problemSummary: null,
+          followUpAction:
+            this.encounter?.followUpConfig?.action
+            ?? (this.encounter?.clinicalCaseSummary ? 'KEEP_OPEN' : 'NONE'),
           planNotes: this.trimOrNull(this.encounter?.plan?.planNotes),
         };
     }

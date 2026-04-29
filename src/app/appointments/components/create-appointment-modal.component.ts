@@ -3,8 +3,12 @@ import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
+  Input,
   OnDestroy,
+  OnInit,
   Output,
+  OnChanges,
+  SimpleChanges,
   inject,
 } from '@angular/core';
 import { FormsModule, FormControl, FormGroupDirective, NgForm } from '@angular/forms';
@@ -65,7 +69,7 @@ class ManualFieldErrorStateMatcher implements ErrorStateMatcher {
   styleUrl: './create-appointment-modal.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CreateAppointmentModalComponent implements OnDestroy {
+export class CreateAppointmentModalComponent implements OnInit, OnChanges, OnDestroy {
   private readonly appointmentsApi = inject(AppointmentsApiService);
   private readonly metadataStore = inject(MetadataStore);
   private readonly toast = inject(AppToastService);
@@ -106,15 +110,54 @@ export class CreateAppointmentModalComponent implements OnDestroy {
   protected showValidationErrors = false;
   protected submitError: string | null = null;
 
+  @Input() title = 'Nuevo turno';
+  @Input() description = 'Registra una nueva cita programada.';
+  @Input() submitLabel = 'Guardar turno';
+  @Input() emitOnly = false;
+  @Input() lockPatient = false;
+  @Input() presetPatientId: number | null = null;
+  @Input() presetPatientLabel = '';
+  @Input() lockReason = false;
+  @Input() presetReason: AppointmentReason | '' = '';
+  @Input() initialScheduledDate: string | null = null;
+  @Input() initialScheduledTime: string | null = null;
+  @Input() initialEndTime: string | null = null;
+  @Input() initialNotes: string | null = null;
+  @Input() externalSubmitting = false;
+  @Input() externalError: string | null = null;
+
   @Output() readonly closed = new EventEmitter<void>();
   @Output() readonly saved = new EventEmitter<void>();
+  @Output() readonly submitted = new EventEmitter<CreateAppointmentRequest>();
+
+  ngOnInit(): void {
+    this.applyInputState();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    const relevantKeys = [
+      'lockPatient',
+      'presetPatientId',
+      'presetPatientLabel',
+      'lockReason',
+      'presetReason',
+      'initialScheduledDate',
+      'initialScheduledTime',
+      'initialEndTime',
+      'initialNotes',
+    ];
+
+    if (relevantKeys.some((key) => key in changes)) {
+      this.applyInputState();
+    }
+  }
 
   ngOnDestroy(): void {
     this.clearPatientSearchTimer();
   }
 
   protected close(): void {
-    if (this.isSaving) {
+    if (this.isBusy()) {
       return;
     }
 
@@ -126,7 +169,23 @@ export class CreateAppointmentModalComponent implements OnDestroy {
     return this.patients;
   }
 
+  protected shouldShowPatientSelector(): boolean {
+    return !this.lockPatient;
+  }
+
+  protected shouldShowReasonSelector(): boolean {
+    return !this.lockReason;
+  }
+
+  protected lockedReasonLabel(): string {
+    return buildAppointmentReasonLabel(this.presetReason);
+  }
+
   protected onPatientChanged(value: string): void {
+    if (this.lockPatient) {
+      return;
+    }
+
     this.patientSearch = value;
     this.submitError = null;
 
@@ -181,7 +240,7 @@ export class CreateAppointmentModalComponent implements OnDestroy {
   }
 
   protected isPatientInvalid(): boolean {
-    return this.showValidationErrors && !this.selectedPatient;
+    return this.showValidationErrors && !this.resolveSelectedPatientId();
   }
 
   protected isScheduledDateInvalid(): boolean {
@@ -201,7 +260,7 @@ export class CreateAppointmentModalComponent implements OnDestroy {
   }
 
   protected isReasonInvalid(): boolean {
-    return this.showValidationErrors && !this.reason;
+    return this.showValidationErrors && !this.resolveSelectedReason();
   }
 
   protected buildEndTimeErrorMessage(): string {
@@ -260,6 +319,12 @@ export class CreateAppointmentModalComponent implements OnDestroy {
     }
 
     this.clearPatientSearchTimer();
+    if (this.emitOnly) {
+      this.submitted.emit(payload);
+      this.cdr.markForCheck();
+      return;
+    }
+
     void this.submitCreate(payload);
   }
 
@@ -325,23 +390,26 @@ export class CreateAppointmentModalComponent implements OnDestroy {
   }
 
   private buildPayload(): CreateAppointmentRequest | null {
+    const patientId = this.resolveSelectedPatientId();
+    const reason = this.resolveSelectedReason();
+
     if (
-      !this.selectedPatient ||
+      !patientId ||
       !this.scheduledDate.trim() ||
       !this.scheduledTime.trim() ||
       !this.endTime.trim() ||
       !this.isTimeRangeValid(this.scheduledTime, this.endTime) ||
-      !this.reason
+      !reason
     ) {
       return null;
     }
 
     return {
-      patientId: this.selectedPatient.patientId,
+      patientId,
       scheduledDate: this.scheduledDate.trim(),
       scheduledTime: this.scheduledTime.trim(),
       endTime: this.endTime.trim(),
-      reason: this.reason,
+      reason,
       notes: this.notes.trim() || null,
     };
   }
@@ -388,5 +456,65 @@ export class CreateAppointmentModalComponent implements OnDestroy {
   private getCurrentTime(): string {
     const now = new Date();
     return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  }
+
+  private applyInputState(): void {
+    if (this.initialScheduledDate?.trim()) {
+      this.scheduledDate = this.initialScheduledDate.trim();
+    }
+
+    if (this.initialScheduledTime?.trim()) {
+      this.scheduledTime = this.initialScheduledTime.trim();
+    }
+
+    if (this.initialEndTime?.trim()) {
+      this.endTime = this.initialEndTime.trim();
+    } else if (this.initialScheduledTime?.trim()) {
+      this.endTime = addMinutes(this.initialScheduledTime.trim(), 30);
+    }
+
+    if (this.initialNotes !== null && this.initialNotes !== undefined) {
+      this.notes = this.initialNotes;
+    }
+
+    if (this.lockPatient && this.presetPatientId) {
+      this.selectedPatient = {
+        patientId: this.presetPatientId,
+        patientName: this.presetPatientLabel,
+        tutorId: 0,
+        tutorName: '',
+        documentId: null,
+      };
+      this.patientSearch = this.presetPatientLabel;
+      this.patients = [];
+      this.isPatientsLoading = false;
+      this.clearPatientSearchTimer();
+    }
+
+    if (this.lockReason && this.presetReason) {
+      this.reason = this.presetReason;
+    }
+
+    this.cdr.markForCheck();
+  }
+
+  private resolveSelectedPatientId(): number | null {
+    if (this.lockPatient && this.presetPatientId) {
+      return this.presetPatientId;
+    }
+
+    return this.selectedPatient?.patientId ?? null;
+  }
+
+  private resolveSelectedReason(): AppointmentReason | '' {
+    if (this.lockReason && this.presetReason) {
+      return this.presetReason;
+    }
+
+    return this.reason;
+  }
+
+  private isBusy(): boolean {
+    return this.isSaving || this.externalSubmitting;
   }
 }

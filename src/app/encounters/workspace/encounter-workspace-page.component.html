@@ -94,36 +94,21 @@
                   </p>
 
                   @if (clinicalCaseSummary(); as clinicalCase) {
-                    <div class="mt-2 rounded-2xl border border-border bg-surface px-4 py-3">
-                      <div class="flex flex-wrap items-start justify-between gap-3">
-                        <div class="min-w-0">
-                          <p class="text-[11px] font-black uppercase tracking-[0.22em] text-primary/70">Caso clínico</p>
-                          <p class="mt-1 text-sm font-bold text-text-primary">{{ clinicalCase.problemSummary }}</p>
-                          <p class="mt-1 text-xs text-text-secondary">
-                            {{ clinicalCase.consultationsCount }} consulta(s) vinculadas
-                            @if (clinicalCase.latestImpression) {
-                              · {{ clinicalCase.latestImpression }}
-                            }
-                          </p>
-                        </div>
-
-                        <span
-                          class="inline-flex rounded-full px-3 py-1 text-[11px] font-black"
-                          [ngClass]="buildClinicalCaseStatusClasses(clinicalCase.status)"
-                        >
-                          {{ buildClinicalCaseStatusLabel(clinicalCase.status) }}
-                        </span>
-                      </div>
-
-                      @if (clinicalCase.nextFollowUp) {
-                        <p class="mt-3 text-xs text-text-secondary">
-                          Próximo control:
-                          <span class="font-semibold text-text-primary">
-                            {{ formatDate(clinicalCase.nextFollowUp.appointmentScheduledDate ?? clinicalCase.nextFollowUp.suggestedDate) }}
-                          </span>
-                          · {{ buildFollowUpStatusLabel(clinicalCase.nextFollowUp.status) }}
-                        </p>
-                      }
+                    <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+                      <span class="text-[11px] font-black uppercase tracking-[0.22em] text-primary/70">Caso clínico</span>
+                      <button
+                        type="button"
+                        class="font-semibold text-text-primary underline-offset-4 transition hover:text-primary hover:underline"
+                        (click)="openAssociatedClinicalCase(clinicalCase.id)"
+                      >
+                        {{ clinicalCase.problemSummary }}
+                      </button>
+                      <span
+                        class="inline-flex rounded-full px-2.5 py-1 text-[10px] font-black"
+                        [ngClass]="buildClinicalCaseStatusClasses(clinicalCase.status)"
+                      >
+                        {{ buildClinicalCaseStatusLabel(clinicalCase.status) }}
+                      </span>
                     </div>
                   }
                 </div>
@@ -141,7 +126,7 @@
                 {{ encounter.proceduresCount + pendingProcedures.length }} procedimientos
               </p>
               @if (pendingActionsCount() > 0) {
-                <p class="text-xs text-slate-500">{{ pendingActionsCount() }} acción(es) pendiente(s) por ejecutar al finalizar</p>
+                <p class="text-xs text-slate-500">{{ pendingActionsCount() }} pendiente(s)</p>
               }
             </div>
 
@@ -926,146 +911,94 @@
               <section class="bg-card px-1 pb-5 pt-6 lg:px-1 lg:pb-6 lg:pt-6">
                 <div class="flex flex-col gap-2 border-b border-slate-200 pb-5">
                   <p class="text-[11px] font-black uppercase tracking-[0.28em] text-primary/70">Bloque clínico</p>
-                  <h2 class="text-2xl font-black tracking-tight text-text-primary">Plan y seguimiento</h2>
+                  <h2 class="text-2xl font-black tracking-tight text-text-primary">Plan clínico</h2>
                   <p class="text-sm leading-6 text-text-secondary">
-                    Define las indicaciones clínicas, control posterior y las acciones concretas de esta consulta.
+                    Documenta el plan, decide el caso clínico y deja claro si este encounter agenda o no un control.
                   </p>
                 </div>
 
-                <form class="mt-6 space-y-5" [formGroup]="planForm">
-                  <div>
-                    <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                      <span>Plan clínico</span>
-                      <span class="text-xs font-medium text-text-secondary">Opcional</span>
-                    </label>
-                    <textarea formControlName="clinicalPlan" [attr.maxlength]="clinicalTextMaxLength" rows="5" class="min-h-[150px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Tratamiento general, estudios, seguimiento y recomendaciones."></textarea>
-                    <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
-                      <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                      <span>{{ controlTextLength(planForm, 'clinicalPlan') }} caracteres</span>
+                <form class="mt-6 space-y-8" [formGroup]="planForm">
+                  <section class="space-y-4">
+                    <div>
+                      <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
+                        <span>Plan clínico</span>
+                        <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                      </label>
+                      <textarea formControlName="clinicalPlan" [attr.maxlength]="clinicalTextMaxLength" rows="5" class="min-h-[150px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Tratamiento general, estudios, recomendaciones y pasos inmediatos."></textarea>
+                      <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
+                        <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
+                        <span>{{ controlTextLength(planForm, 'clinicalPlan') }} caracteres</span>
+                      </div>
                     </div>
-                  </div>
 
-                  @if (planCasePreview(); as casePreview) {
-                    <div class="rounded-[24px] border border-border bg-surface px-5 py-5">
-                      <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                        <div class="min-w-0">
-                          <p class="text-[11px] font-black uppercase tracking-[0.24em] text-primary/70">
-                            {{ hasEncounterClinicalCase() ? 'Caso clínico activo' : 'Caso clínico seleccionado' }}
-                          </p>
-                          <h3 class="mt-2 text-lg font-black text-text-primary">{{ casePreview.problemSummary }}</h3>
-                          <p class="mt-1 text-sm leading-6 text-text-secondary">
-                            {{ casePreview.consultationsCount }} consulta(s) ligadas
-                            @if (casePreview.latestImpression) {
-                              · Última impresión: {{ casePreview.latestImpression }}
-                            }
-                          </p>
-                        </div>
+                    <div>
+                      <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
+                        <span>Notas del plan</span>
+                        <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                      </label>
+                      <textarea formControlName="planNotes" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[110px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Indicaciones complementarias para el tutor y el equipo."></textarea>
+                      <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
+                        <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
+                        <span>{{ controlTextLength(planForm, 'planNotes') }} caracteres</span>
+                      </div>
+                    </div>
+                  </section>
 
+                  <section class="space-y-4 border-t border-slate-200 pt-6">
+                    <div class="flex flex-wrap items-center gap-3">
+                      <p class="text-[11px] font-black uppercase tracking-[0.24em] text-primary/70">Caso clínico</p>
+                      @if (planCasePreview(); as casePreview) {
+                        <button
+                          type="button"
+                          class="font-semibold text-text-primary underline-offset-4 transition hover:text-primary hover:underline"
+                          (click)="openAssociatedClinicalCase(casePreview.id)"
+                        >
+                          {{ casePreview.problemSummary }}
+                        </button>
                         <span
-                          class="inline-flex rounded-full px-3 py-1 text-[11px] font-black"
+                          class="inline-flex rounded-full px-2.5 py-1 text-[10px] font-black"
                           [ngClass]="buildClinicalCaseStatusClasses(casePreview.status)"
                         >
                           {{ buildClinicalCaseStatusLabel(casePreview.status) }}
                         </span>
-                      </div>
-
-                      <div class="mt-4 grid gap-3 md:grid-cols-3">
-                        <div class="rounded-2xl border border-border bg-card px-4 py-3">
-                          <p class="text-[11px] font-black uppercase tracking-[0.18em] text-text-secondary">Tratamientos activos</p>
-                          <p class="mt-2 text-lg font-black text-text-primary">{{ casePreview.activeTreatments.length }}</p>
-                        </div>
-                        <div class="rounded-2xl border border-border bg-card px-4 py-3">
-                          <p class="text-[11px] font-black uppercase tracking-[0.18em] text-text-secondary">Última evolución</p>
-                          <p class="mt-2 text-sm font-bold text-text-primary">
-                            {{ casePreview.lastEvolution ? buildTreatmentEvolutionEventLabel(casePreview.lastEvolution) : 'Sin evolución' }}
-                          </p>
-                        </div>
-                        <div class="rounded-2xl border border-border bg-card px-4 py-3">
-                          <p class="text-[11px] font-black uppercase tracking-[0.18em] text-text-secondary">Próximo control</p>
-                          <p class="mt-2 text-sm font-bold text-text-primary">
-                            {{
-                              casePreview.nextFollowUp
-                                ? formatDate(casePreview.nextFollowUp.appointmentScheduledDate ?? casePreview.nextFollowUp.suggestedDate)
-                                : 'Sin turno pendiente'
-                            }}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  }
-
-                  <div class="grid gap-5 md:grid-cols-[240px_minmax(0,1fr)]">
-                    <label class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                      <span class="block text-sm font-bold text-text-primary">¿Requiere seguimiento? <span class="ml-2 text-xs font-medium text-text-secondary">Opcional</span></span>
-                      <select formControlName="requiresFollowUp" class="mt-3 w-full rounded-xl border border-slate-200 bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
-                        <option [ngValue]="false">No</option>
-                        <option [ngValue]="true">Sí</option>
-                      </select>
-                    </label>
-                    <label class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                      <span class="block text-sm font-bold text-text-primary">
-                        Fecha sugerida de control
-                        @if (willGenerateFollowUpAppointment()) {
-                          <span class="font-medium text-red-500">(Obligatoria)</span>
-                        } @else {
-                          <span class="font-medium text-slate-400">(Opcional)</span>
-                        }
-                      </span>
-                      <input type="date" formControlName="suggestedFollowUpDate" class="mt-3 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(planForm, 'suggestedFollowUpDate')" [class.focus:border-red-300]="controlHasError(planForm, 'suggestedFollowUpDate')" [class.border-slate-200]="!controlHasError(planForm, 'suggestedFollowUpDate')" [class.focus:border-primary/40]="!controlHasError(planForm, 'suggestedFollowUpDate')" />
-                      @if (controlErrorMessage('PLAN', 'suggestedFollowUpDate')) {
-                        <p class="mt-2 text-xs font-medium text-red-600">{{ controlErrorMessage('PLAN', 'suggestedFollowUpDate') }}</p>
                       }
-                    </label>
-                  </div>
+                    </div>
 
-                  @if (shouldShowCaseLinkControls()) {
-                    <div class="rounded-[24px] border border-border bg-surface px-5 py-5">
-                      <div class="flex flex-col gap-2">
-                        <p class="text-[11px] font-black uppercase tracking-[0.24em] text-primary/70">Vínculo clínico</p>
-                        <h3 class="text-lg font-black text-text-primary">Cómo se agrupará este seguimiento</h3>
-                        <p class="text-sm leading-6 text-text-secondary">
-                          Debes decidir si este control continúa un caso clínico abierto o si abre uno nuevo para este problema.
-                        </p>
-                      </div>
-
-                      <div class="mt-5 grid gap-4 md:grid-cols-2">
+                    @if (shouldShowCaseLinkControls()) {
+                      <div class="flex flex-wrap gap-3">
                         <button
                           type="button"
-                          class="rounded-[22px] border px-4 py-4 text-left transition"
+                          class="rounded-full border px-4 py-2 text-sm font-bold transition"
                           [class.border-primary]="planForm.controls.caseLinkMode.value === 'EXISTING'"
                           [class.bg-primary/5]="planForm.controls.caseLinkMode.value === 'EXISTING'"
+                          [class.text-primary]="planForm.controls.caseLinkMode.value === 'EXISTING'"
                           [class.border-slate-200]="planForm.controls.caseLinkMode.value !== 'EXISTING'"
-                          [class.bg-card]="planForm.controls.caseLinkMode.value !== 'EXISTING'"
+                          [class.text-text-primary]="planForm.controls.caseLinkMode.value !== 'EXISTING'"
                           (click)="selectCaseLinkMode('EXISTING')"
                         >
-                          <p class="text-sm font-black text-text-primary">Vincular a un caso abierto</p>
-                          <p class="mt-2 text-sm leading-6 text-text-secondary">
-                            Recomendado si el problema ya está en seguimiento dentro de la clínica.
-                          </p>
+                          Vincular a caso abierto
                         </button>
 
                         <button
                           type="button"
-                          class="rounded-[22px] border px-4 py-4 text-left transition"
+                          class="rounded-full border px-4 py-2 text-sm font-bold transition"
                           [class.border-primary]="planForm.controls.caseLinkMode.value === 'NEW'"
                           [class.bg-primary/5]="planForm.controls.caseLinkMode.value === 'NEW'"
+                          [class.text-primary]="planForm.controls.caseLinkMode.value === 'NEW'"
                           [class.border-slate-200]="planForm.controls.caseLinkMode.value !== 'NEW'"
-                          [class.bg-card]="planForm.controls.caseLinkMode.value !== 'NEW'"
+                          [class.text-text-primary]="planForm.controls.caseLinkMode.value !== 'NEW'"
                           (click)="selectCaseLinkMode('NEW')"
                         >
-                          <p class="text-sm font-black text-text-primary">Abrir un caso nuevo</p>
-                          <p class="mt-2 text-sm leading-6 text-text-secondary">
-                            Úsalo cuando este seguimiento corresponda a un problema distinto o completamente nuevo.
-                          </p>
+                          Abrir caso nuevo
                         </button>
                       </div>
 
                       @if (controlErrorMessage('PLAN', 'caseLinkMode')) {
-                        <p class="mt-3 text-xs font-medium text-red-600">{{ controlErrorMessage('PLAN', 'caseLinkMode') }}</p>
+                        <p class="text-xs font-medium text-red-600">{{ controlErrorMessage('PLAN', 'caseLinkMode') }}</p>
                       }
 
                       @if (shouldShowExistingCaseSelector()) {
-                        <div class="mt-5">
+                        <div>
                           <label class="mb-2 block text-sm font-bold text-text-primary">Caso abierto existente</label>
                           <select formControlName="clinicalCaseId" class="w-full rounded-xl border bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(planForm, 'clinicalCaseId')" [class.focus:border-red-300]="controlHasError(planForm, 'clinicalCaseId')" [class.border-slate-200]="!controlHasError(planForm, 'clinicalCaseId')" [class.focus:border-primary/40]="!controlHasError(planForm, 'clinicalCaseId')">
                             <option [ngValue]="null">Selecciona un caso clínico</option>
@@ -1080,9 +1013,9 @@
                       }
 
                       @if (shouldShowNewCaseSummaryField()) {
-                        <div class="mt-5">
-                          <label class="mb-2 block text-sm font-bold text-text-primary">Resumen del problema clínico</label>
-                          <textarea formControlName="problemSummary" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[110px] w-full rounded-2xl border bg-card px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(planForm, 'problemSummary')" [class.focus:border-red-300]="controlHasError(planForm, 'problemSummary')" [class.border-slate-200]="!controlHasError(planForm, 'problemSummary')" [class.focus:border-primary/40]="!controlHasError(planForm, 'problemSummary')" placeholder="Ej. Dermatitis crónica con recaídas o seguimiento digestivo postoperatorio."></textarea>
+                        <div>
+                          <label class="mb-2 block text-sm font-bold text-text-primary">Resumen del problema</label>
+                          <textarea formControlName="problemSummary" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(planForm, 'problemSummary')" [class.focus:border-red-300]="controlHasError(planForm, 'problemSummary')" [class.border-slate-200]="!controlHasError(planForm, 'problemSummary')" [class.focus:border-primary/40]="!controlHasError(planForm, 'problemSummary')" placeholder="Ej. Dermatitis crónica con recaídas."></textarea>
                           <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                             <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
                             <span>{{ controlTextLength(planForm, 'problemSummary') }} caracteres</span>
@@ -1092,60 +1025,50 @@
                           }
                         </div>
                       }
-                    </div>
-                  }
-
-                  @if (shouldShowCaseOutcomeSelector()) {
-                    <div class="rounded-[24px] border border-border bg-surface px-5 py-5">
-                      <div class="flex flex-col gap-2">
-                        <p class="text-[11px] font-black uppercase tracking-[0.24em] text-primary/70">Resultado del caso</p>
-                        <h3 class="text-lg font-black text-text-primary">Cómo cierra este control</h3>
-                      </div>
-
-                      <div class="mt-4 grid gap-4 md:grid-cols-3">
-                        @for (outcome of ['CONTINUA', 'RESUELTO', 'CANCELADO']; track outcome) {
-                          <button
-                            type="button"
-                            class="rounded-[22px] border px-4 py-4 text-left transition"
-                            [class.border-primary]="planForm.controls.caseOutcome.value === outcome"
-                            [class.bg-primary/5]="planForm.controls.caseOutcome.value === outcome"
-                            [class.border-slate-200]="planForm.controls.caseOutcome.value !== outcome"
-                            [class.bg-card]="planForm.controls.caseOutcome.value !== outcome"
-                            (click)="planForm.controls.caseOutcome.setValue($any(outcome))"
-                          >
-                            <p class="text-sm font-black text-text-primary">{{ buildClinicalCaseOutcomeLabel($any(outcome)) }}</p>
-                          </button>
-                        }
-                      </div>
-                    </div>
-                  }
-
-                  <div>
-                    <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                      <span>Notas del plan</span>
-                      <span class="text-xs font-medium text-text-secondary">Opcional</span>
-                    </label>
-                    <textarea formControlName="planNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Indicaciones complementarias para el tutor y el equipo."></textarea>
-                    <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
-                      <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                      <span>{{ controlTextLength(planForm, 'planNotes') }} caracteres</span>
-                    </div>
-                  </div>
-
-                  <div class="rounded-2xl border border-border bg-surface px-4 py-4 text-sm leading-6 text-text-secondary">
-                    @if (willGenerateFollowUpAppointment()) {
-                      Al finalizar esta atención se generará un turno de control real en agenda para la fecha sugerida.
-                    } @else if (leavesCaseOpenWithoutFollowUp()) {
-                      Este caso quedará abierto sin crear un nuevo turno automático.
-                    } @else if (currentCaseOutcome() === 'RESUELTO') {
-                      El caso clínico se cerrará al finalizar esta consulta.
-                    } @else if (currentCaseOutcome() === 'CANCELADO') {
-                      El caso clínico se cancelará al finalizar esta consulta.
                     } @else {
-                      Puedes dejar el plan clínico documentado aunque esta consulta no requiera seguimiento inmediato.
+                      <p class="text-sm text-text-secondary">
+                        Esta consulta ya está vinculada a un caso clínico.
+                      </p>
                     }
-                  </div>
+                  </section>
 
+                  <section class="space-y-4 border-t border-slate-200 pt-6">
+                    <div class="flex flex-wrap items-center gap-3">
+                      <p class="text-[11px] font-black uppercase tracking-[0.24em] text-primary/70">Seguimiento</p>
+                      @if (canConfigureFollowUpAction()) {
+                        <div class="flex flex-wrap gap-2">
+                          @for (action of ['KEEP_OPEN', 'SCHEDULE_CONTROL', 'RESOLVE', 'CANCEL']; track action) {
+                            <button
+                              type="button"
+                              class="rounded-full border px-4 py-2 text-sm font-bold transition"
+                              [class.border-primary]="planForm.controls.followUpAction.value === action"
+                              [class.bg-primary/5]="planForm.controls.followUpAction.value === action"
+                              [class.text-primary]="planForm.controls.followUpAction.value === action"
+                              [class.border-slate-200]="planForm.controls.followUpAction.value !== action"
+                              [class.text-text-primary]="planForm.controls.followUpAction.value !== action"
+                              (click)="selectFollowUpAction($any(action))"
+                            >
+                              {{ buildFollowUpActionLabel($any(action)) }}
+                            </button>
+                          }
+                        </div>
+                      } @else {
+                        <span class="text-sm text-text-secondary">Vincula primero la consulta a un caso.</span>
+                      }
+                    </div>
+
+                    @if (canConfigureFollowUpAction()) {
+                      <p class="text-sm text-text-secondary">
+                        @if (willScheduleControlAppointment()) {
+                          Al finalizar se abrirá el modal de agenda para programar el control.
+                        } @else if (keepsCaseOpenWithoutScheduling()) {
+                          El caso quedará abierto sin generar turno.
+                        } @else {
+                          {{ buildFollowUpActionDescription(currentFollowUpAction()) }}
+                        }
+                      </p>
+                    }
+                  </section>
                 </form>
               </section>
             }
@@ -2108,6 +2031,24 @@
       (closed)="closeDeleteAttachmentDialog()"
       (confirmed)="confirmDeleteAttachment()"
     ></app-confirm-dialog>
+
+    @if (isControlAppointmentModalOpen && encounter) {
+      <app-create-appointment-modal
+        title="Programar control"
+        description="Confirma la fecha y la hora del turno de control antes de cerrar esta atención."
+        submitLabel="Finalizar y programar"
+        [emitOnly]="true"
+        [lockPatient]="true"
+        [presetPatientId]="encounter.patientId"
+        [presetPatientLabel]="controlAppointmentPresetPatientLabel()"
+        [lockReason]="true"
+        presetReason="CONTROL"
+        [externalSubmitting]="isSubmittingAction"
+        [externalError]="controlAppointmentError"
+        (closed)="closeControlAppointmentModal()"
+        (submitted)="submitControlAppointment($event)"
+      />
+    }
 
     <app-confirm-dialog
       [open]="isFinishConfirmOpen"
