@@ -38,11 +38,14 @@
     <!-- Notifications -->
     <button
       type="button"
-      class="topbar-icon-button"
+      class="topbar-icon-button topbar-notif-btn"
       aria-label="Notificaciones"
+      (click)="goToNotifications()"
     >
       <app-shell-icon name="bell" [size]="20"></app-shell-icon>
-      <span class="topbar-notification-dot"></span>
+      @if (pendingCount() > 0) {
+        <span class="topbar-notification-badge">{{ pendingCount() > 99 ? '99+' : pendingCount() }}</span>
+      }
     </button>
 
     <!-- User menu -->
