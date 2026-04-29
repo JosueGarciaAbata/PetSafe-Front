@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { buildApiUrl } from '@app/core/config/api.config';
+import { ScheduleControlAppointmentRequest } from '@app/encounters/models/encounter.model';
 import {
   ClinicalCaseDetail,
   ClinicalCaseStatus,
@@ -31,6 +32,16 @@ export class ClinicalCasesApiService {
     return this.http.patch<ClinicalCaseDetail>(
       buildApiUrl(`clinical-cases/${encodeURIComponent(String(caseId))}/status`),
       { status },
+    );
+  }
+
+  scheduleFollowUp(
+    caseId: number | string,
+    payload: ScheduleControlAppointmentRequest,
+  ): Observable<ClinicalCaseDetail> {
+    return this.http.post<ClinicalCaseDetail>(
+      buildApiUrl(`clinical-cases/${encodeURIComponent(String(caseId))}/follow-ups`),
+      payload,
     );
   }
 }

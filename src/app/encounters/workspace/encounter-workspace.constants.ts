@@ -20,7 +20,7 @@ export const ENCOUNTER_TAB_LABELS: Record<TabView, string> = {
   EXAM: 'Datos fisiológicos',
   IMPRESSION: 'Diagnóstico',
   ACTIONS: 'Acciones',
-  PLAN: 'Plan',
+  PLAN: 'Plan clínico',
 };
 
 export const TAB_BY_BLOCK: Record<ClinicalBlock, ClinicalTabView> = {

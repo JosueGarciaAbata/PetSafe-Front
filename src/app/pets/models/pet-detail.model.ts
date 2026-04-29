@@ -62,6 +62,7 @@ export interface AddPetTutorRequest {
 export interface PetRecentConsultationActivityApiResponse {
   id: number;
   patientConsultationNumber: number;
+  clinicalCaseId: number | null;
   startTime: string;
   status: string;
   clinicianName: string | null;
