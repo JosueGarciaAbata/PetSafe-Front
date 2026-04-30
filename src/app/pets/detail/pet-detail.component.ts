@@ -9,6 +9,7 @@ import {
   AfterViewInit,
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -1101,7 +1102,7 @@ export class PetDetailComponent implements OnInit, AfterViewInit {
 
   protected petQrUrl(): string {
     if (!this.pet?.qrToken) return '';
-    return `${window.location.origin}/mascota/${this.pet.qrToken}`;
+    return `${environment.frontendUrl}/mascota/${this.pet.qrToken}`;
   }
 
   protected downloadQr(): void {

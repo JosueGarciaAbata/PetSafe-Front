@@ -5,14 +5,21 @@ import {
   EventEmitter,
   HostListener,
   Input,
+  OnDestroy,
+  OnInit,
   Output,
   Signal,
   computed,
   inject,
+  signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from '@app/core/auth/auth.service';
 import { ThemeService } from '@app/core/ui/theme.service';
+import { AppToastService } from '@app/core/ui/app-toast.service';
+import { SocketService, NewAppointmentRequestEvent } from '@app/core/realtime/socket.service';
+import { NotificationsApiService } from '@app/notifications/notifications-api.service';
 import { ShellIconComponent } from './shell-icon.component';
 
 @Component({
@@ -23,16 +30,51 @@ import { ShellIconComponent } from './shell-icon.component';
   styleUrl: './topbar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TopBarComponent {
+export class TopBarComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly elementRef = inject(ElementRef<HTMLElement>);
+  private readonly socketService = inject(SocketService);
+  private readonly notificationsApi = inject(NotificationsApiService);
+  private readonly toast = inject(AppToastService);
   protected readonly theme = inject(ThemeService);
 
   @Input() sidebarOpen = true;
   @Output() readonly toggleSidebar = new EventEmitter<void>();
 
   protected isUserMenuOpen = false;
+  protected readonly pendingCount = signal(0);
+  private unsubscribeSocket?: () => void;
+
+  ngOnInit(): void {
+    void this.loadPendingCount();
+    this.unsubscribeSocket = this.socketService.on<NewAppointmentRequestEvent>(
+      'nueva-solicitud-cita',
+      (data) => {
+        this.pendingCount.update((n) => n + 1);
+        const name = data.clientName ?? 'Un cliente';
+        this.toast.info(`${name} solicitó una cita.`);
+      },
+    );
+    this.socketService.on('solicitud-cita-actualizada', () => {
+      void this.loadPendingCount();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribeSocket?.();
+  }
+
+  protected goToNotifications(): void {
+    void this.router.navigateByUrl('/notifications');
+  }
+
+  private async loadPendingCount(): Promise<void> {
+    try {
+      const result = await firstValueFrom(this.notificationsApi.countPendingRequests());
+      this.pendingCount.set(result.count);
+    } catch { /* silently ignore */ }
+  }
 
   protected readonly today = new Intl.DateTimeFormat('es-ES', {
     weekday: 'long',

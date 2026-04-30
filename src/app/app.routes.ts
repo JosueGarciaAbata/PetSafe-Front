@@ -335,6 +335,15 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'notifications',
+        canActivate: [authGuard],
+        data: { roles: staffRoles },
+        loadComponent: () =>
+          import('@app/notifications/notifications-page.component').then(
+            (m) => m.NotificationsPageComponent,
+          ),
+      },
+      {
         path: 'settings',
         canActivate: [authGuard],
         data: { roles: staffRoles },
