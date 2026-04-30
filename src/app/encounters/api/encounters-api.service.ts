@@ -15,7 +15,10 @@ import {
   EncounterClinicalExam,
   EncounterEnvironmentalData,
   EncounterClinicalImpression,
+  ScheduleControlAppointmentRequest,
   EncounterPlan,
+  UpsertEncounterClinicalCaseLinkRequest,
+  UpsertEncounterFollowUpConfigRequest,
 } from '../models/encounter.model';
 import { TreatmentEvolutionAction } from '@app/clinical-cases/models/clinical-case.model';
 
@@ -37,9 +40,13 @@ export class EncountersApiService {
   }
 
   // FINALIZAR
-  finish(id: number): Observable<EncounterDetail> {
+  finish(
+    id: number,
+    controlAppointment?: ScheduleControlAppointmentRequest,
+  ): Observable<EncounterDetail> {
     return this.http.patch<EncounterDetail>(`${this.baseUrl}/${id}/finish`, {
       endTime: new Date().toISOString(),
+      controlAppointment: controlAppointment ?? undefined,
     });
   }
 
@@ -76,6 +83,20 @@ export class EncountersApiService {
 
   updatePlan(id: number, payload: EncounterPlan): Observable<EncounterDetail> {
     return this.http.put<EncounterDetail>(`${this.baseUrl}/${id}/plan`, payload);
+  }
+
+  updateClinicalCaseLink(
+    id: number,
+    payload: UpsertEncounterClinicalCaseLinkRequest,
+  ): Observable<EncounterDetail> {
+    return this.http.put<EncounterDetail>(`${this.baseUrl}/${id}/clinical-case`, payload);
+  }
+
+  updateFollowUpConfig(
+    id: number,
+    payload: UpsertEncounterFollowUpConfigRequest,
+  ): Observable<EncounterDetail> {
+    return this.http.put<EncounterDetail>(`${this.baseUrl}/${id}/follow-up-config`, payload);
   }
 
   addVaccination(

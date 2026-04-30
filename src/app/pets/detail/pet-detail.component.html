@@ -809,6 +809,18 @@
                         </span>
                       </div>
 
+                      @if (canScheduleSelectedClinicalCase()) {
+                        <div class="flex justify-end">
+                          <button
+                            type="button"
+                            (click)="openClinicalCaseFollowUpModal()"
+                            class="inline-flex items-center justify-center rounded-xl border border-primary/25 bg-primary/10 px-4 py-2.5 text-sm font-bold text-primary transition-all hover:bg-primary/15"
+                          >
+                            Programar control
+                          </button>
+                        </div>
+                      }
+
                       <div class="grid gap-4 md:grid-cols-3">
                         <div class="rounded-2xl border border-border bg-card p-4">
                           <p class="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Tratamientos activos</p>
@@ -991,12 +1003,7 @@
             @if (hasRecentConsultations()) {
               <div class="divide-y divide-border rounded-2xl border border-border bg-surface">
                 @for (item of recentConsultations(); track item.id) {
-                  <button
-                    type="button"
-                    class="flex w-full items-start justify-between gap-3 px-4 py-4 text-left transition-colors hover:bg-background/50"
-                    [disabled]="isRecentConsultationLoading(item)"
-                    (click)="openRecentConsultationDetail(item)"
-                  >
+                  <div class="flex items-start justify-between gap-3 px-4 py-4 transition-colors hover:bg-background/50">
                     <div class="min-w-0 flex-1">
                       <div class="flex flex-wrap items-center gap-2">
                         <p class="text-sm font-bold text-text-primary">
@@ -1008,30 +1015,52 @@
                         >
                           {{ buildEncounterStatusLabel(item.status) }}
                         </span>
+                        @if (item.clinicalCaseId) {
+                          <span class="rounded-full border border-border bg-card px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
+                            Caso clínico
+                          </span>
+                        }
                       </div>
                       <p class="mt-1 text-xs text-text-secondary">{{ item.startTime.slice(0, 10) }}</p>
                       <p class="mt-2 text-sm leading-6 text-text-secondary">{{ buildRecentConsultationMeta(item) }}</p>
                     </div>
 
-                    <span class="inline-flex items-center gap-2 text-xs font-semibold text-text-secondary">
-                      @if (isRecentConsultationLoading(item)) {
-                        <span>Cargando...</span>
-                      } @else {
-                        <span>Ver detalle operativo</span>
+                    <div class="flex shrink-0 flex-col items-end gap-2">
+                      @if (canLinkConsultationToCase(item)) {
+                        <button
+                          type="button"
+                          (click)="openConsultationCaseLinkModal(item)"
+                          class="inline-flex items-center justify-center rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold text-text-primary transition-colors hover:bg-background"
+                        >
+                          Vincular a caso
+                        </button>
                       }
-                      <svg
-                        viewBox="0 0 24 24"
-                        class="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
+
+                      <button
+                        type="button"
+                        class="inline-flex items-center gap-2 text-xs font-semibold text-text-secondary"
+                        [disabled]="isRecentConsultationLoading(item)"
+                        (click)="openRecentConsultationDetail(item)"
                       >
-                        <path d="m9 6 6 6-6 6"></path>
-                      </svg>
-                    </span>
-                  </button>
+                        @if (isRecentConsultationLoading(item)) {
+                          <span>Cargando...</span>
+                        } @else {
+                          <span>Ver detalle operativo</span>
+                        }
+                        <svg
+                          viewBox="0 0 24 24"
+                          class="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="m9 6 6 6-6 6"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
                 }
               </div>
             } @else if (isActivityLoading) {
@@ -1081,3 +1110,141 @@
   (reactivateRequested)="reactivateRecentConsultation($event)"
   (viewEncounterRequested)="viewEncounterFromRecentConsultation($event)"
 />
+
+@if (isClinicalCaseFollowUpModalOpen && pet && selectedClinicalCaseDetail) {
+  <app-create-appointment-modal
+    title="Programar control"
+    description="Confirma la fecha y la hora del siguiente control para este caso clínico."
+    submitLabel="Guardar control"
+    [emitOnly]="true"
+    [lockPatient]="true"
+    [presetPatientId]="pet.id"
+    [presetPatientLabel]="pet.name"
+    [lockReason]="true"
+    presetReason="CONTROL"
+    [externalSubmitting]="isClinicalCaseFollowUpSubmitting"
+    [externalError]="clinicalCaseFollowUpError"
+    (closed)="closeClinicalCaseFollowUpModal()"
+    (submitted)="submitClinicalCaseFollowUp($event)"
+  />
+}
+
+@if (isConsultationCaseLinkModalOpen && consultationToLink) {
+  <div class="ps-modal-backdrop" (click)="closeConsultationCaseLinkModal()"></div>
+  <div class="ps-modal-overlay">
+    <div class="flex max-h-[90vh] w-full max-w-[760px] flex-col overflow-hidden rounded-[18px] border border-border bg-card shadow-2xl">
+      <div class="border-b border-border bg-surface px-5 py-4">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-bold text-text-primary">Vincular consulta a caso clínico</h2>
+            <p class="mt-1 text-sm text-text-secondary">
+              {{ buildRecentConsultationTitle(consultationToLink) }} · {{ consultationToLink.startTime.slice(0, 10) }}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            (click)="closeConsultationCaseLinkModal()"
+            [disabled]="isConsultationCaseLinkSubmitting"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-background hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-60"
+            aria-label="Cerrar"
+          >
+            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M6 6l12 12M18 6 6 18"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto px-5 py-4">
+        <div class="space-y-5">
+          <div class="grid gap-4 md:grid-cols-2">
+            <button
+              type="button"
+              (click)="selectConsultationCaseLinkMode('EXISTING')"
+              class="rounded-[20px] border px-4 py-4 text-left transition"
+              [class.border-primary]="consultationCaseLinkMode === 'EXISTING'"
+              [class.bg-primary/5]="consultationCaseLinkMode === 'EXISTING'"
+              [class.border-border]="consultationCaseLinkMode !== 'EXISTING'"
+              [class.bg-surface]="consultationCaseLinkMode !== 'EXISTING'"
+            >
+              <p class="text-sm font-bold text-text-primary">Vincular a caso abierto</p>
+              <p class="mt-2 text-sm leading-6 text-text-secondary">
+                Usa un caso ya abierto si esta consulta forma parte del mismo problema.
+              </p>
+            </button>
+
+            <button
+              type="button"
+              (click)="selectConsultationCaseLinkMode('NEW')"
+              class="rounded-[20px] border px-4 py-4 text-left transition"
+              [class.border-primary]="consultationCaseLinkMode === 'NEW'"
+              [class.bg-primary/5]="consultationCaseLinkMode === 'NEW'"
+              [class.border-border]="consultationCaseLinkMode !== 'NEW'"
+              [class.bg-surface]="consultationCaseLinkMode !== 'NEW'"
+            >
+              <p class="text-sm font-bold text-text-primary">Abrir caso nuevo</p>
+              <p class="mt-2 text-sm leading-6 text-text-secondary">
+                Crea un caso nuevo si esta consulta debe iniciar un seguimiento independiente.
+              </p>
+            </button>
+          </div>
+
+          @if (consultationCaseLinkMode === 'EXISTING') {
+            <div>
+              <label class="mb-2 block text-sm font-semibold text-text-primary">Caso abierto</label>
+              <select
+                [(ngModel)]="consultationCaseId"
+                class="w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm text-text-primary outline-none transition-colors focus:border-primary"
+              >
+                <option [ngValue]="null">Selecciona un caso clínico</option>
+                @for (item of clinicalCases(); track item.id) {
+                  @if (item.status === 'ABIERTO') {
+                    <option [ngValue]="item.id">{{ item.problemSummary }}</option>
+                  }
+                }
+              </select>
+            </div>
+          } @else {
+            <div>
+              <label class="mb-2 block text-sm font-semibold text-text-primary">Resumen del problema clínico</label>
+              <textarea
+                [(ngModel)]="consultationProblemSummary"
+                rows="4"
+                class="min-h-[120px] w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-primary"
+                placeholder="Ej. Seguimiento digestivo postoperatorio o dermatitis crónica con recaídas."
+              ></textarea>
+            </div>
+          }
+
+          @if (consultationCaseLinkError) {
+            <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {{ consultationCaseLinkError }}
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="border-t border-border bg-surface px-5 py-4">
+        <div class="flex items-center justify-end gap-3">
+          <button
+            type="button"
+            (click)="closeConsultationCaseLinkModal()"
+            [disabled]="isConsultationCaseLinkSubmitting"
+            class="inline-flex items-center rounded-xl px-4 py-2 text-sm font-bold text-text-secondary transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="submitConsultationCaseLink()"
+            [disabled]="isConsultationCaseLinkSubmitting"
+            class="inline-flex items-center rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {{ isConsultationCaseLinkSubmitting ? 'Guardando...' : 'Vincular consulta' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

@@ -50,8 +50,12 @@ import { PetSurgeryModalComponent } from '../components/pet-surgery-modal.compon
 import { QueueApiService } from '@app/queue/api/queue-api.service';
 import { QueueEntryRecord } from '@app/queue/models/queue.model';
 import { QueueEntryDetailModalComponent } from '@app/queue/components/queue-entry-detail-modal.component';
+import { CreateAppointmentModalComponent } from '@app/appointments/components/create-appointment-modal.component';
 
 type PetDetailTab = 'OVERVIEW' | 'SURGERIES' | 'TREATMENTS' | 'PROCEDURES' | 'CASES' | 'ACTIVITY';
+
+const PET_DETAIL_TAB_QUERY_PARAM = 'tab';
+const PET_DETAIL_CASE_QUERY_PARAM = 'caseId';
 
 @Component({
   selector: 'app-pet-detail',
@@ -62,6 +66,7 @@ type PetDetailTab = 'OVERVIEW' | 'SURGERIES' | 'TREATMENTS' | 'PROCEDURES' | 'CA
     InitializeVaccinationPlanModalComponent,
     PetSurgeryModalComponent,
     QueueEntryDetailModalComponent,
+    CreateAppointmentModalComponent,
   ],
   templateUrl: './pet-detail.component.html',
   styleUrl: './pet-detail.component.css',
@@ -82,6 +87,7 @@ export class PetDetailComponent implements OnInit, AfterViewInit {
   private readonly toast = inject(AppToastService);
   private requestVersion = 0;
   private readonly clinicalCaseDetailCache = new Map<number, ClinicalCaseDetail>();
+  private currentPetId: number | null = null;
   private backTarget: readonly (string | number)[] = ['/pets'];
   protected backLabel = 'Volver a mascotas';
   protected activeTab: PetDetailTab = 'OVERVIEW';
@@ -122,6 +128,8 @@ export class PetDetailComponent implements OnInit, AfterViewInit {
         return;
       }
 
+      const parsedPetId = Number.parseInt(petId, 10);
+      this.currentPetId = Number.isFinite(parsedPetId) ? parsedPetId : null;
       const requestToken = ++this.requestVersion;
       this.isLoading = true;
       this.loadError = null;
@@ -179,6 +187,16 @@ export class PetDetailComponent implements OnInit, AfterViewInit {
   protected selectedClinicalCaseDetail: ClinicalCaseDetail | null = null;
   protected clinicalCaseLoadingId: number | null = null;
   protected clinicalCaseDetailError: string | null = null;
+  protected isClinicalCaseFollowUpModalOpen = false;
+  protected clinicalCaseFollowUpError: string | null = null;
+  protected isClinicalCaseFollowUpSubmitting = false;
+  protected isConsultationCaseLinkModalOpen = false;
+  protected consultationCaseLinkError: string | null = null;
+  protected isConsultationCaseLinkSubmitting = false;
+  protected consultationToLink: PetRecentConsultationActivityApiResponse | null = null;
+  protected consultationCaseLinkMode: 'EXISTING' | 'NEW' = 'EXISTING';
+  protected consultationCaseId: number | null = null;
+  protected consultationProblemSummary = '';
 
   protected goBack(): void {
     void this.router.navigate(this.backTarget, { replaceUrl: true });
@@ -212,9 +230,13 @@ export class PetDetailComponent implements OnInit, AfterViewInit {
 
   protected setActiveTab(tab: PetDetailTab): void {
     this.activeTab = tab;
+    this.persistPetDetailViewState();
 
-    if (tab === 'CASES' && !this.selectedClinicalCaseDetail && this.clinicalCases().length > 0) {
-      void this.selectClinicalCase(this.clinicalCases()[0].id);
+    if (tab === 'CASES' && this.clinicalCases().length > 0) {
+      const targetCaseId = this.selectedClinicalCaseId ?? this.clinicalCases()[0].id;
+      if (this.selectedClinicalCaseId !== targetCaseId || !this.selectedClinicalCaseDetail) {
+        void this.selectClinicalCase(targetCaseId);
+      }
     }
   }
 
@@ -791,7 +813,9 @@ export class PetDetailComponent implements OnInit, AfterViewInit {
     }
 
     this.selectedClinicalCaseId = caseId;
+    this.activeTab = 'CASES';
     this.clinicalCaseDetailError = null;
+    this.persistPetDetailViewState();
 
     const cached = this.clinicalCaseDetailCache.get(caseId);
     if (cached) {
@@ -820,6 +844,168 @@ export class PetDetailComponent implements OnInit, AfterViewInit {
       if (this.clinicalCaseLoadingId === caseId) {
         this.clinicalCaseLoadingId = null;
       }
+      this.cdr.detectChanges();
+    }
+  }
+
+  protected canScheduleSelectedClinicalCase(): boolean {
+    return this.selectedClinicalCaseDetail?.status === 'ABIERTO';
+  }
+
+  protected openClinicalCaseFollowUpModal(): void {
+    if (!this.pet || !this.selectedClinicalCaseDetail || !this.canScheduleSelectedClinicalCase()) {
+      return;
+    }
+
+    this.clinicalCaseFollowUpError = null;
+    this.isClinicalCaseFollowUpModalOpen = true;
+    this.cdr.detectChanges();
+  }
+
+  protected closeClinicalCaseFollowUpModal(): void {
+    if (this.isClinicalCaseFollowUpSubmitting) {
+      return;
+    }
+
+    this.isClinicalCaseFollowUpModalOpen = false;
+    this.clinicalCaseFollowUpError = null;
+    this.cdr.detectChanges();
+  }
+
+  protected async submitClinicalCaseFollowUp(payload: {
+    scheduledDate: string;
+    scheduledTime: string;
+    endTime: string;
+    notes?: string | null;
+  }): Promise<void> {
+    if (!this.selectedClinicalCaseDetail || this.isClinicalCaseFollowUpSubmitting) {
+      return;
+    }
+
+    this.isClinicalCaseFollowUpSubmitting = true;
+    this.clinicalCaseFollowUpError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const detail = await firstValueFrom(
+        this.clinicalCasesApi.scheduleFollowUp(this.selectedClinicalCaseDetail.id, {
+          scheduledDate: payload.scheduledDate,
+          scheduledTime: payload.scheduledTime,
+          endTime: payload.endTime,
+          notes: payload.notes ?? null,
+        }),
+      );
+
+      this.clinicalCaseDetailCache.set(detail.id, detail);
+      this.selectedClinicalCaseDetail = detail;
+      this.isClinicalCaseFollowUpModalOpen = false;
+      await this.reloadCurrentPet();
+      this.toast.success('Control clínico programado correctamente.');
+    } catch (error: unknown) {
+      this.clinicalCaseFollowUpError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo programar el control del caso clínico.',
+      });
+    } finally {
+      this.isClinicalCaseFollowUpSubmitting = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  protected canLinkConsultationToCase(item: PetRecentConsultationActivityApiResponse): boolean {
+    return item.clinicalCaseId === null;
+  }
+
+  protected openConsultationCaseLinkModal(item: PetRecentConsultationActivityApiResponse): void {
+    if (!this.canLinkConsultationToCase(item)) {
+      return;
+    }
+
+    this.consultationToLink = item;
+    this.consultationCaseLinkError = null;
+    this.consultationProblemSummary = '';
+    const openCases = this.clinicalCases().filter((clinicalCase) => clinicalCase.status === 'ABIERTO');
+    this.consultationCaseLinkMode = openCases.length > 0 ? 'EXISTING' : 'NEW';
+    this.consultationCaseId = openCases[0]?.id ?? null;
+    this.isConsultationCaseLinkModalOpen = true;
+    this.cdr.detectChanges();
+  }
+
+  protected closeConsultationCaseLinkModal(): void {
+    if (this.isConsultationCaseLinkSubmitting) {
+      return;
+    }
+
+    this.isConsultationCaseLinkModalOpen = false;
+    this.consultationCaseLinkError = null;
+    this.consultationToLink = null;
+    this.consultationProblemSummary = '';
+    this.cdr.detectChanges();
+  }
+
+  protected selectConsultationCaseLinkMode(mode: 'EXISTING' | 'NEW'): void {
+    this.consultationCaseLinkMode = mode;
+    if (mode === 'EXISTING') {
+      this.consultationProblemSummary = '';
+      this.consultationCaseId = this.clinicalCases().find((item) => item.status === 'ABIERTO')?.id ?? null;
+    } else {
+      this.consultationCaseId = null;
+    }
+  }
+
+  protected async submitConsultationCaseLink(): Promise<void> {
+    if (!this.consultationToLink || this.isConsultationCaseLinkSubmitting) {
+      return;
+    }
+
+    if (this.consultationCaseLinkMode === 'EXISTING' && !this.consultationCaseId) {
+      this.consultationCaseLinkError = 'Selecciona un caso clínico abierto.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    if (
+      this.consultationCaseLinkMode === 'NEW'
+      && !this.consultationProblemSummary.trim()
+    ) {
+      this.consultationCaseLinkError = 'Resume el problema clínico para abrir el caso nuevo.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.isConsultationCaseLinkSubmitting = true;
+    this.consultationCaseLinkError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const updated = await firstValueFrom(
+        this.encountersApi.updateClinicalCaseLink(this.consultationToLink.id, {
+          mode: this.consultationCaseLinkMode,
+          clinicalCaseId:
+            this.consultationCaseLinkMode === 'EXISTING'
+              ? (this.consultationCaseId ?? undefined)
+              : undefined,
+          problemSummary:
+            this.consultationCaseLinkMode === 'NEW'
+              ? this.consultationProblemSummary.trim()
+              : undefined,
+        }),
+      );
+
+      await this.reloadCurrentPet();
+      this.isConsultationCaseLinkModalOpen = false;
+      this.consultationToLink = null;
+      this.toast.success('La consulta se vinculó correctamente al caso clínico.');
+
+      if (updated.clinicalCaseSummary?.id) {
+        await this.selectClinicalCase(updated.clinicalCaseSummary.id);
+        this.setActiveTab('CASES');
+      }
+    } catch (error: unknown) {
+      this.consultationCaseLinkError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo vincular la consulta al caso clínico.',
+      });
+    } finally {
+      this.isConsultationCaseLinkSubmitting = false;
       this.cdr.detectChanges();
     }
   }
@@ -960,6 +1146,7 @@ export class PetDetailComponent implements OnInit, AfterViewInit {
       } else {
         this.setActivityRangePresetToLastMonth();
       }
+      this.restorePetDetailViewState(Number(response.id));
       void this.ensureSurgeryCatalogLoaded();
       void this.generateQr();
     } catch {
@@ -1039,6 +1226,125 @@ export class PetDetailComponent implements OnInit, AfterViewInit {
 
     this.pet = await firstValueFrom(this.petsApi.getBasicById(this.pet.id));
     this.activityData = this.pet.recentActivity ?? this.activityData;
+    this.syncPetDetailViewStateAfterReload();
+  }
+
+  private restorePetDetailViewState(petId: number): void {
+    const queryTab = this.parsePetDetailTab(this.route.snapshot.queryParamMap.get(PET_DETAIL_TAB_QUERY_PARAM));
+    const queryCaseId = this.parsePositiveNumber(
+      this.route.snapshot.queryParamMap.get(PET_DETAIL_CASE_QUERY_PARAM),
+    );
+    const storedState = this.readStoredPetDetailViewState(petId);
+    const availableCases = this.clinicalCases();
+
+    this.activeTab = queryTab ?? storedState?.tab ?? 'OVERVIEW';
+
+    const preferredCaseId = queryCaseId ?? storedState?.caseId ?? null;
+    const validCaseId = preferredCaseId !== null && availableCases.some((item) => item.id === preferredCaseId)
+      ? preferredCaseId
+      : null;
+
+    this.selectedClinicalCaseId =
+      validCaseId ?? (this.activeTab === 'CASES' && availableCases.length > 0 ? availableCases[0].id : null);
+    this.selectedClinicalCaseDetail = this.selectedClinicalCaseId
+      ? (this.clinicalCaseDetailCache.get(this.selectedClinicalCaseId) ?? null)
+      : null;
+
+    this.persistPetDetailViewState();
+
+    if (this.activeTab === 'CASES' && this.selectedClinicalCaseId) {
+      void this.selectClinicalCase(this.selectedClinicalCaseId);
+    }
+  }
+
+  private syncPetDetailViewStateAfterReload(): void {
+    if (!this.pet) {
+      return;
+    }
+
+    const availableCases = this.clinicalCases();
+    if (
+      this.selectedClinicalCaseId !== null
+      && !availableCases.some((item) => item.id === this.selectedClinicalCaseId)
+    ) {
+      this.selectedClinicalCaseId = null;
+      this.selectedClinicalCaseDetail = null;
+      this.clinicalCaseDetailError = null;
+    }
+
+    if (this.activeTab === 'CASES' && this.selectedClinicalCaseId === null && availableCases.length > 0) {
+      void this.selectClinicalCase(availableCases[0].id);
+      return;
+    }
+
+    this.persistPetDetailViewState();
+  }
+
+  private persistPetDetailViewState(): void {
+    if (!this.currentPetId) {
+      return;
+    }
+
+    localStorage.setItem(
+      this.petDetailViewStorageKey(this.currentPetId),
+      JSON.stringify({
+        tab: this.activeTab,
+        caseId: this.selectedClinicalCaseId,
+      }),
+    );
+
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        [PET_DETAIL_TAB_QUERY_PARAM]: this.activeTab,
+        [PET_DETAIL_CASE_QUERY_PARAM]:
+          this.activeTab === 'CASES' ? this.selectedClinicalCaseId : null,
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  private readStoredPetDetailViewState(
+    petId: number,
+  ): { tab: PetDetailTab; caseId: number | null } | null {
+    const rawValue = localStorage.getItem(this.petDetailViewStorageKey(petId));
+    if (!rawValue) {
+      return null;
+    }
+
+    try {
+      const parsed = JSON.parse(rawValue) as { tab?: string; caseId?: number | null };
+      const tab = this.parsePetDetailTab(parsed.tab ?? null);
+      return tab
+        ? {
+            tab,
+            caseId: this.parsePositiveNumber(parsed.caseId),
+          }
+        : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private parsePetDetailTab(value: string | null): PetDetailTab | null {
+    const normalized = (value ?? '').trim().toUpperCase();
+    return this.detailTabs.some((item) => item.id === normalized)
+      ? (normalized as PetDetailTab)
+      : null;
+  }
+
+  private parsePositiveNumber(value: number | string | null | undefined): number | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    const parsed = Number.parseInt(String(value), 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }
+
+  private petDetailViewStorageKey(petId: number): string {
+    return `pet-detail-view:${petId}`;
   }
 
   private async loadActivity(
