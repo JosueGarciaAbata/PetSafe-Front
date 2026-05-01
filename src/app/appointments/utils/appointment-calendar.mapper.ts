@@ -110,6 +110,12 @@ function compareAppointments(
   }
 
   if (left.startsAt !== right.startsAt) {
+    if (left.startsAt === null) {
+      return 1;
+    }
+    if (right.startsAt === null) {
+      return -1;
+    }
     return left.startsAt.localeCompare(right.startsAt);
   }
 

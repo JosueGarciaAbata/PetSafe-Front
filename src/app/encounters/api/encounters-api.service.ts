@@ -7,6 +7,7 @@ import {
   CreateEncounterProcedureRequest,
   CreateEncounterTreatmentRequest,
   CreateEncounterVaccinationRequest,
+  EncounterAttachment,
   EncounterDetail,
   ProcedureCatalogItem,
   EncounterReason,
@@ -14,8 +15,12 @@ import {
   EncounterClinicalExam,
   EncounterEnvironmentalData,
   EncounterClinicalImpression,
+  ScheduleControlAppointmentRequest,
   EncounterPlan,
+  UpsertEncounterClinicalCaseLinkRequest,
+  UpsertEncounterFollowUpConfigRequest,
 } from '../models/encounter.model';
+import { TreatmentEvolutionAction } from '@app/clinical-cases/models/clinical-case.model';
 
 @Injectable({
   providedIn: 'root',
@@ -35,9 +40,13 @@ export class EncountersApiService {
   }
 
   // FINALIZAR
-  finish(id: number): Observable<EncounterDetail> {
+  finish(
+    id: number,
+    controlAppointment?: ScheduleControlAppointmentRequest,
+  ): Observable<EncounterDetail> {
     return this.http.patch<EncounterDetail>(`${this.baseUrl}/${id}/finish`, {
       endTime: new Date().toISOString(),
+      controlAppointment: controlAppointment ?? undefined,
     });
   }
 
@@ -74,6 +83,20 @@ export class EncountersApiService {
 
   updatePlan(id: number, payload: EncounterPlan): Observable<EncounterDetail> {
     return this.http.put<EncounterDetail>(`${this.baseUrl}/${id}/plan`, payload);
+  }
+
+  updateClinicalCaseLink(
+    id: number,
+    payload: UpsertEncounterClinicalCaseLinkRequest,
+  ): Observable<EncounterDetail> {
+    return this.http.put<EncounterDetail>(`${this.baseUrl}/${id}/clinical-case`, payload);
+  }
+
+  updateFollowUpConfig(
+    id: number,
+    payload: UpsertEncounterFollowUpConfigRequest,
+  ): Observable<EncounterDetail> {
+    return this.http.put<EncounterDetail>(`${this.baseUrl}/${id}/follow-up-config`, payload);
   }
 
   addVaccination(
@@ -137,6 +160,27 @@ export class EncountersApiService {
     );
   }
 
+  upsertTreatmentReviewDraft(
+    id: number,
+    payload: {
+      sourceTreatmentId: number;
+      action: Exclude<TreatmentEvolutionAction, 'REEMPLAZA'>;
+      notes?: string;
+    },
+  ): Observable<EncounterDetail> {
+    return this.http.post<EncounterDetail>(
+      `${this.baseUrl}/${id}/treatment-review-drafts`,
+      payload,
+    );
+  }
+
+  deleteTreatmentReviewDraft(id: number, draftId: number): Observable<EncounterDetail> {
+    return this.http.patch<EncounterDetail>(
+      `${this.baseUrl}/${id}/treatment-review-drafts/${draftId}/delete`,
+      {},
+    );
+  }
+
   addProcedure(id: number, payload: CreateEncounterProcedureRequest): Observable<EncounterDetail> {
     return this.http.post<EncounterDetail>(`${this.baseUrl}/${id}/procedures`, payload);
   }
@@ -170,5 +214,21 @@ export class EncountersApiService {
     return this.http.get<ProcedureCatalogItem[]>(buildApiUrl('catalogs/procedures'), {
       params: { includeInactive: String(includeInactive) },
     });
+  }
+
+  // ── Attachments ──────────────────────────────────────────────────────────
+
+  listAttachments(id: number): Observable<EncounterAttachment[]> {
+    return this.http.get<EncounterAttachment[]>(`${this.baseUrl}/${id}/attachments`);
+  }
+
+  uploadAttachment(id: number, file: File): Observable<EncounterAttachment> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<EncounterAttachment>(`${this.baseUrl}/${id}/attachments`, formData);
+  }
+
+  deleteAttachment(id: number, fileId: number): Observable<{ success: boolean }> {
+    return this.http.delete<{ success: boolean }>(`${this.baseUrl}/${id}/attachments/${fileId}`);
   }
 }

@@ -1,3 +1,8 @@
+import {
+  ClinicalCaseSummary,
+  TreatmentEvolutionAction,
+} from '@app/clinical-cases/models/clinical-case.model';
+
 export type AppetiteStatus = 'NORMAL' | 'AUMENTADO' | 'DISMINUIDO' | 'ANOREXIA';
 export type WaterIntakeStatus = 'NORMAL' | 'AUMENTADO' | 'DISMINUIDO';
 export type MucosaStatus =
@@ -14,6 +19,13 @@ export type HydrationStatus =
 export type EncounterStatus = 'ACTIVA' | 'REACTIVADA' | 'FINALIZADA' | 'ANULADA';
 export type TreatmentStatus = 'ACTIVO' | 'FINALIZADO' | 'SUSPENDIDO' | 'CANCELADO';
 export type TreatmentItemStatus = 'ACTIVO' | 'SUSPENDIDO' | 'FINALIZADO' | 'CANCELADO';
+export type EncounterClinicalCaseLinkMode = 'EXISTING' | 'NEW' | 'UNLINK';
+export type EncounterFollowUpAction =
+  | 'NONE'
+  | 'KEEP_OPEN'
+  | 'SCHEDULE_CONTROL'
+  | 'RESOLVE'
+  | 'CANCEL';
 
 export interface EncounterPatient {
   id: number;
@@ -79,9 +91,11 @@ export interface EncounterClinicalImpression {
 
 export interface EncounterPlan {
   clinicalPlan?: string | null;
-  requiresFollowUp?: boolean | null;
-  suggestedFollowUpDate?: string | null;
   planNotes?: string | null;
+}
+
+export interface EncounterFollowUpConfig {
+  action: EncounterFollowUpAction;
 }
 
 export interface EncounterVaccinationEvent {
@@ -129,6 +143,7 @@ export interface EncounterTreatment {
   startDate: string;
   endDate: string | null;
   generalInstructions: string | null;
+  replacesTreatmentId: number | null;
   items: EncounterTreatmentItem[];
 }
 
@@ -148,7 +163,27 @@ export interface EncounterTreatmentDraft {
   startDate: string;
   endDate: string | null;
   generalInstructions: string | null;
+  replacesTreatmentId: number | null;
   items: EncounterTreatmentDraftItem[];
+}
+
+export interface EncounterTreatmentReviewDraft {
+  id: number;
+  sourceTreatmentId: number;
+  sourceTreatmentSummary: string;
+  action: Exclude<TreatmentEvolutionAction, 'REEMPLAZA'>;
+  notes: string | null;
+}
+
+export interface EncounterTreatmentEvolutionEvent {
+  id: number;
+  treatmentId: number;
+  treatmentSummary: string;
+  eventType: TreatmentEvolutionAction;
+  notes: string | null;
+  replacementTreatmentId: number | null;
+  replacementTreatmentSummary: string | null;
+  createdAt: string;
 }
 
 export interface EncounterProcedure {
@@ -217,6 +252,7 @@ export interface CreateEncounterTreatmentRequest {
   startDate: string;
   endDate?: string;
   generalInstructions?: string;
+  replacesTreatmentId?: number;
   items?: CreateEncounterTreatmentItemRequest[];
 }
 
@@ -227,6 +263,23 @@ export interface CreateEncounterProcedureRequest {
   description?: string;
   result?: string;
   notes?: string;
+}
+
+export interface UpsertEncounterClinicalCaseLinkRequest {
+  mode: EncounterClinicalCaseLinkMode;
+  clinicalCaseId?: number;
+  problemSummary?: string;
+}
+
+export interface UpsertEncounterFollowUpConfigRequest {
+  action: EncounterFollowUpAction;
+}
+
+export interface ScheduleControlAppointmentRequest {
+  scheduledDate: string;
+  scheduledTime: string;
+  endTime: string;
+  notes?: string | null;
 }
 
 export interface EncounterDetail {
@@ -252,11 +305,15 @@ export interface EncounterDetail {
   environmentalData?: EncounterEnvironmentalData | null;
   clinicalImpression?: EncounterClinicalImpression | null;
   plan?: EncounterPlan | null;
+  followUpConfig: EncounterFollowUpConfig | null;
+  clinicalCaseSummary: ClinicalCaseSummary | null;
   vaccinationEvents: EncounterVaccinationEvent[];
   vaccinationDrafts: EncounterVaccinationDraft[];
   dewormingEvents: EncounterDewormingEvent[];
   treatments: EncounterTreatment[];
   treatmentDrafts: EncounterTreatmentDraft[];
+  treatmentReviewDrafts: EncounterTreatmentReviewDraft[];
+  treatmentEvolutionEvents: EncounterTreatmentEvolutionEvent[];
   surgeries: EncounterSurgery[];
   procedures: EncounterProcedure[];
   procedureDrafts: EncounterProcedureDraft[];
@@ -265,4 +322,14 @@ export interface EncounterDetail {
   dewormingCount: number;
   surgeriesCount: number;
   proceduresCount: number;
+}
+
+export interface EncounterAttachment {
+  id: number;
+  url: string;
+  originalName: string;
+  mimeType: string | null;
+  sizeBytes: number | null;
+  mediaType: string;
+  createdAt: string;
 }

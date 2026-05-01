@@ -92,6 +92,25 @@
                   <p class="text-sm font-medium text-slate-700">
                     {{ encounterOriginLabel() }}
                   </p>
+
+                  @if (clinicalCaseSummary(); as clinicalCase) {
+                    <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+                      <span class="text-[11px] font-black uppercase tracking-[0.22em] text-primary/70">Caso clínico</span>
+                      <button
+                        type="button"
+                        class="font-semibold text-text-primary underline-offset-4 transition hover:text-primary hover:underline"
+                        (click)="openAssociatedClinicalCase(clinicalCase.id)"
+                      >
+                        {{ clinicalCase.problemSummary }}
+                      </button>
+                      <span
+                        class="inline-flex rounded-full px-2.5 py-1 text-[10px] font-black"
+                        [ngClass]="buildClinicalCaseStatusClasses(clinicalCase.status)"
+                      >
+                        {{ buildClinicalCaseStatusLabel(clinicalCase.status) }}
+                      </span>
+                    </div>
+                  }
                 </div>
               </div>
             </div>
@@ -107,7 +126,7 @@
                 {{ encounter.proceduresCount + pendingProcedures.length }} procedimientos
               </p>
               @if (pendingActionsCount() > 0) {
-                <p class="text-xs text-slate-500">{{ pendingActionsCount() }} acción(es) pendiente(s) por ejecutar al finalizar</p>
+                <p class="text-xs text-slate-500">{{ pendingActionsCount() }} pendiente(s)</p>
               }
             </div>
 
@@ -251,42 +270,40 @@
                     </div>
                   </div>
 
+                  <div>
+                    <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
+                      <span>Enfermedad actual</span>
+                      <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                    </label>
+                    <textarea formControlName="currentIllnessHistory" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Inicio, evolución y signos actuales."></textarea>
+                    <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
+                      <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
+                      <span>{{ controlTextLength(reasonForm, 'currentIllnessHistory') }} caracteres</span>
+                    </div>
+                  </div>
+
                   <div class="grid gap-5 xl:grid-cols-2">
                     <div>
                       <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                        <span>Enfermedad actual</span>
+                        <span>Diagnósticos previos referidos</span>
                         <span class="text-xs font-medium text-text-secondary">Opcional</span>
                       </label>
-                      <textarea formControlName="currentIllnessHistory" [attr.maxlength]="clinicalTextMaxLength" rows="5" class="min-h-[140px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Inicio, evolución y signos actuales."></textarea>
+                      <textarea formControlName="referredPreviousDiagnoses" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Si el tutor trae diagnósticos previos, resúmelos aquí."></textarea>
                       <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
                         <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                        <span>{{ controlTextLength(reasonForm, 'currentIllnessHistory') }} caracteres</span>
+                        <span>{{ controlTextLength(reasonForm, 'referredPreviousDiagnoses') }} caracteres</span>
                       </div>
                     </div>
 
-                    <div class="space-y-5">
-                      <div>
-                        <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                          <span>Diagnósticos previos referidos</span>
-                          <span class="text-xs font-medium text-text-secondary">Opcional</span>
-                        </label>
-                        <textarea formControlName="referredPreviousDiagnoses" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[110px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Si el tutor trae diagnósticos previos, resúmelos aquí."></textarea>
-                        <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
-                          <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                          <span>{{ controlTextLength(reasonForm, 'referredPreviousDiagnoses') }} caracteres</span>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                          <span>Tratamientos previos referidos</span>
-                          <span class="text-xs font-medium text-text-secondary">Opcional</span>
-                        </label>
-                        <textarea formControlName="referredPreviousTreatments" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[110px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Medicaciones o medidas previas reportadas por el tutor."></textarea>
-                        <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
-                          <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                          <span>{{ controlTextLength(reasonForm, 'referredPreviousTreatments') }} caracteres</span>
-                        </div>
+                    <div>
+                      <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
+                        <span>Tratamientos previos referidos</span>
+                        <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                      </label>
+                      <textarea formControlName="referredPreviousTreatments" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Medicaciones o medidas previas reportadas por el tutor."></textarea>
+                      <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
+                        <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
+                        <span>{{ controlTextLength(reasonForm, 'referredPreviousTreatments') }} caracteres</span>
                       </div>
                     </div>
                   </div>
@@ -513,6 +530,78 @@
                     </div>
                   </div>
 
+                  <div class="rounded-[24px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.72),rgba(255,255,255,0.96))] px-5 py-5">
+                    <div class="border-b border-slate-200/80 pb-4">
+                      <p class="text-[11px] font-black uppercase tracking-[0.22em] text-primary/70">Entorno</p>
+                      <h3 class="mt-1 text-lg font-black tracking-tight text-text-primary">Contexto ambiental y estilo de vida</h3>
+                      <p class="mt-1 text-sm text-text-secondary">
+                        Este bloque complementa la anamnesis con el ambiente del paciente, su alimentación y factores cotidianos que pueden influir en el cuadro.
+                      </p>
+                    </div>
+
+                    <div class="mt-5 grid gap-5 xl:grid-cols-2">
+                      <div>
+                        <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
+                          <span>Ambiente</span>
+                          <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                        </label>
+                        <textarea [formControl]="environmentForm.controls.environmentNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Vivienda, patio, higiene, exposición o convivencia relevante."></textarea>
+                        <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
+                          <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
+                          <span>{{ controlTextLength(environmentForm, 'environmentNotes') }} caracteres</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
+                          <span>Nutrición</span>
+                          <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                        </label>
+                        <textarea [formControl]="environmentForm.controls.nutritionNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Tipo de dieta, frecuencia y cambios recientes."></textarea>
+                        <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
+                          <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
+                          <span>{{ controlTextLength(environmentForm, 'nutritionNotes') }} caracteres</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
+                          <span>Estilo de vida</span>
+                          <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                        </label>
+                        <textarea [formControl]="environmentForm.controls.lifestyleNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Actividad, paseos, contacto con otros animales o rutinas."></textarea>
+                        <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
+                          <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
+                          <span>{{ controlTextLength(environmentForm, 'lifestyleNotes') }} caracteres</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
+                          <span>Tipo de alimentación</span>
+                          <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                        </label>
+                        <textarea [formControl]="environmentForm.controls.feedingTypeNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Balanceado, casera, mixta, premios u otras observaciones."></textarea>
+                        <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
+                          <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
+                          <span>{{ controlTextLength(environmentForm, 'feedingTypeNotes') }} caracteres</span>
+                        </div>
+                      </div>
+
+                      <div class="xl:col-span-2">
+                        <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
+                          <span>Notas del entorno</span>
+                          <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                        </label>
+                        <textarea [formControl]="environmentForm.controls.notes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Contexto adicional útil para interpretar la anamnesis."></textarea>
+                        <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
+                          <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
+                          <span>{{ controlTextLength(environmentForm, 'notes') }} caracteres</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div>
                     <label class="mb-2 block text-sm font-bold text-text-primary">Notas adicionales <span class="font-medium text-slate-400">(Opcional)</span></label>
                     <textarea formControlName="notes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Detalles clínicos relevantes no cubiertos arriba."></textarea>
@@ -530,9 +619,9 @@
               <section class="bg-card px-1 pb-5 pt-6 lg:px-1 lg:pb-6 lg:pt-6">
                 <div class="flex flex-col gap-2 border-b border-slate-200 pb-5">
                   <p class="text-[11px] font-black uppercase tracking-[0.28em] text-primary/70">Bloque clínico</p>
-                  <h2 class="text-2xl font-black tracking-tight text-text-primary">Examen clínico</h2>
+                  <h2 class="text-2xl font-black tracking-tight text-text-primary">Datos fisiológicos</h2>
                   <p class="text-sm leading-6 text-text-secondary">
-                    Captura los signos vitales y principales hallazgos físicos de esta atención.
+                    Captura los signos vitales, hallazgos físicos y sube archivos de la atención (imágenes médicas y PDFs).
                   </p>
                 </div>
 
@@ -628,76 +717,132 @@
                   </div>
 
                 </form>
-              </section>
-            }
 
-            @if (activeTab === 'ENVIRONMENT') {
-              <section class="bg-card px-1 pb-5 pt-6 lg:px-1 lg:pb-6 lg:pt-6">
-                <div class="flex flex-col gap-2 border-b border-slate-200 pb-5">
-                  <p class="text-[11px] font-black uppercase tracking-[0.28em] text-primary/70">Bloque clínico</p>
-                  <h2 class="text-2xl font-black tracking-tight text-text-primary">Entorno del paciente</h2>
+                <div class="mt-8 flex flex-col gap-2 border-b border-slate-200 pb-5">
+                  <p class="text-[11px] font-black uppercase tracking-[0.28em] text-primary/70">Archivos adjuntos</p>
+                  <h3 class="text-xl font-black tracking-tight text-text-primary">Documentos e imágenes</h3>
                   <p class="text-sm leading-6 text-text-secondary">
-                    Documenta ambiente, nutrición y estilo de vida para entender factores asociados al cuadro.
+                    Agrega resultados de laboratorio en PDF o fotografías relevantes al estado del paciente.
                   </p>
                 </div>
 
-                <form class="mt-6 grid gap-5 xl:grid-cols-2" [formGroup]="environmentForm">
-                  <div>
-                    <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                      <span>Ambiente</span>
-                      <span class="text-xs font-medium text-text-secondary">Opcional</span>
-                    </label>
-                    <textarea formControlName="environmentNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Vivienda, patio, convivencia, higiene, exposición."></textarea>
-                    <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
-                      <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                      <span>{{ controlTextLength(environmentForm, 'environmentNotes') }} caracteres</span>
+                <div class="mt-6 space-y-5">
+                  <div class="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
+                    <div>
+                      <div class="mb-3 flex items-center justify-between gap-3">
+                        <p class="text-sm font-black text-text-primary">Agregar soporte clínico</p>
+                        <span class="text-xs text-text-secondary">JPG, PNG, WEBP y PDF · máximo 10 MB</span>
+                      </div>
+
+                      <div class="relative overflow-hidden rounded-[24px] border border-dashed border-primary/30 bg-background/60">
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,application/pdf"
+                          (change)="onFileSelected($event)"
+                          [disabled]="isUploadingAttachment || !isTabEditable('EXAM')"
+                          class="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+                        />
+
+                        <div class="flex min-h-[220px] flex-col items-center justify-center px-8 py-10 text-center">
+                          @if (isUploadingAttachment) {
+                            <div class="h-2 w-24 rounded-full bg-primary/15"></div>
+                            <p class="mt-4 text-sm font-bold text-text-primary">Subiendo archivo...</p>
+                            <p class="mt-1 text-xs text-text-secondary">Las imágenes se optimizan para ocupar menos espacio.</p>
+                          } @else {
+                            <div class="rounded-full border border-primary/20 bg-primary/8 px-4 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-primary/80">
+                              Subir archivo
+                            </div>
+                            <p class="mt-4 text-base font-black text-text-primary">Selecciona una imagen o PDF</p>
+                            <p class="mt-2 max-w-sm text-sm leading-6 text-text-secondary">
+                              Ideal para radiografías, resultados escaneados, consentimientos o evidencia fotográfica.
+                            </p>
+                          }
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="px-1 py-1">
+                      <div class="flex items-center justify-between gap-3">
+                        <div>
+                          <p class="text-sm font-black text-text-primary">Resumen de adjuntos</p>
+                          <p class="mt-1 text-xs text-text-secondary">
+                            {{ attachments.length }} archivo{{ attachments.length === 1 ? '' : 's' }} en esta atención
+                          </p>
+                        </div>
+                      </div>
+
+                      @if (attachmentError) {
+                        <div class="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
+                          <p class="text-sm font-medium text-red-800">{{ attachmentError }}</p>
+                        </div>
+                      }
+
+                      @if (attachments.length > 0) {
+                        <div class="mt-4 space-y-3">
+                          @for (file of attachments; track file.id) {
+                            <div class="group rounded-2xl border border-slate-200/90 bg-background/70 px-4 py-3 transition hover:border-primary/30 hover:bg-background">
+                              <div class="flex items-start gap-3">
+                                <button
+                                  type="button"
+                                  class="flex min-w-0 flex-1 items-start gap-3 text-left"
+                                  (click)="openAttachmentPreview(file)"
+                                  [title]="'Previsualizar ' + attachmentDisplayName(file)"
+                                >
+                                  <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-card">
+                                    @if (isImageAttachment(file)) {
+                                      <img [src]="file.url" [alt]="attachmentDisplayName(file)" class="h-full w-full object-cover" />
+                                    } @else {
+                                      <span class="text-xs font-black uppercase tracking-[0.2em] text-primary/80">PDF</span>
+                                    }
+                                  </div>
+
+                                  <div class="min-w-0 flex-1">
+                                    <p class="truncate text-sm font-bold text-text-primary transition group-hover:text-primary">
+                                      {{ attachmentDisplayName(file) }}
+                                    </p>
+                                    <p class="mt-1 text-xs text-text-secondary">
+                                      {{ formatAttachmentSize(file.sizeBytes) }} · {{ file.createdAt | date:'short' }}
+                                    </p>
+                                    <p class="mt-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-secondary">
+                                      {{ isPdfAttachment(file) ? 'Documento PDF' : 'Imagen clínica' }}
+                                    </p>
+                                  </div>
+                                </button>
+
+                                <div class="flex shrink-0 items-center gap-3 self-center pl-2">
+                                  <button
+                                    type="button"
+                                    class="text-xs font-bold text-primary transition hover:text-primary/80"
+                                    (click)="openAttachmentPreview(file)"
+                                    title="Previsualizar"
+                                  >
+                                    Ver
+                                  </button>
+                                  @if (isTabEditable('EXAM')) {
+                                    <button
+                                      type="button"
+                                      class="text-xs font-bold text-slate-500 transition hover:text-red-600"
+                                      (click)="promptDeleteAttachment(file)"
+                                      title="Eliminar archivo"
+                                    >
+                                      Eliminar
+                                    </button>
+                                  }
+                                </div>
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      } @else {
+                        <div class="mt-4 rounded-2xl border border-dashed border-slate-200 bg-background/50 px-4 py-6 text-center">
+                          <p class="text-sm font-medium text-text-primary">Todavía no hay archivos adjuntos.</p>
+                          <p class="mt-1 text-xs text-text-secondary">Los archivos que subas aquí quedarán vinculados a esta atención.</p>
+                        </div>
+                      }
                     </div>
                   </div>
-                  <div>
-                    <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                      <span>Nutrición</span>
-                      <span class="text-xs font-medium text-text-secondary">Opcional</span>
-                    </label>
-                    <textarea formControlName="nutritionNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Tipo de dieta, frecuencia, cambios recientes."></textarea>
-                    <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
-                      <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                      <span>{{ controlTextLength(environmentForm, 'nutritionNotes') }} caracteres</span>
-                    </div>
-                  </div>
-                  <div>
-                    <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                      <span>Estilo de vida</span>
-                      <span class="text-xs font-medium text-text-secondary">Opcional</span>
-                    </label>
-                    <textarea formControlName="lifestyleNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Actividad, paseos, contacto con otros animales."></textarea>
-                    <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
-                      <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                      <span>{{ controlTextLength(environmentForm, 'lifestyleNotes') }} caracteres</span>
-                    </div>
-                  </div>
-                  <div>
-                    <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                      <span>Tipo de alimentación</span>
-                      <span class="text-xs font-medium text-text-secondary">Opcional</span>
-                    </label>
-                    <textarea formControlName="feedingTypeNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Balanceado, casera, mixta, premios u otros detalles."></textarea>
-                    <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
-                      <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                      <span>{{ controlTextLength(environmentForm, 'feedingTypeNotes') }} caracteres</span>
-                    </div>
-                  </div>
-                  <div class="xl:col-span-2">
-                    <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                      <span>Notas complementarias</span>
-                      <span class="text-xs font-medium text-text-secondary">Opcional</span>
-                    </label>
-                    <textarea formControlName="notes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Elementos contextuales importantes para esta consulta."></textarea>
-                    <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
-                      <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                      <span>{{ controlTextLength(environmentForm, 'notes') }} caracteres</span>
-                    </div>
-                  </div>
-                </form>
+                </div>
+
               </section>
             }
 
@@ -705,9 +850,9 @@
               <section class="bg-card px-1 pb-5 pt-6 lg:px-1 lg:pb-6 lg:pt-6">
                 <div class="flex flex-col gap-2 border-b border-slate-200 pb-5">
                   <p class="text-[11px] font-black uppercase tracking-[0.28em] text-primary/70">Bloque clínico</p>
-                  <h2 class="text-2xl font-black tracking-tight text-text-primary">Impresión clínica</h2>
+                  <h2 class="text-2xl font-black tracking-tight text-text-primary">Diagnóstico</h2>
                   <p class="text-sm leading-6 text-text-secondary">
-                    Consolida la interpretación clínica del caso y el criterio médico actual.
+                    Consolida la interpretación clínica del caso y el criterio diagnóstico actual.
                   </p>
                 </div>
 
@@ -766,61 +911,164 @@
               <section class="bg-card px-1 pb-5 pt-6 lg:px-1 lg:pb-6 lg:pt-6">
                 <div class="flex flex-col gap-2 border-b border-slate-200 pb-5">
                   <p class="text-[11px] font-black uppercase tracking-[0.28em] text-primary/70">Bloque clínico</p>
-                  <h2 class="text-2xl font-black tracking-tight text-text-primary">Plan y seguimiento</h2>
+                  <h2 class="text-2xl font-black tracking-tight text-text-primary">Plan clínico</h2>
                   <p class="text-sm leading-6 text-text-secondary">
-                    Define las indicaciones clínicas, control posterior y las acciones concretas de esta consulta.
+                    Documenta el plan, decide el caso clínico y deja claro si este encounter agenda o no un control.
                   </p>
                 </div>
 
-                <form class="mt-6 space-y-5" [formGroup]="planForm">
-                  <div>
-                    <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                      <span>Plan clínico</span>
-                      <span class="text-xs font-medium text-text-secondary">Opcional</span>
-                    </label>
-                    <textarea formControlName="clinicalPlan" [attr.maxlength]="clinicalTextMaxLength" rows="5" class="min-h-[150px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Tratamiento general, estudios, seguimiento y recomendaciones."></textarea>
-                    <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
-                      <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                      <span>{{ controlTextLength(planForm, 'clinicalPlan') }} caracteres</span>
+                <form class="mt-6 space-y-8" [formGroup]="planForm">
+                  <section class="space-y-4">
+                    <div>
+                      <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
+                        <span>Plan clínico</span>
+                        <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                      </label>
+                      <textarea formControlName="clinicalPlan" [attr.maxlength]="clinicalTextMaxLength" rows="5" class="min-h-[150px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Tratamiento general, estudios, recomendaciones y pasos inmediatos."></textarea>
+                      <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
+                        <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
+                        <span>{{ controlTextLength(planForm, 'clinicalPlan') }} caracteres</span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div class="grid gap-5 md:grid-cols-[240px_minmax(0,1fr)]">
-                    <label class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                      <span class="block text-sm font-bold text-text-primary">¿Requiere seguimiento? <span class="ml-2 text-xs font-medium text-text-secondary">Opcional</span></span>
-                      <select formControlName="requiresFollowUp" class="mt-3 w-full rounded-xl border border-slate-200 bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary/40 focus:ring-4 focus:ring-primary/10">
-                        <option [ngValue]="false">No</option>
-                        <option [ngValue]="true">Sí</option>
-                      </select>
-                    </label>
-                    <label class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                      <span class="block text-sm font-bold text-text-primary">
-                        Fecha sugerida de control
-                        @if (planForm.controls.requiresFollowUp.value === true) {
-                          <span class="font-medium text-red-500">(Obligatoria)</span>
-                        } @else {
-                          <span class="font-medium text-slate-400">(Opcional)</span>
-                        }
-                      </span>
-                      <input type="date" formControlName="suggestedFollowUpDate" class="mt-3 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(planForm, 'suggestedFollowUpDate')" [class.focus:border-red-300]="controlHasError(planForm, 'suggestedFollowUpDate')" [class.border-slate-200]="!controlHasError(planForm, 'suggestedFollowUpDate')" [class.focus:border-primary/40]="!controlHasError(planForm, 'suggestedFollowUpDate')" />
-                      @if (controlErrorMessage('PLAN', 'suggestedFollowUpDate')) {
-                        <p class="mt-2 text-xs font-medium text-red-600">{{ controlErrorMessage('PLAN', 'suggestedFollowUpDate') }}</p>
+                    <div>
+                      <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
+                        <span>Notas del plan</span>
+                        <span class="text-xs font-medium text-text-secondary">Opcional</span>
+                      </label>
+                      <textarea formControlName="planNotes" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[110px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Indicaciones complementarias para el tutor y el equipo."></textarea>
+                      <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
+                        <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
+                        <span>{{ controlTextLength(planForm, 'planNotes') }} caracteres</span>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="space-y-4 border-t border-slate-200 pt-6">
+                    <div class="flex flex-wrap items-center gap-3">
+                      <p class="text-[11px] font-black uppercase tracking-[0.24em] text-primary/70">Caso clínico</p>
+                      @if (planCasePreview(); as casePreview) {
+                        <button
+                          type="button"
+                          class="font-semibold text-text-primary underline-offset-4 transition hover:text-primary hover:underline"
+                          (click)="openAssociatedClinicalCase(casePreview.id)"
+                        >
+                          {{ casePreview.problemSummary }}
+                        </button>
+                        <span
+                          class="inline-flex rounded-full px-2.5 py-1 text-[10px] font-black"
+                          [ngClass]="buildClinicalCaseStatusClasses(casePreview.status)"
+                        >
+                          {{ buildClinicalCaseStatusLabel(casePreview.status) }}
+                        </span>
                       }
-                    </label>
-                  </div>
-
-                  <div>
-                    <label class="mb-2 flex items-center gap-2 text-sm font-bold text-text-primary">
-                      <span>Notas del plan</span>
-                      <span class="text-xs font-medium text-text-secondary">Opcional</span>
-                    </label>
-                    <textarea formControlName="planNotes" [attr.maxlength]="clinicalTextMaxLength" rows="4" class="min-h-[120px] w-full rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:border-primary/40 focus:ring-4 focus:ring-primary/10" placeholder="Indicaciones complementarias para el tutor y el equipo."></textarea>
-                    <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
-                      <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
-                      <span>{{ controlTextLength(planForm, 'planNotes') }} caracteres</span>
                     </div>
-                  </div>
 
+                    @if (shouldShowCaseLinkControls()) {
+                      <div class="flex flex-wrap gap-3">
+                        <button
+                          type="button"
+                          class="rounded-full border px-4 py-2 text-sm font-bold transition"
+                          [class.border-primary]="planForm.controls.caseLinkMode.value === 'EXISTING'"
+                          [class.bg-primary/5]="planForm.controls.caseLinkMode.value === 'EXISTING'"
+                          [class.text-primary]="planForm.controls.caseLinkMode.value === 'EXISTING'"
+                          [class.border-slate-200]="planForm.controls.caseLinkMode.value !== 'EXISTING'"
+                          [class.text-text-primary]="planForm.controls.caseLinkMode.value !== 'EXISTING'"
+                          (click)="selectCaseLinkMode('EXISTING')"
+                        >
+                          Vincular a caso abierto
+                        </button>
+
+                        <button
+                          type="button"
+                          class="rounded-full border px-4 py-2 text-sm font-bold transition"
+                          [class.border-primary]="planForm.controls.caseLinkMode.value === 'NEW'"
+                          [class.bg-primary/5]="planForm.controls.caseLinkMode.value === 'NEW'"
+                          [class.text-primary]="planForm.controls.caseLinkMode.value === 'NEW'"
+                          [class.border-slate-200]="planForm.controls.caseLinkMode.value !== 'NEW'"
+                          [class.text-text-primary]="planForm.controls.caseLinkMode.value !== 'NEW'"
+                          (click)="selectCaseLinkMode('NEW')"
+                        >
+                          Abrir caso nuevo
+                        </button>
+                      </div>
+
+                      @if (controlErrorMessage('PLAN', 'caseLinkMode')) {
+                        <p class="text-xs font-medium text-red-600">{{ controlErrorMessage('PLAN', 'caseLinkMode') }}</p>
+                      }
+
+                      @if (shouldShowExistingCaseSelector()) {
+                        <div>
+                          <label class="mb-2 block text-sm font-bold text-text-primary">Caso abierto existente</label>
+                          <select formControlName="clinicalCaseId" class="w-full rounded-xl border bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(planForm, 'clinicalCaseId')" [class.focus:border-red-300]="controlHasError(planForm, 'clinicalCaseId')" [class.border-slate-200]="!controlHasError(planForm, 'clinicalCaseId')" [class.focus:border-primary/40]="!controlHasError(planForm, 'clinicalCaseId')">
+                            <option [ngValue]="null">Selecciona un caso clínico</option>
+                            @for (item of availableOpenClinicalCases(); track item.id) {
+                              <option [ngValue]="item.id">{{ item.problemSummary }}</option>
+                            }
+                          </select>
+                          @if (controlErrorMessage('PLAN', 'clinicalCaseId')) {
+                            <p class="mt-2 text-xs font-medium text-red-600">{{ controlErrorMessage('PLAN', 'clinicalCaseId') }}</p>
+                          }
+                        </div>
+                      }
+
+                      @if (shouldShowNewCaseSummaryField()) {
+                        <div>
+                          <label class="mb-2 block text-sm font-bold text-text-primary">Resumen del problema</label>
+                          <textarea formControlName="problemSummary" [attr.maxlength]="clinicalTextMaxLength" rows="3" class="min-h-[96px] w-full rounded-2xl border bg-surface px-4 py-3 text-sm text-text-primary outline-none transition placeholder:text-slate-400 focus:ring-4 focus:ring-primary/10" [class.border-red-300]="controlHasError(planForm, 'problemSummary')" [class.focus:border-red-300]="controlHasError(planForm, 'problemSummary')" [class.border-slate-200]="!controlHasError(planForm, 'problemSummary')" [class.focus:border-primary/40]="!controlHasError(planForm, 'problemSummary')" placeholder="Ej. Dermatitis crónica con recaídas."></textarea>
+                          <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-secondary">
+                            <span>Máximo {{ clinicalTextMaxLength }} caracteres</span>
+                            <span>{{ controlTextLength(planForm, 'problemSummary') }} caracteres</span>
+                          </div>
+                          @if (controlErrorMessage('PLAN', 'problemSummary')) {
+                            <p class="mt-2 text-xs font-medium text-red-600">{{ controlErrorMessage('PLAN', 'problemSummary') }}</p>
+                          }
+                        </div>
+                      }
+                    } @else {
+                      <p class="text-sm text-text-secondary">
+                        Esta consulta ya está vinculada a un caso clínico.
+                      </p>
+                    }
+                  </section>
+
+                  <section class="space-y-4 border-t border-slate-200 pt-6">
+                    <div class="flex flex-wrap items-center gap-3">
+                      <p class="text-[11px] font-black uppercase tracking-[0.24em] text-primary/70">Seguimiento</p>
+                      @if (canConfigureFollowUpAction()) {
+                        <div class="flex flex-wrap gap-2">
+                          @for (action of ['KEEP_OPEN', 'SCHEDULE_CONTROL', 'RESOLVE', 'CANCEL']; track action) {
+                            <button
+                              type="button"
+                              class="rounded-full border px-4 py-2 text-sm font-bold transition"
+                              [class.border-primary]="planForm.controls.followUpAction.value === action"
+                              [class.bg-primary/5]="planForm.controls.followUpAction.value === action"
+                              [class.text-primary]="planForm.controls.followUpAction.value === action"
+                              [class.border-slate-200]="planForm.controls.followUpAction.value !== action"
+                              [class.text-text-primary]="planForm.controls.followUpAction.value !== action"
+                              (click)="selectFollowUpAction($any(action))"
+                            >
+                              {{ buildFollowUpActionLabel($any(action)) }}
+                            </button>
+                          }
+                        </div>
+                      } @else {
+                        <span class="text-sm text-text-secondary">Vincula primero la consulta a un caso.</span>
+                      }
+                    </div>
+
+                    @if (canConfigureFollowUpAction()) {
+                      <p class="text-sm text-text-secondary">
+                        @if (willScheduleControlAppointment()) {
+                          Al finalizar se abrirá el modal de agenda para programar el control.
+                        } @else if (keepsCaseOpenWithoutScheduling()) {
+                          El caso quedará abierto sin generar turno.
+                        } @else {
+                          {{ buildFollowUpActionDescription(currentFollowUpAction()) }}
+                        }
+                      </p>
+                    }
+                  </section>
                 </form>
               </section>
             }
@@ -974,10 +1222,15 @@
 
                           <div class="flex flex-wrap items-center gap-2">
                             <span class="ps-tone ps-tone--info ps-tone-surface inline-flex rounded-full border px-3 py-1 text-xs font-black">
-                              {{ pendingTreatments.length }} pendiente(s)
+                              {{ pendingTreatments.length + treatmentReviewDrafts.length }} pendiente(s)
                             </span>
+                            @if (clinicalCaseSummary()) {
+                              <span class="ps-tone ps-tone--neutral ps-tone-surface inline-flex rounded-full border px-3 py-1 text-xs font-black">
+                                {{ activeCaseTreatments().length }} activas del caso
+                              </span>
+                            }
                             <span class="inline-flex rounded-full border border-border bg-card px-3 py-1 text-xs font-black text-text-secondary">
-                              {{ encounter.treatments.length }} registradas
+                              {{ encounter.treatments.length + treatmentEvolutionEvents.length }} registradas
                             </span>
                           </div>
                         </div>
@@ -992,19 +1245,125 @@
                       <div class="border-t border-border px-5 py-5">
                         <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
                           <div class="space-y-3">
-                            @if (pendingTreatments.length === 0 && encounter.treatments.length === 0) {
-                              <div class="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-4 text-sm text-text-secondary">
-                                {{ isEncounterEditable() ? 'No hay tratamientos pendientes para esta atención.' : 'No se registraron tratamientos en esta atención.' }}
+                            @if (activeCaseTreatments().length > 0) {
+                              <div class="pt-1">
+                                <p class="text-[11px] font-black uppercase tracking-[0.22em] text-text-secondary">Tratamientos activos del caso</p>
                               </div>
+
+                              @for (treatment of activeCaseTreatments(); track treatment.id) {
+                                <div class="rounded-2xl border border-border bg-card px-4 py-4">
+                                  <div class="flex flex-wrap items-start justify-between gap-3">
+                                    <div class="min-w-0 flex-1">
+                                      <div class="flex flex-wrap items-center gap-2">
+                                        <p class="text-sm font-bold text-text-primary">{{ treatment.summary }}</p>
+                                        <span class="inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider" [ngClass]="buildTreatmentStatusClass(treatment.status)">
+                                          {{ buildTreatmentStatusLabel(treatment.status) }}
+                                        </span>
+
+                                        @if (treatmentReviewDraftForSourceTreatment(treatment.id); as reviewDraft) {
+                                          <span class="inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider" [ngClass]="buildTreatmentReviewActionClasses(reviewDraft.action)">
+                                            {{ buildTreatmentReviewActionLabel(reviewDraft.action) }} pendiente
+                                          </span>
+                                        }
+
+                                        @if (replacementDraftForSourceTreatment(treatment.id); as replacementDraft) {
+                                          <span class="ps-tone ps-tone--attention ps-tone-surface inline-flex rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider">
+                                            Reemplazo pendiente
+                                          </span>
+                                        }
+                                      </div>
+
+                                      <p class="mt-1 text-xs text-text-secondary">Activo desde {{ formatDate(treatment.startDate) }}</p>
+                                      @if (treatment.endDate) {
+                                        <p class="mt-1 text-xs text-text-secondary">Fin estimado {{ formatDate(treatment.endDate) }}</p>
+                                      }
+                                    </div>
+                                  </div>
+
+                                  @if (isEncounterEditable()) {
+                                    <div class="mt-4 flex flex-wrap gap-2">
+                                      <button
+                                        type="button"
+                                        class="rounded-xl px-3 py-2 text-xs font-bold transition disabled:cursor-not-allowed disabled:opacity-50"
+                                        [ngClass]="treatmentReviewDraftForSourceTreatment(treatment.id)?.action === 'CONTINUA' ? 'ps-tone ps-tone--info ps-tone-surface' : 'border border-border bg-surface text-text-primary hover:bg-background'"
+                                        [disabled]="isSubmittingAction || replacementDraftForSourceTreatment(treatment.id) !== null"
+                                        (click)="setTreatmentReviewAction(treatment.id, 'CONTINUA')"
+                                      >
+                                        Continúa
+                                      </button>
+                                      <button
+                                        type="button"
+                                        class="rounded-xl px-3 py-2 text-xs font-bold transition disabled:cursor-not-allowed disabled:opacity-50"
+                                        [ngClass]="treatmentReviewDraftForSourceTreatment(treatment.id)?.action === 'SUSPENDE' ? 'ps-tone ps-tone--warning ps-tone-surface' : 'border border-border bg-surface text-text-primary hover:bg-background'"
+                                        [disabled]="isSubmittingAction || replacementDraftForSourceTreatment(treatment.id) !== null"
+                                        (click)="setTreatmentReviewAction(treatment.id, 'SUSPENDE')"
+                                      >
+                                        Suspender
+                                      </button>
+                                      <button
+                                        type="button"
+                                        class="rounded-xl px-3 py-2 text-xs font-bold transition disabled:cursor-not-allowed disabled:opacity-50"
+                                        [ngClass]="treatmentReviewDraftForSourceTreatment(treatment.id)?.action === 'FINALIZA' ? 'ps-tone ps-tone--danger ps-tone-surface' : 'border border-border bg-surface text-text-primary hover:bg-background'"
+                                        [disabled]="isSubmittingAction || replacementDraftForSourceTreatment(treatment.id) !== null"
+                                        (click)="setTreatmentReviewAction(treatment.id, 'FINALIZA')"
+                                      >
+                                        Finalizar
+                                      </button>
+                                      <button
+                                        type="button"
+                                        class="rounded-xl border border-border bg-surface px-3 py-2 text-xs font-bold text-text-primary transition hover:bg-background disabled:cursor-not-allowed disabled:opacity-50"
+                                        [disabled]="isSubmittingAction || treatmentReviewDraftForSourceTreatment(treatment.id) !== null || replacementDraftForSourceTreatment(treatment.id) !== null"
+                                        (click)="openReplacementTreatmentModal(treatment.id)"
+                                      >
+                                        Reemplazar
+                                      </button>
+                                    </div>
+                                  }
+                                </div>
+                              }
+                            }
+
+                            @if (treatmentReviewDrafts.length > 0) {
+                              <div class="pt-2">
+                                <p class="text-[11px] font-black uppercase tracking-[0.22em] text-text-secondary">Evolución pendiente</p>
+                              </div>
+
+                              @for (draft of treatmentReviewDrafts; track draft.id) {
+                                <div class="rounded-2xl border border-border bg-card px-4 py-3">
+                                  <div class="flex items-start justify-between gap-3">
+                                    <div class="min-w-0">
+                                      <div class="flex flex-wrap items-center gap-2">
+                                        <p class="text-sm font-bold text-text-primary">{{ draft.sourceTreatmentSummary }}</p>
+                                        <span class="inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider" [ngClass]="buildTreatmentReviewActionClasses(draft.action)">
+                                          {{ buildTreatmentReviewActionLabel(draft.action) }}
+                                        </span>
+                                      </div>
+                                      @if (draft.notes) {
+                                        <p class="mt-2 text-xs leading-5 text-text-secondary">{{ draft.notes }}</p>
+                                      } @else {
+                                        <p class="mt-2 text-xs leading-5 text-text-secondary">La decisión se aplicará al finalizar la atención.</p>
+                                      }
+                                    </div>
+                                    <button type="button" class="text-xs font-bold text-red-600 transition hover:text-red-700" (click)="removeTreatmentReviewDraft(draft.id)">Quitar</button>
+                                  </div>
+                                </div>
+                              }
                             }
 
                             @if (pendingTreatments.length > 0) {
+                              <div class="pt-2">
+                                <p class="text-[11px] font-black uppercase tracking-[0.22em] text-text-secondary">Tratamientos pendientes</p>
+                              </div>
+
                               @for (draft of pendingTreatments; track draft.id) {
                                 <div class="rounded-2xl border border-border bg-card px-4 py-3">
                                   <div class="flex items-start justify-between gap-3">
                                     <div class="min-w-0">
                                       <p class="text-sm font-bold text-text-primary">{{ treatmentDraftSummary(draft) }}</p>
                                       <p class="mt-1 text-xs text-text-secondary">Inicio {{ formatDate(draft.startDate) }}</p>
+                                      @if (treatmentDraftReplacementLabel(draft); as replacementLabel) {
+                                        <p class="mt-2 text-xs font-semibold text-text-primary">Reemplaza: {{ replacementLabel }}</p>
+                                      }
                                     </div>
                                     <div class="flex items-center gap-3">
                                       <button type="button" class="text-xs font-bold text-primary transition hover:text-primary/80" (click)="editPendingTreatment(draft)">Editar</button>
@@ -1018,6 +1377,18 @@
                               }
                             }
 
+                            @if (
+                              activeCaseTreatments().length === 0
+                              && treatmentReviewDrafts.length === 0
+                              && pendingTreatments.length === 0
+                              && encounter.treatments.length === 0
+                              && treatmentEvolutionEvents.length === 0
+                            ) {
+                              <div class="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-4 text-sm text-text-secondary">
+                                {{ isEncounterEditable() ? 'No hay tratamientos pendientes para esta atención.' : 'No se registraron tratamientos en esta atención.' }}
+                              </div>
+                            }
+
                             @if (encounter.treatments.length > 0) {
                               <div class="pt-2">
                                 <p class="text-[11px] font-black uppercase tracking-[0.22em] text-text-secondary">Registrados</p>
@@ -1029,6 +1400,9 @@
                                     <div class="min-w-0">
                                       <p class="text-sm font-bold text-text-primary">{{ treatmentSummary(treatment) }}</p>
                                       <p class="mt-1 text-xs text-text-secondary">Inicio {{ formatDate(treatment.startDate) }}</p>
+                                      @if (treatmentReplacementLabel(treatment); as registeredReplacementLabel) {
+                                        <p class="mt-2 text-xs font-semibold text-text-primary">Reemplaza: {{ registeredReplacementLabel }}</p>
+                                      }
                                     </div>
                                     <span class="ps-tone ps-tone--success ps-tone-surface inline-flex rounded-full border px-3 py-1 text-[11px] font-black">
                                       Registrado
@@ -1040,22 +1414,61 @@
                                 </div>
                               }
                             }
+
+                            @if (treatmentEvolutionEvents.length > 0) {
+                              <div class="pt-2">
+                                <p class="text-[11px] font-black uppercase tracking-[0.22em] text-text-secondary">Evoluciones registradas</p>
+                              </div>
+
+                              @for (event of treatmentEvolutionEvents; track event.id) {
+                                <div class="rounded-2xl border border-border bg-card px-4 py-3">
+                                  <div class="flex items-start justify-between gap-3">
+                                    <div class="min-w-0">
+                                      <div class="flex flex-wrap items-center gap-2">
+                                        <p class="text-sm font-bold text-text-primary">{{ event.treatmentSummary }}</p>
+                                        <span class="inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider" [ngClass]="buildTreatmentEvolutionEventClasses(event.eventType)">
+                                          {{ buildTreatmentEvolutionEventLabel(event) }}
+                                        </span>
+                                      </div>
+                                      <p class="mt-1 text-xs text-text-secondary">Registrado {{ formatDateTime(event.createdAt) }}</p>
+                                      <p class="mt-2 text-xs leading-5 text-text-secondary">{{ treatmentEvolutionDescription(event) }}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              }
+                            }
                           </div>
 
                           <div class="space-y-3">
                             <div class="rounded-2xl border border-border bg-card px-4 py-4">
                               <p class="text-[11px] font-black uppercase tracking-[0.22em] text-text-secondary">Estado actual</p>
+                              @if (clinicalCaseSummary()) {
+                                <p class="mt-3 text-sm leading-6 text-text-secondary">
+                                  {{ activeCaseTreatments().length }} tratamiento(s) activos en el caso.
+                                </p>
+                              }
                               <p class="mt-3 text-sm leading-6 text-text-secondary">
-                                {{ pendingTreatments.length }} tratamiento(s) listos para emitirse al finalizar.
+                                {{ pendingTreatments.length + treatmentReviewDrafts.length }} acción(es) terapéuticas pendientes para el cierre.
                               </p>
                               <p class="mt-3 text-sm font-bold text-text-primary">
-                                {{ encounter.treatments.length }} tratamiento(s) ya registrados en esta atención.
+                                {{ encounter.treatments.length + treatmentEvolutionEvents.length }} registro(s) terapéuticos ya emitidos en esta atención.
                               </p>
                             </div>
 
                             <button type="button" class="inline-flex w-full items-center justify-center rounded-2xl bg-primary px-4 py-3 text-sm font-black text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60" [disabled]="isSubmittingAction || !isEncounterEditable()" (click)="openTreatmentModal()">
                               Preparar tratamiento
                             </button>
+
+                            @if (replacementSourceTreatmentSummary()) {
+                              <div class="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-4 text-sm leading-6 text-text-secondary">
+                                El tratamiento que estás preparando reemplazará a
+                                <span class="font-bold text-text-primary">{{ replacementSourceTreatmentSummary() }}</span>.
+                              </div>
+                            } @else if (clinicalCaseSummary()) {
+                              <div class="rounded-2xl border border-border bg-card px-4 py-4 text-sm leading-6 text-text-secondary">
+                                Usa los controles rápidos para dejar documentado si un tratamiento del caso continúa, se suspende, finaliza o será reemplazado.
+                              </div>
+                            }
                           </div>
                         </div>
                       </div>
@@ -1318,11 +1731,17 @@
             <div>
               <p class="text-[11px] font-black uppercase tracking-[0.28em] text-primary/70">Consulta</p>
               <h2 class="mt-2 text-2xl font-black text-text-primary">
-                {{ editingTreatmentDraftId ? 'Editar tratamiento pendiente' : 'Preparar tratamiento' }}
+                {{
+                  editingTreatmentDraftId
+                    ? 'Editar tratamiento pendiente'
+                    : (replacementSourceTreatmentSummary() ? 'Preparar reemplazo terapéutico' : 'Preparar tratamiento')
+                }}
               </h2>
               <p class="mt-2 text-sm leading-6 text-text-secondary">
                 @if (editingTreatmentDraftId) {
                   Actualiza el tratamiento pendiente antes de finalizar la atención.
+                } @else if (replacementSourceTreatmentSummary()) {
+                  El tratamiento nuevo sustituirá al activo seleccionado dentro del caso clínico al momento de finalizar.
                 } @else {
                   El tratamiento quedará pendiente y se emitirá realmente al finalizar la atención.
                 }
@@ -1339,6 +1758,13 @@
             }
 
             <form class="space-y-6" [formGroup]="treatmentForm">
+              @if (replacementSourceTreatmentSummary()) {
+                <div class="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-4 text-sm leading-6 text-text-secondary">
+                  Tratamiento origen:
+                  <span class="font-bold text-text-primary">{{ replacementSourceTreatmentSummary() }}</span>
+                </div>
+              }
+
               <div class="grid gap-5 md:grid-cols-2">
                 <label class="block">
                   <span class="mb-2 block text-sm font-bold text-text-primary">Fecha de inicio</span>
@@ -1537,6 +1963,91 @@
           </div>
         </div>
       </div>
+    }
+
+    @if (attachmentPreview; as preview) {
+      <div class="fixed inset-0 z-[140] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm" (click)="closeAttachmentPreview()">
+        <div class="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-[28px] border border-white/10 bg-card shadow-2xl" (click)="$event.stopPropagation()">
+          <div class="flex items-start justify-between gap-4 border-b border-slate-200/80 px-6 py-5">
+            <div class="min-w-0">
+              <p class="text-[11px] font-black uppercase tracking-[0.22em] text-primary/70">
+                {{ isPdfAttachment(preview) ? 'Documento PDF' : 'Imagen clínica' }}
+              </p>
+              <h3 class="mt-1 truncate text-lg font-black tracking-tight text-text-primary">{{ attachmentDisplayName(preview) }}</h3>
+              <p class="mt-1 text-sm text-text-secondary">{{ formatAttachmentSize(preview.sizeBytes) }} · {{ preview.createdAt | date:'medium' }}</p>
+            </div>
+
+            <div class="flex shrink-0 items-center gap-2">
+              <a
+                [href]="preview.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex rounded-xl border border-slate-200 bg-card px-3 py-2 text-sm font-bold text-slate-600 transition hover:border-primary/30 hover:text-primary"
+                title="Abrir en una pestaña nueva"
+              >
+                Abrir aparte
+              </a>
+              <button
+                type="button"
+                class="inline-flex rounded-xl border border-slate-200 bg-card px-3 py-2 text-sm font-bold text-slate-600 transition hover:border-slate-300 hover:text-text-primary"
+                (click)="closeAttachmentPreview()"
+                title="Cerrar previsualización"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+
+          <div class="min-h-0 flex-1 bg-slate-950/5 p-4">
+            @if (isImageAttachment(preview)) {
+              <div class="flex h-full max-h-[72vh] items-center justify-center overflow-auto rounded-[24px] bg-slate-950/5 p-4">
+                <img [src]="preview.url" [alt]="preview.originalName" class="max-h-[68vh] w-auto max-w-full rounded-2xl object-contain shadow-lg" />
+              </div>
+            } @else if (isPdfAttachment(preview) && attachmentPreviewUrl) {
+              <iframe
+                [src]="attachmentPreviewUrl"
+                class="h-[72vh] w-full rounded-[24px] border border-slate-200 bg-white"
+                title="Vista previa del documento"
+              ></iframe>
+            } @else {
+              <div class="flex h-[72vh] flex-col items-center justify-center rounded-[24px] border border-dashed border-slate-300 bg-background px-6 text-center">
+                <span class="text-xs font-black uppercase tracking-[0.22em] text-slate-400">{{ isPdfAttachment(preview) ? 'PDF' : 'Archivo' }}</span>
+                <p class="mt-4 text-sm font-bold text-text-primary">No hay vista previa embebida para este archivo.</p>
+                <p class="mt-1 text-xs text-text-secondary">Puedes abrirlo en una pestaña nueva desde el botón superior derecho.</p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <app-confirm-dialog
+      [open]="!!pendingDeleteAttachment"
+      title="Eliminar archivo adjunto"
+      [message]="'Se eliminará ' + (pendingDeleteAttachment ? attachmentDisplayName(pendingDeleteAttachment) : 'este archivo') + ' de esta atención.'"
+      confirmLabel="Eliminar archivo"
+      busyLabel="Eliminando..."
+      [isBusy]="isDeletingAttachment"
+      (closed)="closeDeleteAttachmentDialog()"
+      (confirmed)="confirmDeleteAttachment()"
+    ></app-confirm-dialog>
+
+    @if (isControlAppointmentModalOpen && encounter) {
+      <app-create-appointment-modal
+        title="Programar control"
+        description="Confirma la fecha y la hora del turno de control antes de cerrar esta atención."
+        submitLabel="Finalizar y programar"
+        [emitOnly]="true"
+        [lockPatient]="true"
+        [presetPatientId]="encounter.patientId"
+        [presetPatientLabel]="controlAppointmentPresetPatientLabel()"
+        [lockReason]="true"
+        presetReason="CONTROL"
+        [externalSubmitting]="isSubmittingAction"
+        [externalError]="controlAppointmentError"
+        (closed)="closeControlAppointmentModal()"
+        (submitted)="submitControlAppointment($event)"
+      />
     }
 
     <app-confirm-dialog

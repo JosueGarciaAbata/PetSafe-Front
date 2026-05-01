@@ -7,8 +7,8 @@
     <div class="shrink-0 border-b border-border bg-surface px-5 py-4">
       <div class="flex items-start justify-between gap-4">
         <div class="flex flex-col gap-1">
-          <h2 class="text-lg font-bold text-text-primary">Nuevo turno</h2>
-          <p class="text-sm text-text-secondary">Registra una nueva cita programada.</p>
+          <h2 class="text-lg font-bold text-text-primary">{{ title }}</h2>
+          <p class="text-sm text-text-secondary">{{ description }}</p>
         </div>
 
         <button
@@ -36,53 +36,60 @@
         <section class="grid gap-4">
           <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Paciente</h3>
 
-          <div class="flex flex-col gap-2">
-            <label class="text-sm font-semibold text-text-primary">Mascota</label>
-            <mat-form-field
-              appearance="outline"
-              subscriptSizing="dynamic"
-              class="appointment-create-field w-full"
-            >
-              <input
-                matInput
-                type="text"
-                [ngModel]="patientSearch"
-                (ngModelChange)="onPatientChanged($event)"
-                [matAutocomplete]="patientAuto"
-                [errorStateMatcher]="patientErrorStateMatcher"
-                placeholder="Buscar paciente"
-                autocomplete="off"
-                class="text-sm text-text-primary placeholder:text-text-secondary/50"
-              />
-                @if (isPatientInvalid()) {
-                  <mat-error>Selecciona una mascota valida de la lista.</mat-error>
+          @if (shouldShowPatientSelector()) {
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Mascota</label>
+              <mat-form-field
+                appearance="outline"
+                subscriptSizing="dynamic"
+                class="appointment-create-field w-full"
+              >
+                <input
+                  matInput
+                  type="text"
+                  [ngModel]="patientSearch"
+                  (ngModelChange)="onPatientChanged($event)"
+                  [matAutocomplete]="patientAuto"
+                  [errorStateMatcher]="patientErrorStateMatcher"
+                  placeholder="Buscar paciente"
+                  autocomplete="off"
+                  class="text-sm text-text-primary placeholder:text-text-secondary/50"
+                />
+                  @if (isPatientInvalid()) {
+                    <mat-error>Selecciona una mascota valida de la lista.</mat-error>
+                  }
+              </mat-form-field>
+
+              <mat-autocomplete #patientAuto="matAutocomplete" autoActiveFirstOption>
+                @for (option of patientOptions(); track option.patientId) {
+                  <mat-option
+                    [value]="buildPatientLabel(option)"
+                    (onSelectionChange)="onPatientOptionSelection($event.isUserInput, option)"
+                  >
+                    <div class="flex flex-col">
+                      <span class="text-sm font-medium text-text-primary">
+                        {{ buildPatientLabel(option) }}
+                      </span>
+                      <span class="text-xs text-text-secondary">
+                        {{ buildPatientMeta(option) }}
+                      </span>
+                    </div>
+                  </mat-option>
                 }
-            </mat-form-field>
 
-            <mat-autocomplete #patientAuto="matAutocomplete" autoActiveFirstOption>
-              @for (option of patientOptions(); track option.patientId) {
-                <mat-option
-                  [value]="buildPatientLabel(option)"
-                  (onSelectionChange)="onPatientOptionSelection($event.isUserInput, option)"
-                >
-                  <div class="flex flex-col">
-                    <span class="text-sm font-medium text-text-primary">
-                      {{ buildPatientLabel(option) }}
-                    </span>
-                    <span class="text-xs text-text-secondary">
-                      {{ buildPatientMeta(option) }}
-                    </span>
-                  </div>
-                </mat-option>
-              }
-
-              @if (isPatientsLoading) {
-                <mat-option disabled>Buscando pacientes...</mat-option>
-              } @else if (patientSearch.trim() && patientOptions().length === 0) {
-                <mat-option disabled>No se encontraron resultados</mat-option>
-              }
-            </mat-autocomplete>
-          </div>
+                @if (isPatientsLoading) {
+                  <mat-option disabled>Buscando pacientes...</mat-option>
+                } @else if (patientSearch.trim() && patientOptions().length === 0) {
+                  <mat-option disabled>No se encontraron resultados</mat-option>
+                }
+              </mat-autocomplete>
+            </div>
+          } @else {
+            <div class="rounded-2xl border border-border bg-surface px-4 py-3">
+              <p class="text-xs font-bold uppercase tracking-wider text-text-secondary">Mascota</p>
+              <p class="mt-1 text-sm font-semibold text-text-primary">{{ presetPatientLabel }}</p>
+            </div>
+          }
         </section>
 
         <section class="grid gap-4">
@@ -168,30 +175,37 @@
           <h3 class="text-xs font-bold uppercase tracking-wider text-brand">Detalle</h3>
 
           <div class="grid grid-cols-1 gap-4">
-            <div class="flex flex-col gap-2">
-              <label class="text-sm font-semibold text-text-primary">Razon de la cita</label>
-              <mat-form-field
-                appearance="outline"
-                subscriptSizing="dynamic"
-                class="appointment-create-field w-full"
-              >
-                <mat-select
-                  [ngModel]="reason"
-                  (ngModelChange)="reason = $event"
-                  [errorStateMatcher]="reasonErrorStateMatcher"
-                  panelClass="appointment-reason-panel"
-                  placeholder="Selecciona un motivo"
-                  class="text-sm text-text-primary"
+            @if (shouldShowReasonSelector()) {
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-text-primary">Razon de la cita</label>
+                <mat-form-field
+                  appearance="outline"
+                  subscriptSizing="dynamic"
+                  class="appointment-create-field w-full"
                 >
-                  @for (option of reasonOptions; track option.value) {
-                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  <mat-select
+                    [ngModel]="reason"
+                    (ngModelChange)="reason = $event"
+                    [errorStateMatcher]="reasonErrorStateMatcher"
+                    panelClass="appointment-reason-panel"
+                    placeholder="Selecciona un motivo"
+                    class="text-sm text-text-primary"
+                  >
+                    @for (option of reasonOptions; track option.value) {
+                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                    }
+                  </mat-select>
+                  @if (isReasonInvalid()) {
+                    <mat-error>Selecciona la razon de la cita.</mat-error>
                   }
-                </mat-select>
-                @if (isReasonInvalid()) {
-                  <mat-error>Selecciona la razon de la cita.</mat-error>
-                }
-              </mat-form-field>
-            </div>
+                </mat-form-field>
+              </div>
+            } @else {
+              <div class="rounded-2xl border border-border bg-surface px-4 py-3">
+                <p class="text-xs font-bold uppercase tracking-wider text-text-secondary">Motivo</p>
+                <p class="mt-1 text-sm font-semibold text-text-primary">{{ lockedReasonLabel() }}</p>
+              </div>
+            }
 
             <div class="flex flex-col gap-2">
               <label class="flex items-center gap-2 text-sm font-semibold text-text-primary">
@@ -219,11 +233,11 @@
     </div>
 
     <div class="shrink-0 border-t border-border bg-surface px-5 py-4">
-      @if (submitError) {
+      @if (externalError || submitError) {
         <div
           class="mb-3 whitespace-pre-line rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
         >
-          {{ submitError }}
+          {{ externalError || submitError }}
         </div>
       }
 
@@ -231,7 +245,7 @@
         <button
           type="button"
           (click)="close()"
-          [disabled]="isSaving"
+          [disabled]="isSaving || externalSubmitting"
           class="inline-flex cursor-pointer items-center rounded-xl px-4 py-2 text-sm font-bold text-text-secondary transition-all hover:bg-background disabled:cursor-not-allowed disabled:opacity-60"
         >
           Cancelar
@@ -240,10 +254,10 @@
         <button
           type="button"
           (click)="save()"
-          [disabled]="isSaving"
+          [disabled]="isSaving || externalSubmitting"
           class="inline-flex cursor-pointer items-center rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {{ isSaving ? 'Guardando...' : 'Guardar turno' }}
+          {{ isSaving || externalSubmitting ? 'Guardando...' : submitLabel }}
         </button>
       </div>
     </div>

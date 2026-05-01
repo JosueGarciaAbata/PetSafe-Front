@@ -67,6 +67,15 @@ export class AdoptionsPageComponent implements OnInit {
     void this.router.navigate(['/adoption', adoptionId, 'edit']);
   }
 
+  protected markAsAdopted(event: Event, adoptionId: number): void {
+    event.stopPropagation();
+    if (!confirm('¿Marcar esta mascota como adoptada? Ya no aparecerá en el catálogo de la app móvil.')) return;
+    void this.adoptionsApi.update(adoptionId, { status: 'ADOPTADO' }).subscribe({
+      next: () => void this.loadAdoptions(this.meta.currentPage),
+      error: () => alert('No se pudo actualizar el estado.'),
+    });
+  }
+
   protected getInitials(name: string): string {
     return name.trim().charAt(0).toUpperCase() || 'A';
   }
