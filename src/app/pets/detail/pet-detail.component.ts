@@ -4,9 +4,14 @@ import {
   Component,
   OnInit,
   inject,
+  ElementRef,
+  ViewChild,
+  AfterViewInit,
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { CatalogAdminApiService } from '@app/catalogs/admin/api/catalog-admin-api.service';
@@ -15,12 +20,19 @@ import { resolveApiErrorMessage } from '@app/core/errors/api-error-message.util'
 import { AuthService } from '@app/core/auth/auth.service';
 import { AppToastService } from '@app/core/ui/app-toast.service';
 import { EncountersApiService } from '@app/encounters/api/encounters-api.service';
+import { ClinicalCasesApiService } from '@app/clinical-cases/api/clinical-cases-api.service';
+import {
+  ClinicalCaseDetail,
+  ClinicalCaseSummary,
+} from '@app/clinical-cases/models/clinical-case.model';
 import { InitializeVaccinationPlanModalComponent } from '../vaccination/initialize-vaccination-plan-modal.component';
 import {
   PetBasicDetailApiResponse,
   PetClinicalObservationApiResponse,
+  PetRecentActivityApiResponse,
   PetRecentConsultationActivityApiResponse,
   PetProcedureHistoryApiResponse,
+  PetTreatmentHistoryApiResponse,
 } from '../models/pet-detail.model';
 import {
   PetSurgeryApiResponse,
@@ -38,41 +50,64 @@ import { PetSurgeryModalComponent } from '../components/pet-surgery-modal.compon
 import { QueueApiService } from '@app/queue/api/queue-api.service';
 import { QueueEntryRecord } from '@app/queue/models/queue.model';
 import { QueueEntryDetailModalComponent } from '@app/queue/components/queue-entry-detail-modal.component';
+import { CreateAppointmentModalComponent } from '@app/appointments/components/create-appointment-modal.component';
 
-type PetDetailTab = 'OVERVIEW' | 'SURGERIES' | 'PROCEDURES' | 'ACTIVITY';
+type PetDetailTab = 'OVERVIEW' | 'SURGERIES' | 'TREATMENTS' | 'PROCEDURES' | 'CASES' | 'ACTIVITY';
+
+const PET_DETAIL_TAB_QUERY_PARAM = 'tab';
+const PET_DETAIL_CASE_QUERY_PARAM = 'caseId';
 
 @Component({
   selector: 'app-pet-detail',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     InitializeVaccinationPlanModalComponent,
     PetSurgeryModalComponent,
     QueueEntryDetailModalComponent,
+    CreateAppointmentModalComponent,
   ],
   templateUrl: './pet-detail.component.html',
   styleUrl: './pet-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PetDetailComponent implements OnInit {
+export class PetDetailComponent implements OnInit, AfterViewInit {
+  @ViewChild('qrCanvas') qrCanvasRef?: ElementRef<HTMLCanvasElement>;
   private readonly petsApi = inject(PetsApiService);
   private readonly catalogAdminApi = inject(CatalogAdminApiService);
   private readonly vaccinationApi = inject(PatientVaccinationApiService);
   private readonly queueApi = inject(QueueApiService);
   private readonly encountersApi = inject(EncountersApiService);
+  private readonly clinicalCasesApi = inject(ClinicalCasesApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly authService = inject(AuthService);
   private readonly toast = inject(AppToastService);
   private requestVersion = 0;
+  private readonly clinicalCaseDetailCache = new Map<number, ClinicalCaseDetail>();
+  private currentPetId: number | null = null;
   private backTarget: readonly (string | number)[] = ['/pets'];
   protected backLabel = 'Volver a mascotas';
   protected activeTab: PetDetailTab = 'OVERVIEW';
+  protected showQrPanel = false;
+
+  protected toggleQrPanel(): void {
+    this.showQrPanel = !this.showQrPanel;
+    this.cdr.markForCheck();
+  }
+
+  protected closeQrPanel(): void {
+    this.showQrPanel = false;
+    this.cdr.markForCheck();
+  }
   protected readonly detailTabs: Array<{ id: PetDetailTab; label: string }> = [
     { id: 'OVERVIEW', label: 'Resumen' },
     { id: 'SURGERIES', label: 'Cirugías' },
+    { id: 'TREATMENTS', label: 'Tratamientos' },
     { id: 'PROCEDURES', label: 'Procedimientos' },
+    { id: 'CASES', label: 'Casos clínicos' },
     { id: 'ACTIVITY', label: 'Actividad reciente' },
   ];
   // El control de relaciones tutor-mascota ya existe y quedó desacoplado
@@ -93,6 +128,8 @@ export class PetDetailComponent implements OnInit {
         return;
       }
 
+      const parsedPetId = Number.parseInt(petId, 10);
+      this.currentPetId = Number.isFinite(parsedPetId) ? parsedPetId : null;
       const requestToken = ++this.requestVersion;
       this.isLoading = true;
       this.loadError = null;
@@ -104,6 +141,16 @@ export class PetDetailComponent implements OnInit {
       this.isRecentConsultationModalOpen = false;
       this.selectedRecentConsultationEntry = null;
       this.recentConsultationLoadingEncounterId = null;
+      this.activityData = null;
+      this.isActivityLoading = false;
+      this.activityLoadError = null;
+      this.activityDateFrom = '';
+      this.activityDateTo = '';
+      this.selectedClinicalCaseId = null;
+      this.selectedClinicalCaseDetail = null;
+      this.clinicalCaseDetailError = null;
+      this.clinicalCaseLoadingId = null;
+      this.clinicalCaseDetailCache.clear();
       this.activeTab = 'OVERVIEW';
       this.cdr.detectChanges();
       void this.loadPet(petId, requestToken);
@@ -114,6 +161,7 @@ export class PetDetailComponent implements OnInit {
   protected isLoading = false;
   protected loadError: string | null = null;
   protected pet: PetBasicDetailApiResponse | null = null;
+  protected qrDataUrl: string | null = null;
   protected isVaccinationLoading = false;
   protected vaccinationLoadError: string | null = null;
   protected vaccinationPlan: PatientVaccinationPlan | null = null;
@@ -130,6 +178,25 @@ export class PetDetailComponent implements OnInit {
   protected isRecentConsultationModalOpen = false;
   protected selectedRecentConsultationEntry: QueueEntryRecord | null = null;
   protected recentConsultationLoadingEncounterId: number | null = null;
+  protected activityData: PetRecentActivityApiResponse | null = null;
+  protected isActivityLoading = false;
+  protected activityLoadError: string | null = null;
+  protected activityDateFrom = '';
+  protected activityDateTo = '';
+  protected selectedClinicalCaseId: number | null = null;
+  protected selectedClinicalCaseDetail: ClinicalCaseDetail | null = null;
+  protected clinicalCaseLoadingId: number | null = null;
+  protected clinicalCaseDetailError: string | null = null;
+  protected isClinicalCaseFollowUpModalOpen = false;
+  protected clinicalCaseFollowUpError: string | null = null;
+  protected isClinicalCaseFollowUpSubmitting = false;
+  protected isConsultationCaseLinkModalOpen = false;
+  protected consultationCaseLinkError: string | null = null;
+  protected isConsultationCaseLinkSubmitting = false;
+  protected consultationToLink: PetRecentConsultationActivityApiResponse | null = null;
+  protected consultationCaseLinkMode: 'EXISTING' | 'NEW' = 'EXISTING';
+  protected consultationCaseId: number | null = null;
+  protected consultationProblemSummary = '';
 
   protected goBack(): void {
     void this.router.navigate(this.backTarget, { replaceUrl: true });
@@ -163,6 +230,14 @@ export class PetDetailComponent implements OnInit {
 
   protected setActiveTab(tab: PetDetailTab): void {
     this.activeTab = tab;
+    this.persistPetDetailViewState();
+
+    if (tab === 'CASES' && this.clinicalCases().length > 0) {
+      const targetCaseId = this.selectedClinicalCaseId ?? this.clinicalCases()[0].id;
+      if (this.selectedClinicalCaseId !== targetCaseId || !this.selectedClinicalCaseDetail) {
+        void this.selectClinicalCase(targetCaseId);
+      }
+    }
   }
 
   protected isActiveTab(tab: PetDetailTab): boolean {
@@ -492,24 +567,137 @@ export class PetDetailComponent implements OnInit {
   }
 
   protected recentConsultations(): PetRecentConsultationActivityApiResponse[] {
-    return this.pet?.recentActivity?.consultations ?? [];
+    return this.activityData?.consultations ?? [];
   }
 
   protected procedureHistory(): PetProcedureHistoryApiResponse[] {
     return this.pet?.procedures ?? [];
   }
 
+  protected treatmentHistory(): PetTreatmentHistoryApiResponse[] {
+    return this.pet?.treatments ?? [];
+  }
+
   protected hasRecentConsultations(): boolean {
     return this.recentConsultations().length > 0;
+  }
+
+  protected hasTreatmentHistory(): boolean {
+    return this.treatmentHistory().length > 0;
   }
 
   protected hasProcedureHistory(): boolean {
     return this.procedureHistory().length > 0;
   }
 
+  protected clinicalCases(): ClinicalCaseSummary[] {
+    return this.pet?.clinicalCases ?? [];
+  }
+
+  protected hasClinicalCases(): boolean {
+    return this.clinicalCases().length > 0;
+  }
+
+  protected isClinicalCaseSelected(caseId: number): boolean {
+    return this.selectedClinicalCaseId === caseId;
+  }
+
+  protected selectedClinicalCaseSummary(): ClinicalCaseSummary | null {
+    if (!this.selectedClinicalCaseId) {
+      return null;
+    }
+
+    return this.clinicalCases().find((item) => item.id === this.selectedClinicalCaseId) ?? null;
+  }
+
+  protected buildClinicalCaseStatusLabel(status: string | null | undefined): string {
+    switch ((status ?? '').trim().toUpperCase()) {
+      case 'ABIERTO':
+        return 'Abierto';
+      case 'CERRADO':
+        return 'Resuelto';
+      case 'CANCELADO':
+        return 'Cancelado';
+      default:
+        return 'Sin estado';
+    }
+  }
+
+  protected buildClinicalCaseStatusClasses(status: string | null | undefined): string {
+    switch ((status ?? '').trim().toUpperCase()) {
+      case 'ABIERTO':
+        return 'ps-tone ps-tone--info ps-tone-surface';
+      case 'CERRADO':
+        return 'ps-tone ps-tone--success ps-tone-surface';
+      case 'CANCELADO':
+        return 'ps-tone ps-tone--danger ps-tone-surface';
+      default:
+        return 'rounded-full border border-border bg-background text-text-secondary';
+    }
+  }
+
+  protected buildTreatmentEvolutionLabel(eventType: string | null | undefined): string {
+    switch ((eventType ?? '').trim().toUpperCase()) {
+      case 'CONTINUA':
+        return 'Continuado';
+      case 'SUSPENDE':
+        return 'Suspendido';
+      case 'FINALIZA':
+        return 'Finalizado';
+      case 'REEMPLAZA':
+        return 'Reemplazado';
+      default:
+        return 'Sin evolución';
+    }
+  }
+
+  protected buildTreatmentEvolutionClasses(eventType: string | null | undefined): string {
+    switch ((eventType ?? '').trim().toUpperCase()) {
+      case 'CONTINUA':
+        return 'ps-tone ps-tone--info ps-tone-surface';
+      case 'SUSPENDE':
+        return 'ps-tone ps-tone--warning ps-tone-surface';
+      case 'FINALIZA':
+        return 'ps-tone ps-tone--danger ps-tone-surface';
+      case 'REEMPLAZA':
+        return 'ps-tone ps-tone--attention ps-tone-surface';
+      default:
+        return 'rounded-full border border-border bg-background text-text-secondary';
+    }
+  }
+
+  protected buildCaseTreatmentStatusLabel(status: string | null | undefined): string {
+    switch ((status ?? '').trim().toUpperCase()) {
+      case 'FINALIZADO':
+        return 'Finalizado';
+      case 'SUSPENDIDO':
+        return 'Suspendido';
+      case 'CANCELADO':
+        return 'Cancelado';
+      default:
+        return 'Activo';
+    }
+  }
+
+  protected buildCaseTreatmentStatusClasses(status: string | null | undefined): string {
+    switch ((status ?? '').trim().toUpperCase()) {
+      case 'FINALIZADO':
+        return 'ps-tone ps-tone--success ps-tone-surface';
+      case 'SUSPENDIDO':
+        return 'ps-tone ps-tone--warning ps-tone-surface';
+      case 'CANCELADO':
+        return 'ps-tone ps-tone--danger ps-tone-surface';
+      default:
+        return 'ps-tone ps-tone--info ps-tone-surface';
+    }
+  }
+
   protected recentActivityWindowLabel(): string {
-    const start = this.pet?.recentActivity?.windowStart;
-    return start ? `Último mes · desde ${start.slice(0, 10)}` : 'Último mes';
+    if (!this.activityData) {
+      return 'Sin rango cargado';
+    }
+
+    return `${this.activityData.windowStart.slice(0, 10)} · ${this.activityData.windowEnd.slice(0, 10)}`;
   }
 
   protected buildEncounterStatusLabel(status: string | null | undefined): string {
@@ -557,37 +745,275 @@ export class PetDetailComponent implements OnInit {
     return item.clinicianName?.trim() || 'Sin MVZ registrado';
   }
 
+  protected buildTreatmentHistoryMeta(item: PetTreatmentHistoryApiResponse): string {
+    const parts = [
+      `Consulta #${item.patientConsultationNumber}`,
+      `Inicio ${item.startDate.slice(0, 10)}`,
+    ];
+    if (item.clinicalCaseProblem?.trim()) {
+      parts.push(item.clinicalCaseProblem.trim());
+    }
+
+    return parts.join(' · ');
+  }
+
+  protected openTreatmentDetail(treatmentId: number): void {
+    if (!this.pet) {
+      return;
+    }
+
+    void this.router.navigate(['/treatments', treatmentId], {
+      state: {
+        backTarget: ['/pets', this.pet.id],
+        backLabel: 'Volver al detalle de mascota',
+      },
+    });
+  }
+
+  protected setActivityRangePresetToLastMonth(): void {
+    const end = new Date();
+    const start = new Date(end);
+    start.setMonth(start.getMonth() - 1);
+    this.activityDateFrom = this.toDateInputValue(start);
+    this.activityDateTo = this.toDateInputValue(end);
+  }
+
+  protected async applyActivityFilters(): Promise<void> {
+    if (!this.pet || this.isActivityLoading) {
+      return;
+    }
+
+    await this.loadActivity(this.pet.id, this.requestVersion, {
+      from: this.activityDateFrom || null,
+      to: this.activityDateTo || null,
+    });
+  }
+
+  protected async resetActivityFilters(): Promise<void> {
+    if (!this.pet || this.isActivityLoading) {
+      return;
+    }
+
+    this.setActivityRangePresetToLastMonth();
+    await this.loadActivity(this.pet.id, this.requestVersion, {
+      from: this.activityDateFrom,
+      to: this.activityDateTo,
+    });
+  }
+
   protected isRecentConsultationLoading(
     item: PetRecentConsultationActivityApiResponse,
   ): boolean {
     return this.recentConsultationLoadingEncounterId === item.id;
   }
 
-  protected async openRecentConsultationDetail(
-    item: PetRecentConsultationActivityApiResponse,
-  ): Promise<void> {
-    if (this.recentConsultationLoadingEncounterId !== null) {
+  protected async selectClinicalCase(caseId: number): Promise<void> {
+    if (this.clinicalCaseLoadingId !== null && this.clinicalCaseLoadingId !== caseId) {
       return;
     }
 
-    this.recentConsultationLoadingEncounterId = item.id;
+    this.selectedClinicalCaseId = caseId;
+    this.activeTab = 'CASES';
+    this.clinicalCaseDetailError = null;
+    this.persistPetDetailViewState();
+
+    const cached = this.clinicalCaseDetailCache.get(caseId);
+    if (cached) {
+      this.selectedClinicalCaseDetail = cached;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.clinicalCaseLoadingId = caseId;
     this.cdr.detectChanges();
 
     try {
-      this.selectedRecentConsultationEntry = await firstValueFrom(
-        this.queueApi.getEntryByEncounter(item.id),
-      );
-      this.isRecentConsultationModalOpen = true;
+      const detail = await firstValueFrom(this.clinicalCasesApi.getById(caseId));
+      this.clinicalCaseDetailCache.set(caseId, detail);
+      if (this.selectedClinicalCaseId === caseId) {
+        this.selectedClinicalCaseDetail = detail;
+      }
     } catch (error: unknown) {
-      this.toast.error(
-        resolveApiErrorMessage(error, {
-          defaultMessage: 'No se pudo abrir el detalle operativo de la consulta.',
-        }),
-      );
+      if (this.selectedClinicalCaseId === caseId) {
+        this.selectedClinicalCaseDetail = null;
+        this.clinicalCaseDetailError = resolveApiErrorMessage(error, {
+          defaultMessage: 'No se pudo cargar el detalle del caso clínico.',
+        });
+      }
     } finally {
-      this.recentConsultationLoadingEncounterId = null;
+      if (this.clinicalCaseLoadingId === caseId) {
+        this.clinicalCaseLoadingId = null;
+      }
       this.cdr.detectChanges();
     }
+  }
+
+  protected canScheduleSelectedClinicalCase(): boolean {
+    return this.selectedClinicalCaseDetail?.status === 'ABIERTO';
+  }
+
+  protected openClinicalCaseFollowUpModal(): void {
+    if (!this.pet || !this.selectedClinicalCaseDetail || !this.canScheduleSelectedClinicalCase()) {
+      return;
+    }
+
+    this.clinicalCaseFollowUpError = null;
+    this.isClinicalCaseFollowUpModalOpen = true;
+    this.cdr.detectChanges();
+  }
+
+  protected closeClinicalCaseFollowUpModal(): void {
+    if (this.isClinicalCaseFollowUpSubmitting) {
+      return;
+    }
+
+    this.isClinicalCaseFollowUpModalOpen = false;
+    this.clinicalCaseFollowUpError = null;
+    this.cdr.detectChanges();
+  }
+
+  protected async submitClinicalCaseFollowUp(payload: {
+    scheduledDate: string;
+    scheduledTime: string;
+    endTime: string;
+    notes?: string | null;
+  }): Promise<void> {
+    if (!this.selectedClinicalCaseDetail || this.isClinicalCaseFollowUpSubmitting) {
+      return;
+    }
+
+    this.isClinicalCaseFollowUpSubmitting = true;
+    this.clinicalCaseFollowUpError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const detail = await firstValueFrom(
+        this.clinicalCasesApi.scheduleFollowUp(this.selectedClinicalCaseDetail.id, {
+          scheduledDate: payload.scheduledDate,
+          scheduledTime: payload.scheduledTime,
+          endTime: payload.endTime,
+          notes: payload.notes ?? null,
+        }),
+      );
+
+      this.clinicalCaseDetailCache.set(detail.id, detail);
+      this.selectedClinicalCaseDetail = detail;
+      this.isClinicalCaseFollowUpModalOpen = false;
+      await this.reloadCurrentPet();
+      this.toast.success('Control clínico programado correctamente.');
+    } catch (error: unknown) {
+      this.clinicalCaseFollowUpError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo programar el control del caso clínico.',
+      });
+    } finally {
+      this.isClinicalCaseFollowUpSubmitting = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  protected canLinkConsultationToCase(item: PetRecentConsultationActivityApiResponse): boolean {
+    return item.clinicalCaseId === null;
+  }
+
+  protected openConsultationCaseLinkModal(item: PetRecentConsultationActivityApiResponse): void {
+    if (!this.canLinkConsultationToCase(item)) {
+      return;
+    }
+
+    this.consultationToLink = item;
+    this.consultationCaseLinkError = null;
+    this.consultationProblemSummary = '';
+    const openCases = this.clinicalCases().filter((clinicalCase) => clinicalCase.status === 'ABIERTO');
+    this.consultationCaseLinkMode = openCases.length > 0 ? 'EXISTING' : 'NEW';
+    this.consultationCaseId = openCases[0]?.id ?? null;
+    this.isConsultationCaseLinkModalOpen = true;
+    this.cdr.detectChanges();
+  }
+
+  protected closeConsultationCaseLinkModal(): void {
+    if (this.isConsultationCaseLinkSubmitting) {
+      return;
+    }
+
+    this.isConsultationCaseLinkModalOpen = false;
+    this.consultationCaseLinkError = null;
+    this.consultationToLink = null;
+    this.consultationProblemSummary = '';
+    this.cdr.detectChanges();
+  }
+
+  protected selectConsultationCaseLinkMode(mode: 'EXISTING' | 'NEW'): void {
+    this.consultationCaseLinkMode = mode;
+    if (mode === 'EXISTING') {
+      this.consultationProblemSummary = '';
+      this.consultationCaseId = this.clinicalCases().find((item) => item.status === 'ABIERTO')?.id ?? null;
+    } else {
+      this.consultationCaseId = null;
+    }
+  }
+
+  protected async submitConsultationCaseLink(): Promise<void> {
+    if (!this.consultationToLink || this.isConsultationCaseLinkSubmitting) {
+      return;
+    }
+
+    if (this.consultationCaseLinkMode === 'EXISTING' && !this.consultationCaseId) {
+      this.consultationCaseLinkError = 'Selecciona un caso clínico abierto.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    if (
+      this.consultationCaseLinkMode === 'NEW'
+      && !this.consultationProblemSummary.trim()
+    ) {
+      this.consultationCaseLinkError = 'Resume el problema clínico para abrir el caso nuevo.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.isConsultationCaseLinkSubmitting = true;
+    this.consultationCaseLinkError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const updated = await firstValueFrom(
+        this.encountersApi.updateClinicalCaseLink(this.consultationToLink.id, {
+          mode: this.consultationCaseLinkMode,
+          clinicalCaseId:
+            this.consultationCaseLinkMode === 'EXISTING'
+              ? (this.consultationCaseId ?? undefined)
+              : undefined,
+          problemSummary:
+            this.consultationCaseLinkMode === 'NEW'
+              ? this.consultationProblemSummary.trim()
+              : undefined,
+        }),
+      );
+
+      await this.reloadCurrentPet();
+      this.isConsultationCaseLinkModalOpen = false;
+      this.consultationToLink = null;
+      this.toast.success('La consulta se vinculó correctamente al caso clínico.');
+
+      if (updated.clinicalCaseSummary?.id) {
+        await this.selectClinicalCase(updated.clinicalCaseSummary.id);
+        this.setActiveTab('CASES');
+      }
+    } catch (error: unknown) {
+      this.consultationCaseLinkError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo vincular la consulta al caso clínico.',
+      });
+    } finally {
+      this.isConsultationCaseLinkSubmitting = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  protected async openRecentConsultationDetail(
+    item: PetRecentConsultationActivityApiResponse,
+  ): Promise<void> {
+    await this.openEncounterOperationalDetail(item.id);
   }
 
   protected closeRecentConsultationModal(): void {
@@ -632,6 +1058,18 @@ export class PetDetailComponent implements OnInit {
     }
   }
 
+  protected isClinicalCaseLoading(caseId: number): boolean {
+    return this.clinicalCaseLoadingId === caseId;
+  }
+
+  protected async openCaseConsultationDetail(encounterId: number): Promise<void> {
+    await this.openEncounterOperationalDetail(encounterId);
+  }
+
+  protected isEncounterOperationalDetailLoading(encounterId: number): boolean {
+    return this.recentConsultationLoadingEncounterId === encounterId;
+  }
+
   protected vaccinationCoveragePercent(): number {
     return Math.round(this.vaccinationPlan?.coverage.coveragePercent ?? 0);
   }
@@ -660,6 +1098,38 @@ export class PetDetailComponent implements OnInit {
     return labels.join(' - ');
   }
 
+  ngAfterViewInit(): void {}
+
+  protected petQrUrl(): string {
+    if (!this.pet?.qrToken) return '';
+    return `${environment.frontendUrl}/mascota/${this.pet.qrToken}`;
+  }
+
+  protected downloadQr(): void {
+    if (!this.qrDataUrl || !this.pet) return;
+    const link = document.createElement('a');
+    link.href = this.qrDataUrl;
+    link.download = `qr-${this.pet.name.toLowerCase().replace(/\s+/g, '-')}.png`;
+    link.click();
+  }
+
+  private async generateQr(): Promise<void> {
+    const url = this.petQrUrl();
+    if (!url) return;
+
+    try {
+      const QRCode = await import('qrcode');
+      this.qrDataUrl = await QRCode.default.toDataURL(url, {
+        width: 256,
+        margin: 2,
+        color: { dark: '#1a1a2e', light: '#ffffff' },
+      });
+      this.cdr.detectChanges();
+    } catch {
+      this.qrDataUrl = null;
+    }
+  }
+
   private async loadPet(petId: string, requestToken: number): Promise<void> {
     try {
       const response = await firstValueFrom(this.petsApi.getBasicById(petId));
@@ -669,7 +1139,16 @@ export class PetDetailComponent implements OnInit {
       }
 
       this.pet = response;
+      this.activityData = response.recentActivity ?? null;
+      if (this.activityData) {
+        this.activityDateFrom = this.activityData.windowStart.slice(0, 10);
+        this.activityDateTo = this.activityData.windowEnd.slice(0, 10);
+      } else {
+        this.setActivityRangePresetToLastMonth();
+      }
+      this.restorePetDetailViewState(Number(response.id));
       void this.ensureSurgeryCatalogLoaded();
+      void this.generateQr();
     } catch {
       if (requestToken !== this.requestVersion) {
         return;
@@ -746,6 +1225,194 @@ export class PetDetailComponent implements OnInit {
     }
 
     this.pet = await firstValueFrom(this.petsApi.getBasicById(this.pet.id));
+    this.activityData = this.pet.recentActivity ?? this.activityData;
+    this.syncPetDetailViewStateAfterReload();
+  }
+
+  private restorePetDetailViewState(petId: number): void {
+    const queryTab = this.parsePetDetailTab(this.route.snapshot.queryParamMap.get(PET_DETAIL_TAB_QUERY_PARAM));
+    const queryCaseId = this.parsePositiveNumber(
+      this.route.snapshot.queryParamMap.get(PET_DETAIL_CASE_QUERY_PARAM),
+    );
+    const storedState = this.readStoredPetDetailViewState(petId);
+    const availableCases = this.clinicalCases();
+
+    this.activeTab = queryTab ?? storedState?.tab ?? 'OVERVIEW';
+
+    const preferredCaseId = queryCaseId ?? storedState?.caseId ?? null;
+    const validCaseId = preferredCaseId !== null && availableCases.some((item) => item.id === preferredCaseId)
+      ? preferredCaseId
+      : null;
+
+    this.selectedClinicalCaseId =
+      validCaseId ?? (this.activeTab === 'CASES' && availableCases.length > 0 ? availableCases[0].id : null);
+    this.selectedClinicalCaseDetail = this.selectedClinicalCaseId
+      ? (this.clinicalCaseDetailCache.get(this.selectedClinicalCaseId) ?? null)
+      : null;
+
+    this.persistPetDetailViewState();
+
+    if (this.activeTab === 'CASES' && this.selectedClinicalCaseId) {
+      void this.selectClinicalCase(this.selectedClinicalCaseId);
+    }
+  }
+
+  private syncPetDetailViewStateAfterReload(): void {
+    if (!this.pet) {
+      return;
+    }
+
+    const availableCases = this.clinicalCases();
+    if (
+      this.selectedClinicalCaseId !== null
+      && !availableCases.some((item) => item.id === this.selectedClinicalCaseId)
+    ) {
+      this.selectedClinicalCaseId = null;
+      this.selectedClinicalCaseDetail = null;
+      this.clinicalCaseDetailError = null;
+    }
+
+    if (this.activeTab === 'CASES' && this.selectedClinicalCaseId === null && availableCases.length > 0) {
+      void this.selectClinicalCase(availableCases[0].id);
+      return;
+    }
+
+    this.persistPetDetailViewState();
+  }
+
+  private persistPetDetailViewState(): void {
+    if (!this.currentPetId) {
+      return;
+    }
+
+    localStorage.setItem(
+      this.petDetailViewStorageKey(this.currentPetId),
+      JSON.stringify({
+        tab: this.activeTab,
+        caseId: this.selectedClinicalCaseId,
+      }),
+    );
+
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        [PET_DETAIL_TAB_QUERY_PARAM]: this.activeTab,
+        [PET_DETAIL_CASE_QUERY_PARAM]:
+          this.activeTab === 'CASES' ? this.selectedClinicalCaseId : null,
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  private readStoredPetDetailViewState(
+    petId: number,
+  ): { tab: PetDetailTab; caseId: number | null } | null {
+    const rawValue = localStorage.getItem(this.petDetailViewStorageKey(petId));
+    if (!rawValue) {
+      return null;
+    }
+
+    try {
+      const parsed = JSON.parse(rawValue) as { tab?: string; caseId?: number | null };
+      const tab = this.parsePetDetailTab(parsed.tab ?? null);
+      return tab
+        ? {
+            tab,
+            caseId: this.parsePositiveNumber(parsed.caseId),
+          }
+        : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private parsePetDetailTab(value: string | null): PetDetailTab | null {
+    const normalized = (value ?? '').trim().toUpperCase();
+    return this.detailTabs.some((item) => item.id === normalized)
+      ? (normalized as PetDetailTab)
+      : null;
+  }
+
+  private parsePositiveNumber(value: number | string | null | undefined): number | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    const parsed = Number.parseInt(String(value), 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }
+
+  private petDetailViewStorageKey(petId: number): string {
+    return `pet-detail-view:${petId}`;
+  }
+
+  private async loadActivity(
+    petId: number | string,
+    requestToken: number,
+    range?: { from?: string | null; to?: string | null },
+  ): Promise<void> {
+    this.isActivityLoading = true;
+    this.activityLoadError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const response = await firstValueFrom(this.petsApi.getActivity(petId, range));
+      if (requestToken !== this.requestVersion) {
+        return;
+      }
+
+      this.activityData = response;
+      this.activityDateFrom = response.windowStart.slice(0, 10);
+      this.activityDateTo = response.windowEnd.slice(0, 10);
+    } catch (error: unknown) {
+      if (requestToken !== this.requestVersion) {
+        return;
+      }
+
+      this.activityLoadError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo cargar la actividad clínica del paciente.',
+      });
+    } finally {
+      if (requestToken !== this.requestVersion) {
+        return;
+      }
+
+      this.isActivityLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  private toDateInputValue(value: Date): string {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private async openEncounterOperationalDetail(encounterId: number): Promise<void> {
+    if (this.recentConsultationLoadingEncounterId !== null) {
+      return;
+    }
+
+    this.recentConsultationLoadingEncounterId = encounterId;
+    this.cdr.detectChanges();
+
+    try {
+      this.selectedRecentConsultationEntry = await firstValueFrom(
+        this.queueApi.getEntryByEncounter(encounterId),
+      );
+      this.isRecentConsultationModalOpen = true;
+    } catch (error: unknown) {
+      this.toast.error(
+        resolveApiErrorMessage(error, {
+          defaultMessage: 'No se pudo abrir el detalle operativo de la consulta.',
+        }),
+      );
+    } finally {
+      this.recentConsultationLoadingEncounterId = null;
+      this.cdr.detectChanges();
+    }
   }
 
   private normalizePlan(plan: PatientVaccinationPlan): PatientVaccinationPlan {

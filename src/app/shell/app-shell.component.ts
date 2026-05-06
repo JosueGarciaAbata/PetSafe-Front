@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from './sidebar.component';
 import { TopBarComponent } from './topbar.component';
+import { SocketService } from '@app/core/realtime/socket.service';
 
 @Component({
   selector: 'app-shell',
@@ -10,7 +11,12 @@ import { TopBarComponent } from './topbar.component';
   templateUrl: './app-shell.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppShellComponent {
+export class AppShellComponent implements OnInit {
+  private readonly socketService = inject(SocketService);
+
+  ngOnInit(): void {
+    this.socketService.connect();
+  }
   protected sidebarOpen = this.loadSidebarPreference();
 
   protected toggleSidebar(): void {

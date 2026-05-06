@@ -1,9 +1,12 @@
 import { PetImageApiResponse } from './pet-image.model';
 import { PetSurgeryApiResponse } from './pet-surgery.model';
+import { ClinicalCaseSummary } from '@app/clinical-cases/models/clinical-case.model';
+import { TreatmentStatusApiResponse } from '@app/treatments/models/treatment-list.model';
 
 export interface PetBasicDetailApiResponse {
   id: number;
   name: string;
+  qrToken: string | null;
   species: PetDetailCatalogApiResponse | null;
   breed: PetDetailCatalogApiResponse | null;
   sex: string | null;
@@ -18,7 +21,10 @@ export interface PetBasicDetailApiResponse {
   tutors: PetTutorApiResponse[];
   clinicalObservations: PetClinicalObservationApiResponse[];
   surgeries: PetSurgeryApiResponse[];
+  activeTreatments: PetActiveTreatmentApiResponse[];
+  treatments: PetTreatmentHistoryApiResponse[];
   procedures: PetProcedureHistoryApiResponse[];
+  clinicalCases: ClinicalCaseSummary[];
   recentActivity: PetRecentActivityApiResponse | null;
 }
 
@@ -56,6 +62,7 @@ export interface AddPetTutorRequest {
 export interface PetRecentConsultationActivityApiResponse {
   id: number;
   patientConsultationNumber: number;
+  clinicalCaseId: number | null;
   startTime: string;
   status: string;
   clinicianName: string | null;
@@ -81,6 +88,31 @@ export interface PetProcedureHistoryApiResponse {
   description: string | null;
   result: string | null;
   notes: string | null;
+}
+
+export interface PetActiveTreatmentApiResponse {
+  id: number;
+  encounterId: number;
+  clinicalCaseId: number | null;
+  clinicalCaseProblem: string | null;
+  status: TreatmentStatusApiResponse;
+  summary: string;
+  startDate: string;
+  endDate: string | null;
+  generalInstructions: string | null;
+}
+
+export interface PetTreatmentHistoryApiResponse {
+  id: number;
+  encounterId: number;
+  patientConsultationNumber: number;
+  clinicalCaseId: number | null;
+  clinicalCaseProblem: string | null;
+  status: TreatmentStatusApiResponse;
+  summary: string;
+  startDate: string;
+  endDate: string | null;
+  generalInstructions: string | null;
 }
 
 export interface PetRecentSurgeryActivityApiResponse {

@@ -1,0 +1,186 @@
+<div class="page-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Solicitudes de cita</h1>
+      <p class="page-subtitle">Gestiona las solicitudes enviadas desde la app móvil</p>
+    </div>
+    <button type="button" class="btn btn--outline" (click)="load()">
+      Actualizar
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="notif-filters">
+    @for (f of filters; track f) {
+      <button
+        type="button"
+        class="notif-filter-chip"
+        [class.notif-filter-chip--active]="filterStatus === f"
+        (click)="filterStatus = f"
+      >
+        {{ f === 'TODOS' ? 'Todas' : getStatusLabel(f) }}
+        @if (f === 'PENDIENTE') {
+          <span class="notif-badge">{{ pendingCount }}</span>
+        }
+      </button>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading) {
+    <div class="notif-state">
+      <div class="spinner"></div>
+      <p>Cargando solicitudes...</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (!isLoading && loadError) {
+    <div class="notif-state notif-state--error">
+      <p>{{ loadError }}</p>
+      <button type="button" class="btn btn--primary" (click)="load()">Reintentar</button>
+    </div>
+  }
+
+  <!-- Empty -->
+  @if (!isLoading && !loadError && visibleRequests.length === 0) {
+    <div class="notif-state">
+      <p>No hay solicitudes{{ filterStatus !== 'TODOS' ? ' con ese estado' : '' }}.</p>
+    </div>
+  }
+
+  <!-- List -->
+  @if (!isLoading && !loadError && visibleRequests.length > 0) {
+    <div class="notif-list">
+      @for (r of visibleRequests; track r.id) {
+        <div
+          class="notif-card"
+          [class.notif-card--pending]="r.status === 'PENDIENTE'"
+          (click)="openDetail(r)"
+          role="button"
+          tabindex="0"
+        >
+          <div class="notif-card__top">
+            <div class="notif-card__info">
+              <span class="notif-card__client">{{ clientName(r) }}</span>
+              @if (r.patient) {
+                <span class="notif-card__patient">Mascota: {{ r.patient.name }}</span>
+              }
+            </div>
+            <span class="notif-status-pill notif-status-pill--{{ statusColors[r.status] }}">
+              {{ statusLabels[r.status] }}
+            </span>
+          </div>
+          <p class="notif-card__reason">{{ r.reason }}</p>
+          <div class="notif-card__meta">
+            @if (r.preferredDate) {
+              <span>📅 {{ formatDate(r.preferredDate) }}{{ r.preferredTime ? ' · ' + r.preferredTime : '' }}</span>
+            }
+            <span class="notif-card__time">{{ formatDateTime(r.createdAt) }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Detail modal -->
+@if (selectedRequest) {
+  <div class="modal-overlay" (click)="closeDetail()">
+    <div class="modal-panel" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Solicitud de cita</h2>
+        <button type="button" class="modal-close" (click)="closeDetail()" aria-label="Cerrar">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-info-row">
+          <span class="modal-label">Cliente</span>
+          <span class="modal-value">{{ clientName(selectedRequest) }}</span>
+        </div>
+        @if (selectedRequest.patient) {
+          <div class="modal-info-row">
+            <span class="modal-label">Mascota</span>
+            <span class="modal-value">{{ selectedRequest.patient.name }}</span>
+          </div>
+        }
+        <div class="modal-info-row">
+          <span class="modal-label">Estado</span>
+          <span class="notif-status-pill notif-status-pill--{{ statusColors[selectedRequest.status] }}">
+            {{ statusLabels[selectedRequest.status] }}
+          </span>
+        </div>
+        @if (selectedRequest.preferredDate) {
+          <div class="modal-info-row">
+            <span class="modal-label">Fecha preferida</span>
+            <span class="modal-value">{{ formatDate(selectedRequest.preferredDate) }}{{ selectedRequest.preferredTime ? ' · ' + selectedRequest.preferredTime : '' }}</span>
+          </div>
+        }
+        <div class="modal-section">
+          <span class="modal-label">Motivo</span>
+          <p class="modal-text">{{ selectedRequest.reason }}</p>
+        </div>
+        @if (selectedRequest.staffNotes) {
+          <div class="modal-section">
+            <span class="modal-label">Nota del staff</span>
+            <p class="modal-text">{{ selectedRequest.staffNotes }}</p>
+          </div>
+        }
+        @if (selectedRequest.status === 'PENDIENTE') {
+          @if (conflictError) {
+            <div class="conflict-banner">
+              <span class="conflict-icon">⚠️</span>
+              <span>{{ conflictError }}</span>
+            </div>
+          }
+          <div class="modal-section">
+            <span class="modal-label">Fecha de la cita</span>
+            <input
+              type="date"
+              class="modal-input"
+              [(ngModel)]="rescheduleDate"
+              (change)="onDateTimeChange()"
+            />
+          </div>
+          <div class="modal-section">
+            <span class="modal-label">Hora de la cita</span>
+            <input
+              type="time"
+              class="modal-input"
+              [(ngModel)]="rescheduleTime"
+              (change)="onDateTimeChange()"
+            />
+            @if (isCheckingAvailability) {
+              <small class="availability-checking">Verificando disponibilidad...</small>
+            }
+          </div>
+          <div class="modal-section">
+            <label class="modal-label" for="staffNotes">Nota (opcional)</label>
+            <textarea
+              id="staffNotes"
+              class="modal-textarea"
+              rows="3"
+              [(ngModel)]="staffNotes"
+              placeholder="Agrega un comentario para el cliente..."
+            ></textarea>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn--danger" [disabled]="isSaving" (click)="reject()">
+              Rechazar
+            </button>
+            <button
+              type="button"
+              class="btn btn--success"
+              [disabled]="isSaving || hasConflict || isCheckingAvailability"
+              [title]="hasConflict ? 'Hay un conflicto de horario. Cambia la fecha u hora.' : ''"
+              (click)="confirm()"
+            >
+              {{ isSaving ? 'Guardando...' : 'Confirmar cita' }}
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

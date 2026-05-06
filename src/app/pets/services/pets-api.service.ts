@@ -9,13 +9,16 @@ import {
 import { PetCreateResponseApiResponse } from '../models/pet-create-response.model';
 import {
   AddPetTutorRequest,
+  PetActiveTreatmentApiResponse,
   PetBasicDetailApiResponse,
   PetClinicalObservationApiResponse,
   PetDetailCatalogApiResponse,
   PetProcedureHistoryApiResponse,
   PetRecentActivityApiResponse,
+  PetTreatmentHistoryApiResponse,
   PetTutorApiResponse,
 } from '../models/pet-detail.model';
+import { ClinicalCaseSummary } from '@app/clinical-cases/models/clinical-case.model';
 import { PetListApiResponse, PetListQuery } from '../models/pet-list.model';
 import {
   PetSurgeryApiResponse,
@@ -60,6 +63,27 @@ export class PetsApiService {
     return this.http
       .get<PatientDetailResponse>(buildApiUrl(`patients/admin/${encodeURIComponent(String(id))}/basic`))
       .pipe(map((response) => this.mapPatientDetail(response)));
+  }
+
+  getActivity(
+    id: number | string,
+    query?: { from?: string | null; to?: string | null },
+  ): Observable<PetRecentActivityApiResponse> {
+    let params = new HttpParams();
+
+    const from = query?.from?.trim();
+    const to = query?.to?.trim();
+    if (from) {
+      params = params.set('from', from);
+    }
+    if (to) {
+      params = params.set('to', to);
+    }
+
+    return this.http.get<PetRecentActivityApiResponse>(
+      buildApiUrl(`patients/admin/${encodeURIComponent(String(id))}/activity`),
+      { params },
+    );
   }
 
   updateBasic(
@@ -223,6 +247,7 @@ export class PetsApiService {
     return {
       id: response.id,
       name: response.name,
+      qrToken: response.qrToken ?? null,
       species: this.mapCatalog(response.species),
       breed: this.mapCatalog(response.breed),
       sex: response.sex ?? null,
@@ -237,7 +262,10 @@ export class PetsApiService {
       tutors: [...(response.tutors ?? [])].sort((left, right) => Number(right.isPrimary) - Number(left.isPrimary)),
       clinicalObservations: response.conditions ?? response.clinicalObservations ?? [],
       surgeries: response.surgeries ?? [],
+      activeTreatments: response.activeTreatments ?? [],
+      treatments: response.treatments ?? [],
       procedures: response.procedures ?? [],
+      clinicalCases: response.clinicalCases ?? [],
       recentActivity: response.recentActivity ?? null,
     };
   }
@@ -301,6 +329,7 @@ interface PatientDetailCatalogResponse {
 interface PatientDetailResponse {
   id: number;
   name: string;
+  qrToken?: string | null;
   sex: string | null;
   birthDate: string | Date | null;
   currentWeight: number | null;
@@ -315,6 +344,9 @@ interface PatientDetailResponse {
   conditions?: PetClinicalObservationApiResponse[];
   clinicalObservations?: PetClinicalObservationApiResponse[];
   surgeries?: PetSurgeryApiResponse[];
+  activeTreatments?: PetActiveTreatmentApiResponse[];
+  treatments?: PetTreatmentHistoryApiResponse[];
   procedures?: PetProcedureHistoryApiResponse[];
+  clinicalCases?: ClinicalCaseSummary[];
   recentActivity?: PetRecentActivityApiResponse | null;
 }

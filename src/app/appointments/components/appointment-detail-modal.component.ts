@@ -66,12 +66,17 @@ export class AppointmentDetailModalComponent {
   protected get canRegisterArrival(): boolean {
     return (
       ['PROGRAMADA', 'CONFIRMADA'].includes(this.appointment.status) &&
+      Boolean(this.appointment.startsAt?.trim()) &&
       this.appointment.scheduledDate === this.buildTodayDateKey()
     );
   }
 
   protected get canMarkNoShow(): boolean {
     if (!['PROGRAMADA', 'CONFIRMADA'].includes(this.appointment.status)) {
+      return false;
+    }
+
+    if (!this.appointment.startsAt && !this.appointment.endsAt) {
       return false;
     }
 
@@ -166,6 +171,15 @@ export class AppointmentDetailModalComponent {
   }
 
   protected buildStatusHelpText(status: AppointmentStatus): string {
+    if (
+      status === 'PROGRAMADA'
+      && this.appointment.reason === 'CONTROL'
+      && !this.appointment.startsAt
+      && !this.appointment.endsAt
+    ) {
+      return 'Control pendiente de asignar hora antes del ingreso operativo.';
+    }
+
     switch (status) {
       case 'PROGRAMADA':
         return 'Pendiente de ser atendido.';

@@ -43,3 +43,13 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 /example-back
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+/system_tests/.auth/user.json
+.env.test

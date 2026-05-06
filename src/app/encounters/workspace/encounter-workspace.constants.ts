@@ -9,7 +9,6 @@ export const ENCOUNTER_TAB_ORDER: readonly TabView[] = [
   'REASON',
   'ANAMNESIS',
   'EXAM',
-  'ENVIRONMENT',
   'IMPRESSION',
   'ACTIONS',
   'PLAN',
@@ -18,18 +17,17 @@ export const ENCOUNTER_TAB_ORDER: readonly TabView[] = [
 export const ENCOUNTER_TAB_LABELS: Record<TabView, string> = {
   REASON: 'Motivo',
   ANAMNESIS: 'Anamnesis',
-  EXAM: 'Examen clínico',
-  ENVIRONMENT: 'Entorno',
-  IMPRESSION: 'Impresión',
+  EXAM: 'Datos fisiológicos',
+  IMPRESSION: 'Diagnóstico',
   ACTIONS: 'Acciones',
-  PLAN: 'Plan',
+  PLAN: 'Plan clínico',
 };
 
 export const TAB_BY_BLOCK: Record<ClinicalBlock, ClinicalTabView> = {
   reason: 'REASON',
   anamnesis: 'ANAMNESIS',
   exam: 'EXAM',
-  environment: 'ENVIRONMENT',
+  environment: 'ANAMNESIS',
   impression: 'IMPRESSION',
   plan: 'PLAN',
 };
