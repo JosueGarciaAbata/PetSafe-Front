@@ -31,6 +31,7 @@ export interface PetBasicDetailApiResponse {
 export interface PetDetailCatalogApiResponse {
   id: number;
   name: string;
+  zootecnicalGroupId?: number | null;
 }
 
 export interface PetClinicalObservationApiResponse {

@@ -51,9 +51,29 @@
 
           <div class="grid grid-cols-1 gap-5">
             <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Zootecnia</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
+                <input matInput type="text" [ngModel]="zootecnicalGroupValue" (ngModelChange)="onZootecnicalGroupChanged($event)" (blur)="markZootecnicalGroupTouched()" [errorStateMatcher]="zootecnicalGroupErrorStateMatcher" [matAutocomplete]="zootecnicalGroupAuto" autocomplete="off" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                @if (isZootecnicalGroupInvalid()) {
+                  <mat-error>Selecciona una zootecnia valida.</mat-error>
+                }
+              </mat-form-field>
+              <mat-autocomplete #zootecnicalGroupAuto="matAutocomplete" autoActiveFirstOption (optionSelected)="selectZootecnicalGroup($event.option.value)">
+                @for (option of zootecnicalGroupOptions(); track option.id) {
+                  <mat-option [value]="option.name">{{ option.name }}</mat-option>
+                }
+                @if (isZootecnicalGroupsLoading) {
+                  <mat-option disabled>Buscando zootecnias...</mat-option>
+                } @else if (zootecnicalGroupValue.trim() && zootecnicalGroupOptions().length === 0) {
+                  <mat-option disabled>No se encontraron resultados</mat-option>
+                }
+              </mat-autocomplete>
+            </div>
+
+            <div class="flex flex-col gap-2">
               <label class="text-sm font-semibold text-text-primary">Especie</label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
-                <input matInput type="text" [ngModel]="speciesValue" (ngModelChange)="onSpeciesChanged($event)" (blur)="markSpeciesTouched()" [errorStateMatcher]="speciesErrorStateMatcher" [matAutocomplete]="speciesAuto" autocomplete="off" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                <input matInput type="text" [ngModel]="speciesValue" (ngModelChange)="onSpeciesChanged($event)" (blur)="markSpeciesTouched()" [errorStateMatcher]="speciesErrorStateMatcher" [matAutocomplete]="speciesAuto" [placeholder]="resolveZootecnicalGroupByName(zootecnicalGroupValue) ? 'Buscar especie' : 'Selecciona zootecnia primero'" [disabled]="!resolveZootecnicalGroupByName(zootecnicalGroupValue)" autocomplete="off" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
                 @if (isSpeciesInvalid()) {
                   <mat-error>Selecciona una especie valida.</mat-error>
                 }

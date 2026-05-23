@@ -47,10 +47,12 @@ import {
   SpeciesApiResponse,
   SpeciesBreedApiResponse,
 } from '../models/species.model';
+import { ZootecnicalGroupApiResponse } from '../models/zootecnical-group.model';
 import { ColorsApiService } from '../services/colors-api.service';
 import { PetImageUploadService } from '../services/pet-image-upload.service';
 import { PetsApiService } from '../services/pets-api.service';
 import { SpeciesApiService } from '../services/species-api.service';
+import { ZootecnicalGroupsApiService } from '../services/zootecnical-groups-api.service';
 
 type CreatePetGender = 'Macho' | 'Hembra';
 type CreatePetSterilized = 'Si' | 'No';
@@ -86,11 +88,13 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
   private readonly petsApi = inject(PetsApiService);
   private readonly petImageUploadService = inject(PetImageUploadService);
   private readonly speciesApi = inject(SpeciesApiService);
+  private readonly zootecnicalGroupsApi = inject(ZootecnicalGroupsApiService);
   private readonly vaccinationAdminApi = inject(VaccinationAdminApiService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly toast = inject(AppToastService);
   private readonly tutorsPageSize = 10;
-  private readonly speciesPageSize = 20;
+  private readonly zootecnicalGroupsPageSize = 100;
+  private readonly speciesPageSize = 100;
   private readonly colorsPageSize = 20;
   private tutorRequestVersion = 0;
   private speciesRequestVersion = 0;
@@ -116,6 +120,9 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
   );
   protected readonly petNameErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
     this.isPetNameRequiredInvalid() || this.isPetNameInvalid(),
+  );
+  protected readonly zootecnicalGroupErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
+    this.isZootecnicalGroupInvalid(),
   );
   protected readonly speciesErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
     this.isSpeciesInvalid(),
@@ -147,6 +154,7 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
 
   protected tutorValue = '';
   protected petName = '';
+  protected zootecnicalGroupValue = '';
   protected speciesValue = '';
   protected vaccinationSchemeValue = '';
   protected breedValue = '';
@@ -162,6 +170,8 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
   protected selectedTutor: ClientTutorBasicApiResponse | null = null;
   protected tutors: ClientTutorBasicApiResponse[] = [];
   protected isTutorsLoading = false;
+  protected zootecnicalGroups: ZootecnicalGroupApiResponse[] = [];
+  protected isZootecnicalGroupsLoading = false;
   protected species: SpeciesApiResponse[] = [];
   protected isSpeciesLoading = false;
   protected vaccinationSchemes: VaccinationScheme[] = [];
@@ -175,6 +185,7 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
   protected showValidationErrors = false;
   protected hasTouchedTutor = false;
   protected hasTouchedPetName = false;
+  protected hasTouchedZootecnicalGroup = false;
   protected hasTouchedSpecies = false;
   protected submitError: string | null = null;
   protected colorCreateError: string | null = null;
@@ -192,6 +203,7 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
     }
 
     void this.loadTutors('');
+    void this.loadZootecnicalGroups();
     void this.loadSpecies('');
     void this.loadColors('');
   }
@@ -345,7 +357,18 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
   }
 
   protected speciesOptions(): SpeciesApiResponse[] {
-    return this.species;
+    return this.species.filter((item) => this.speciesBelongsToSelectedGroup(item));
+  }
+
+  protected zootecnicalGroupOptions(): ZootecnicalGroupApiResponse[] {
+    const searchTerm = this.zootecnicalGroupValue.trim().toLocaleLowerCase();
+    if (!searchTerm) {
+      return this.zootecnicalGroups;
+    }
+
+    return this.zootecnicalGroups.filter((item) =>
+      item.name.toLocaleLowerCase().includes(searchTerm),
+    );
   }
 
   protected breedOptions(): SpeciesBreedApiResponse[] {
@@ -375,6 +398,10 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
   }
 
   protected breedPlaceholder(): string {
+    if (!this.resolveZootecnicalGroupByName(this.zootecnicalGroupValue)) {
+      return 'Selecciona zootecnia primero';
+    }
+
     if (!this.speciesValue.trim()) {
       return 'Selecciona una especie primero';
     }
@@ -412,6 +439,26 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
     return this.resolveSpeciesByName(this.speciesValue) !== null;
   }
 
+  protected onZootecnicalGroupChanged(value: string): void {
+    this.hasTouchedZootecnicalGroup = true;
+    this.zootecnicalGroupValue = value;
+    this.submitError = null;
+
+    const selectedGroup = this.resolveZootecnicalGroupByName(value);
+    const selectedSpecies = this.resolveSpeciesByName(this.speciesValue);
+    if (
+      this.speciesValue.trim() &&
+      (!selectedSpecies || !this.speciesBelongsToGroup(selectedSpecies, selectedGroup))
+    ) {
+      this.resetSpeciesSelection();
+    }
+  }
+
+  protected selectZootecnicalGroup(value: string): void {
+    this.zootecnicalGroupValue = value;
+    this.onZootecnicalGroupChanged(value);
+  }
+
   protected colorOptions(): ColorApiResponse[] {
     return this.colors;
   }
@@ -421,7 +468,7 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
     this.speciesValue = value;
     this.submitError = null;
     const matchedSpecies =
-      this.species.find((item) => item.name === value.trim()) ?? null;
+      this.speciesOptions().find((item) => item.name === value.trim()) ?? null;
     if (matchedSpecies) {
       if (
         this.breedValue &&
@@ -442,7 +489,7 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
   }
 
   protected selectSpecies(value: string): void {
-    const selected = this.species.find((item) => item.name === value) ?? null;
+    const selected = this.speciesOptions().find((item) => item.name === value) ?? null;
     this.speciesValue = selected?.name ?? value;
     this.breedValue = '';
 
@@ -520,6 +567,10 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
 
   protected markPetNameTouched(): void {
     this.hasTouchedPetName = true;
+  }
+
+  protected markZootecnicalGroupTouched(): void {
+    this.hasTouchedZootecnicalGroup = true;
   }
 
   protected markSpeciesTouched(): void {
@@ -600,6 +651,13 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
     return (
       (this.showValidationErrors || this.hasTouchedSpecies) &&
       !this.resolveSpeciesByName(this.speciesValue)
+    );
+  }
+
+  protected isZootecnicalGroupInvalid(): boolean {
+    return (
+      (this.showValidationErrors || this.hasTouchedZootecnicalGroup) &&
+      !this.resolveZootecnicalGroupByName(this.zootecnicalGroupValue)
     );
   }
 
@@ -731,6 +789,27 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
       }
 
       this.isTutorsLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  private async loadZootecnicalGroups(): Promise<void> {
+    this.isZootecnicalGroupsLoading = true;
+    this.cdr.detectChanges();
+
+    try {
+      const response = await firstValueFrom(
+        this.zootecnicalGroupsApi.list({
+          page: 1,
+          limit: this.zootecnicalGroupsPageSize,
+        }),
+      );
+
+      this.zootecnicalGroups = response.data;
+    } catch {
+      this.zootecnicalGroups = [];
+    } finally {
+      this.isZootecnicalGroupsLoading = false;
       this.cdr.detectChanges();
     }
   }
@@ -890,7 +969,37 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
       return null;
     }
 
-    return this.species.find((item) => item.name === normalizedName) ?? null;
+    return this.speciesOptions().find((item) => item.name === normalizedName) ?? null;
+  }
+
+  protected resolveZootecnicalGroupByName(name: string): ZootecnicalGroupApiResponse | null {
+    const normalizedName = name.trim();
+    if (!normalizedName) {
+      return null;
+    }
+
+    return this.zootecnicalGroups.find((item) => item.name === normalizedName) ?? null;
+  }
+
+  private speciesBelongsToSelectedGroup(species: SpeciesApiResponse): boolean {
+    return this.speciesBelongsToGroup(
+      species,
+      this.resolveZootecnicalGroupByName(this.zootecnicalGroupValue),
+    );
+  }
+
+  private speciesBelongsToGroup(
+    species: SpeciesApiResponse,
+    group: ZootecnicalGroupApiResponse | null,
+  ): boolean {
+    return !group || species.zootecnicalGroupId === group.id;
+  }
+
+  private resetSpeciesSelection(): void {
+    this.speciesValue = '';
+    this.breedValue = '';
+    this.cancelVaccinationSchemeRequests();
+    this.resetVaccinationSchemes();
   }
 
   private resolveBreedByName(
@@ -991,6 +1100,7 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
     const microchipCode = normalizePetText(this.microchipCode);
     const rawWeight = this.normalizedWeightValue();
     const currentWeight = this.parseWeight();
+    const selectedZootecnicalGroup = this.resolveZootecnicalGroupByName(this.zootecnicalGroupValue);
     const selectedSpecies = this.resolveSpeciesByName(this.speciesValue);
     const selectedBreed = this.resolveBreedByName(selectedSpecies, this.breedValue);
     const birthDate = this.birthDate.trim();
@@ -1002,6 +1112,7 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
     if (
       !this.selectedTutor ||
       !isValidPetName(name) ||
+      !selectedZootecnicalGroup ||
       !selectedSpecies ||
       this.isVaccinationSchemesLoading ||
       (hasAvailableVaccinationSchemes && !this.selectedVaccinationScheme) ||
@@ -1019,6 +1130,7 @@ export class CreatePetModalComponent implements OnInit, OnDestroy {
     const payload: CreatePetRequest = {
       clientId: this.selectedTutor.id,
       name,
+      zootecnicalGroupId: selectedZootecnicalGroup.id,
       speciesId: selectedSpecies.id,
       sex: this.sex === 'Hembra' ? 'HEMBRA' : 'MACHO',
     };

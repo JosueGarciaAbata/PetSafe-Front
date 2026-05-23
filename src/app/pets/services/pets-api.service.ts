@@ -173,6 +173,7 @@ export class PetsApiService {
     const formData = new FormData();
 
     this.appendPrimitive(formData, 'name', payload.name);
+    this.appendPrimitive(formData, 'zootecnicalGroupId', payload.zootecnicalGroupId);
     this.appendPrimitive(formData, 'speciesId', payload.speciesId);
     this.appendPrimitive(formData, 'breedId', payload.breedId);
     this.appendPrimitive(formData, 'colorId', payload.colorId);
@@ -204,6 +205,7 @@ export class PetsApiService {
     const formData = new FormData();
 
     this.appendPrimitive(formData, 'name', payload.name);
+    this.appendPrimitive(formData, 'zootecnicalGroupId', payload.zootecnicalGroupId);
     this.appendPrimitive(formData, 'speciesId', payload.speciesId);
     this.appendPrimitive(formData, 'vaccinationSchemeId', payload.vaccinationSchemeId);
     this.appendPrimitive(formData, 'breedId', payload.breedId);
@@ -280,6 +282,7 @@ export class PetsApiService {
     return {
       id: value.id,
       name: value.name,
+      zootecnicalGroupId: value.zootecnicalGroupId ?? null,
     };
   }
 
@@ -324,6 +327,7 @@ export class PetsApiService {
 interface PatientDetailCatalogResponse {
   id: number;
   name: string;
+  zootecnicalGroupId?: number | null;
 }
 
 interface PatientDetailResponse {

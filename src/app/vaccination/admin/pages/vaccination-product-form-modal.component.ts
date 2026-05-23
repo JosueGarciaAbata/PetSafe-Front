@@ -142,6 +142,7 @@ export class VaccinationProductFormModalComponent implements OnChanges {
       ?? (this.product
         ? {
             id: this.product.species.id,
+            zootecnicalGroupId: 0,
             name: this.product.species.name,
             breeds: [],
           }

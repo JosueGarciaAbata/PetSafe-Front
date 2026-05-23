@@ -3,6 +3,7 @@ import { UpsertPetSurgeryRequest } from './pet-surgery.model';
 export interface CreatePetRequest {
   clientId?: number;
   name: string;
+  zootecnicalGroupId?: number;
   speciesId: number;
   vaccinationSchemeId?: number;
   breedId?: number;
@@ -20,6 +21,7 @@ export interface CreatePetRequest {
 
 export interface CreatePetWithoutTutorRequest {
   name: string;
+  zootecnicalGroupId?: number;
   speciesId: number;
   vaccinationSchemeId?: number;
   sex: 'MACHO' | 'HEMBRA';
