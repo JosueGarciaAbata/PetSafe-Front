@@ -63,9 +63,9 @@
   --ps-sidebar-child-dot-hover: #7c9694;
 
   /* Topbar */
-  --ps-topbar-panel-bg: rgba(255, 255, 255, 0.88);
-  --ps-topbar-panel-border: rgba(220, 227, 232, 0.6);
-  --ps-topbar-shadow: rgba(26, 46, 53, 0.08);
+  --ps-topbar-panel-bg: var(--ps-active-soft);
+  --ps-topbar-panel-border: rgba(47, 96, 94, 0.15);
+  --ps-topbar-shadow: transparent;
   --ps-topbar-pill-bg: rgba(238, 242, 244, 0.85);
   --ps-topbar-pill-border: rgba(220, 227, 232, 0.5);
   --ps-topbar-pill-border-strong: rgba(47, 96, 94, 0.3);
@@ -132,9 +132,9 @@
   --ps-sidebar-child-dot-hover: rgba(255, 255, 255, 0.4);
 
   /* Topbar */
-  --ps-topbar-panel-bg: rgba(26, 32, 40, 0.82);
+  --ps-topbar-panel-bg: rgba(95, 184, 180, 0.08); /* Dark brand tone */
   --ps-topbar-panel-border: rgba(255, 255, 255, 0.06);
-  --ps-topbar-shadow: rgba(0, 0, 0, 0.25);
+  --ps-topbar-shadow: transparent;
   --ps-topbar-pill-bg: rgba(255, 255, 255, 0.06);
   --ps-topbar-pill-border: rgba(255, 255, 255, 0.08);
   --ps-topbar-pill-border-strong: rgba(95, 184, 180, 0.3);

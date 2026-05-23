@@ -6,6 +6,8 @@ import { TreatmentStatusApiResponse } from '@app/treatments/models/treatment-lis
 export interface PetBasicDetailApiResponse {
   id: number;
   name: string;
+  code: string;
+  microchipCode: string | null;
   qrToken: string | null;
   species: PetDetailCatalogApiResponse | null;
   breed: PetDetailCatalogApiResponse | null;

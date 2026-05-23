@@ -249,6 +249,8 @@ export class PetsApiService {
     return {
       id: response.id,
       name: response.name,
+      code: response.code ?? '',
+      microchipCode: response.microchipCode ?? null,
       qrToken: response.qrToken ?? null,
       species: this.mapCatalog(response.species),
       breed: this.mapCatalog(response.breed),
@@ -333,6 +335,8 @@ interface PatientDetailCatalogResponse {
 interface PatientDetailResponse {
   id: number;
   name: string;
+  code?: string;
+  microchipCode?: string | null;
   qrToken?: string | null;
   sex: string | null;
   birthDate: string | Date | null;

@@ -203,6 +203,28 @@
             </mat-form-field>
           </div>
 
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+              <label class="text-sm font-semibold text-text-primary">Peso (kg)</label>
+              <span class="text-xs font-medium text-text-secondary">Opcional</span>
+            </div>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+              <input
+                matInput
+                type="number"
+                step="0.01"
+                min="0.01"
+                max="999.99"
+                formControlName="weightKg"
+                placeholder="Ej. 12.5"
+                class="text-sm text-text-primary placeholder:text-text-secondary/50"
+              />
+              @if (hasError('weightKg')) {
+                <mat-error>El peso debe estar entre 0.01 y 999.99 kg.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
           @if (showDoctorField && requiresDoctorSelection()) {
             <div class="flex flex-col gap-2">
               <div class="flex items-center gap-2">
@@ -411,6 +433,8 @@
               </mat-form-field>
             </div>
             }
+
+
 
             <div class="flex flex-col gap-2 lg:col-span-2">
               <label class="flex items-center gap-2 text-sm font-semibold text-text-primary">

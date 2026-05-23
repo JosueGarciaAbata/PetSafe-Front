@@ -696,6 +696,7 @@ export class EncounterWorkspacePageComponent implements OnInit, OnDestroy {
       vaccineId: payload.vaccineId,
       applicationDate: payload.applicationDate.trim(),
       suggestedNextDate: payload.nextDoseDate?.trim() || undefined,
+      weightKg: payload.weightKg,
       notes: payload.notes?.trim() || undefined,
     };
 

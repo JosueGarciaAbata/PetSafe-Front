@@ -73,7 +73,7 @@
             <div class="flex flex-col gap-2">
               <label class="text-sm font-semibold text-text-primary">Especie</label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
-                <input matInput type="text" [ngModel]="speciesValue" (ngModelChange)="onSpeciesChanged($event)" (blur)="markSpeciesTouched()" [errorStateMatcher]="speciesErrorStateMatcher" [matAutocomplete]="speciesAuto" [placeholder]="resolveZootecnicalGroupByName(zootecnicalGroupValue) ? 'Buscar especie' : 'Selecciona zootecnia primero'" [disabled]="!resolveZootecnicalGroupByName(zootecnicalGroupValue)" autocomplete="off" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
+                <input matInput type="text" [ngModel]="speciesValue" (ngModelChange)="onSpeciesChanged($event)" (blur)="markSpeciesTouched()" [errorStateMatcher]="speciesErrorStateMatcher" [matAutocomplete]="speciesAuto" placeholder="Buscar especie" autocomplete="off" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
                 @if (isSpeciesInvalid()) {
                   <mat-error>Selecciona una especie valida.</mat-error>
                 }
@@ -96,15 +96,24 @@
                 <span class="text-xs font-medium text-text-secondary">Opcional</span>
               </label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pets-field w-full">
-                <mat-select [ngModel]="breedId" (ngModelChange)="onBreedChanged($event)" [errorStateMatcher]="breedErrorStateMatcher" [disabled]="isBreedDisabled()" [placeholder]="breedPlaceholder()">
-                  @for (option of breedOptions(); track option.id) {
-                    <mat-option [value]="option.id">{{ option.name }}</mat-option>
-                  }
-                </mat-select>
+                <input matInput [errorStateMatcher]="breedErrorStateMatcher" type="text" [ngModel]="breedValue" (ngModelChange)="onBreedChanged($event)" [matAutocomplete]="breedAuto" placeholder="Buscar raza" autocomplete="off" class="text-sm text-text-primary placeholder:text-text-secondary/50" />
                 @if (isBreedInvalid()) {
                   <mat-error>Selecciona una raza valida.</mat-error>
                 }
               </mat-form-field>
+              <mat-autocomplete #breedAuto="matAutocomplete" autoActiveFirstOption>
+                @for (option of breedOptions(); track option.id) {
+                  <mat-option [value]="option.name" (onSelectionChange)="onBreedOptionSelection($event.isUserInput, option.name)">
+                    {{ option.name }} <span class="text-xs text-text-secondary">({{ option.speciesName }})</span>
+                  </mat-option>
+                }
+                @if (showCreateBreedOption()) {
+                  <mat-option disabled>No se encontraron resultados</mat-option>
+                  <mat-option [value]="breedValue.trim()" (onSelectionChange)="onCreateBreedOptionSelection($event.isUserInput)">
+                    Crear raza: "{{ breedValue.trim() }}"
+                  </mat-option>
+                }
+              </mat-autocomplete>
             </div>
 
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -362,3 +371,14 @@
     }
   </div>
 </div>
+
+<app-zootecnia-form-modal
+  [open]="isBreedModalOpen"
+  [catalogKind]="'BREED'"
+  [item]="breedItemToCreate"
+  [isSaving]="isBreedSaving"
+  [errorMessage]="breedModalError"
+  [speciesOptions]="speciesOptionsForModal"
+  (closed)="isBreedModalOpen = false"
+  (saved)="onBreedCreated($event)"
+></app-zootecnia-form-modal>
