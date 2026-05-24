@@ -194,6 +194,10 @@ export class PetsApiService {
       this.appendPrimitive(formData, 'microchipCode', payload.microchipCode);
     }
 
+    if ('code' in payload) {
+      this.appendPrimitive(formData, 'code', payload.code);
+    }
+
     if (payload.image) {
       formData.append('image', payload.image, payload.image.name);
     }

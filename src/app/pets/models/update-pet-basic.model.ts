@@ -9,6 +9,8 @@ export interface UpdatePetBasicRequest {
   birthDate?: string;
   currentWeight?: number;
   colorId?: number;
+  code?: string;
+  microchipCode?: string | null;
   sterilized: boolean;
   generalAllergies?: string;
   generalHistory?: string;

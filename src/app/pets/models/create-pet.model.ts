@@ -9,6 +9,7 @@ export interface CreatePetRequest {
   breedId?: number;
   colorId?: number;
   microchipCode?: string;
+  code?: string;
   sex: 'MACHO' | 'HEMBRA';
   birthDate?: string;
   currentWeight?: number;
@@ -31,6 +32,7 @@ export interface CreatePetWithoutTutorRequest {
   currentWeight?: number;
   sterilized?: boolean;
   microchipCode?: string;
+  code?: string;
   distinguishingMarks?: string;
   generalAllergies?: string;
   generalHistory?: string;

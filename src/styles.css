@@ -14,9 +14,9 @@
 :root {
   --ps-brand: #2f605e;
   --ps-primary: #1e3a8a;
-  --ps-background: #f7f9fa;
+  --ps-background: #ffffff;
   --ps-card: #ffffff;
-  --ps-surface: #ffffff;
+  --ps-surface: #f7f9fa;
   --ps-active-soft: #e3efed;
   --ps-border: #dce3e8;
   --ps-text-primary: #1a2e35;
@@ -47,9 +47,9 @@
   --ps-tone-danger-text: #9f1239;
 
   /* Sidebar */
-  --ps-sidebar-bg: #eaeeed;
-  --ps-sidebar-border: #d5e0df;
-  --ps-sidebar-logo-border: #d5e0df;
+  --ps-sidebar-bg: #ffffff;
+  --ps-sidebar-border: var(--ps-border);
+  --ps-sidebar-logo-border: var(--ps-border);
   --ps-sidebar-hover: #e0e6e5;
   --ps-sidebar-active-bg: var(--ps-brand);
   --ps-sidebar-active-shadow: transparent;
@@ -63,7 +63,8 @@
   --ps-sidebar-child-dot-hover: #7c9694;
 
   /* Topbar */
-  --ps-topbar-panel-bg: var(--ps-active-soft);
+  --ps-topbar-panel-bg: #f9fdfc;
+  /* Extremely light brand tint */
   --ps-topbar-panel-border: rgba(47, 96, 94, 0.15);
   --ps-topbar-shadow: transparent;
   --ps-topbar-pill-bg: rgba(238, 242, 244, 0.85);
@@ -132,7 +133,8 @@
   --ps-sidebar-child-dot-hover: rgba(255, 255, 255, 0.4);
 
   /* Topbar */
-  --ps-topbar-panel-bg: rgba(95, 184, 180, 0.08); /* Dark brand tone */
+  --ps-topbar-panel-bg: rgba(95, 184, 180, 0.08);
+  /* Dark brand tone */
   --ps-topbar-panel-border: rgba(255, 255, 255, 0.06);
   --ps-topbar-shadow: transparent;
   --ps-topbar-pill-bg: rgba(255, 255, 255, 0.06);
@@ -150,6 +152,7 @@
 
 /* ─── Shared Layout Components ───────────────────────────────────── */
 @layer components {
+
   /* Page container */
   .ps-page {
     @apply mx-auto flex w-full max-w-[1400px] flex-col gap-8 pb-12;
@@ -320,26 +323,22 @@ body {
   border: 3px solid transparent;
   border-radius: 999px;
   background:
-    linear-gradient(180deg, rgba(47, 96, 94, 0.92) 0%, rgba(30, 58, 138, 0.9) 100%)
-    padding-box;
+    linear-gradient(180deg, rgba(47, 96, 94, 0.92) 0%, rgba(30, 58, 138, 0.9) 100%) padding-box;
 }
 
 [data-theme="dark"] *::-webkit-scrollbar-thumb {
   background:
-    linear-gradient(180deg, rgba(95, 184, 180, 0.7) 0%, rgba(107, 159, 255, 0.6) 100%)
-    padding-box;
+    linear-gradient(180deg, rgba(95, 184, 180, 0.7) 0%, rgba(107, 159, 255, 0.6) 100%) padding-box;
 }
 
 *::-webkit-scrollbar-thumb:hover {
   background:
-    linear-gradient(180deg, rgba(39, 78, 77, 0.98) 0%, rgba(30, 58, 138, 0.98) 100%)
-    padding-box;
+    linear-gradient(180deg, rgba(39, 78, 77, 0.98) 0%, rgba(30, 58, 138, 0.98) 100%) padding-box;
 }
 
 [data-theme="dark"] *::-webkit-scrollbar-thumb:hover {
   background:
-    linear-gradient(180deg, rgba(95, 184, 180, 0.9) 0%, rgba(107, 159, 255, 0.8) 100%)
-    padding-box;
+    linear-gradient(180deg, rgba(95, 184, 180, 0.9) 0%, rgba(107, 159, 255, 0.8) 100%) padding-box;
 }
 
 *::-webkit-scrollbar-corner {
