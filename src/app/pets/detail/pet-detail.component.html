@@ -51,164 +51,139 @@
       {{ loadError }}
     </div>
   } @else if (pet) {
-    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-      <header class="flex flex-col gap-1">
-        <h1 class="text-[28px] font-bold text-text-primary">{{ pet.name }}</h1>
-        <p class="text-base text-text-secondary">Ficha clínica base del paciente</p>
-      </header>
-
-      <div class="flex flex-wrap items-center gap-3">
-        @if (pet.qrToken) {
-          <div class="relative">
+    <section class="relative overflow-hidden rounded-[32px] border border-border bg-card shadow-sm">
+      <!-- Gradient Header Background -->
+      <div class="absolute inset-x-0 top-0 h-32 bg-gradient-to-br from-primary/10 via-transparent to-brand/5"></div>
+      
+      <div class="relative p-6 sm:p-8">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          
+          <div class="flex flex-col gap-6 sm:flex-row sm:items-center">
+            <!-- Pet Avatar -->
+            <div class="pet-hero-image relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[24px] border-4 border-surface bg-active-soft shadow-md sm:h-32 sm:w-32">
+              @if (petImageUrl(); as imageUrl) {
+                <img [src]="imageUrl" [alt]="petImageAlt()" class="h-full w-full object-cover" loading="eager" decoding="async" />
+              } @else {
+                <span class="text-4xl font-bold uppercase text-brand">{{ buildPetInitial() }}</span>
+              }
+            </div>
+            
+            <div class="flex flex-col gap-3">
+              <!-- Name and Title -->
+              <div class="flex flex-col">
+                <h1 class="text-3xl font-extrabold tracking-tight text-text-primary sm:text-4xl">{{ pet.name }}</h1>
+                <p class="text-sm font-medium text-text-secondary sm:text-base">Ficha clínica base del paciente</p>
+              </div>
+              
+              <!-- Identification and Microchip Pills -->
+              <div class="flex flex-wrap items-center gap-2">
+                <div class="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-text-secondary shadow-sm">
+                  <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 text-text-secondary" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 7V4h16v3"></path><path d="M9 20h6"></path><path d="M12 14v6"></path><path d="M4 17v3h16v-3"></path>
+                  </svg>
+                  <span>ID: <span class="text-text-primary">{{ buildCodeLabel() }}</span></span>
+                </div>
+                <div class="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-text-secondary shadow-sm">
+                  <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 text-text-secondary" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line>
+                  </svg>
+                  <span>Microchip: <span class="text-text-primary">{{ buildMicrochipLabel() }}</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Actions -->
+          <div class="flex shrink-0 flex-wrap items-center gap-3">
+            @if (pet.qrToken) {
+              <div class="relative">
+                <button
+                  type="button"
+                  (click)="toggleQrPanel()"
+                  class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background"
+                >
+                  <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><path d="M14 14h2v2h-2z"></path><path d="M18 14h3"></path><path d="M14 18h2"></path><path d="M18 18h3"></path><path d="M21 14v3"></path>
+                  </svg>
+                  <span>Código QR</span>
+                </button>
+    
+                @if (showQrPanel) {
+                  <div class="fixed inset-0 z-10" (click)="closeQrPanel()"></div>
+                  <div class="absolute right-0 top-full z-20 mt-2 w-64 rounded-2xl border border-border bg-card p-4 shadow-xl">
+                    <p class="mb-3 text-[10px] font-bold uppercase tracking-wider text-text-secondary">Código QR de identificación</p>
+                    <div class="flex items-center gap-3">
+                      @if (qrDataUrl) {
+                        <img [src]="qrDataUrl" alt="Código QR" class="h-20 w-20 shrink-0 rounded-xl border border-border bg-white p-1 shadow-sm" />
+                      } @else {
+                        <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl border border-border bg-surface">
+                          <div class="h-6 w-6 animate-pulse rounded bg-background"></div>
+                        </div>
+                      }
+                      <p class="text-xs leading-5 text-text-secondary">Escanea para ver el perfil público de <strong class="font-semibold text-text-primary">{{ pet.name }}</strong>.</p>
+                    </div>
+                    <div class="mt-3 flex flex-col gap-2">
+                      <button type="button" (click)="downloadQr()" [disabled]="!qrDataUrl" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:bg-background disabled:opacity-50">
+                        <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        Descargar QR
+                      </button>
+                      <a [href]="petQrUrl()" target="_blank" rel="noopener noreferrer" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-active-soft px-3 py-2 text-xs font-semibold text-brand transition-all hover:bg-active-soft/80">
+                        <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        Ver ficha de {{ pet.name }}
+                      </a>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+    
             <button
               type="button"
-              (click)="toggleQrPanel()"
+              (click)="openEditPetPage()"
               class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background"
             >
               <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-                <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-                <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-                <path d="M14 14h2v2h-2z"></path>
-                <path d="M18 14h3"></path>
-                <path d="M14 18h2"></path>
-                <path d="M18 18h3"></path>
-                <path d="M21 14v3"></path>
+                <path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"></path>
               </svg>
-              <span>Código QR</span>
+              <span>Editar mascota</span>
             </button>
-
-            @if (showQrPanel) {
-              <div
-                class="fixed inset-0 z-10"
-                (click)="closeQrPanel()"
-              ></div>
-              <div class="absolute right-0 top-full z-20 mt-2 w-64 rounded-2xl border border-border bg-card p-4 shadow-xl">
-                <p class="mb-3 text-[10px] font-bold uppercase tracking-wider text-text-secondary">
-                  Código QR de identificación
-                </p>
-                <div class="flex items-center gap-3">
-                  @if (qrDataUrl) {
-                    <img
-                      [src]="qrDataUrl"
-                      alt="Código QR"
-                      class="h-20 w-20 shrink-0 rounded-xl border border-border bg-white p-1 shadow-sm"
-                    />
-                  } @else {
-                    <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl border border-border bg-surface">
-                      <div class="h-6 w-6 animate-pulse rounded bg-background"></div>
-                    </div>
-                  }
-                  <p class="text-xs leading-5 text-text-secondary">
-                    Escanea para ver el perfil público de
-                    <strong class="font-semibold text-text-primary">{{ pet.name }}</strong>.
-                  </p>
-                </div>
-                <div class="mt-3 flex flex-col gap-2">
-                  <button
-                    type="button"
-                    (click)="downloadQr()"
-                    [disabled]="!qrDataUrl"
-                    class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:bg-background disabled:opacity-50"
-                  >
-                    <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                      <polyline points="7 10 12 15 17 10"></polyline>
-                      <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    Descargar QR
-                  </button>
-                  <a
-                    [href]="petQrUrl()"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-active-soft px-3 py-2 text-xs font-semibold text-brand transition-all hover:bg-active-soft/80"
-                  >
-                    <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                      <polyline points="15 3 21 3 21 9"></polyline>
-                      <line x1="10" y1="14" x2="21" y2="3"></line>
-                    </svg>
-                    Ver ficha de {{ pet.name }}
-                  </a>
-                </div>
-              </div>
-            }
           </div>
-        }
-
-        <button
-          type="button"
-          (click)="openEditPetPage()"
-          class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-bold text-text-primary shadow-sm transition-all hover:bg-background"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            class="h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M12 20h9"></path>
-            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"></path>
-          </svg>
-          <span>Editar mascota</span>
-        </button>
-      </div>
-    </div>
-
-    <section class="rounded-[24px] border border-border bg-card p-8 shadow-sm">
-      <div class="flex flex-col gap-8 lg:flex-row">
-        <div class="pet-hero-image flex h-32 w-32 shrink-0 items-center justify-center self-center overflow-hidden rounded-[28px] border-4 border-surface bg-active-soft shadow-md lg:self-start">
-          @if (petImageUrl(); as imageUrl) {
-            <img
-              [src]="imageUrl"
-              [alt]="petImageAlt()"
-              class="h-full w-full object-cover"
-              loading="eager"
-              decoding="async"
-            />
-          } @else {
-            <span class="text-3xl font-bold uppercase text-brand">{{ buildPetInitial() }}</span>
-          }
         </div>
-
-        <div class="flex min-w-0 flex-1 flex-col gap-5">
-          <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <div class="flex min-w-0 flex-col gap-1 rounded-2xl border border-border bg-surface p-4 shadow-sm">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-text-secondary">
-                Especie / Raza
-              </span>
+        
+        <!-- Divider -->
+        <div class="my-8 h-px w-full bg-border/60"></div>
+        
+        <!-- 4 Grid Core Data Properties -->
+        <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div class="flex min-w-0 flex-col gap-1.5 rounded-2xl border border-border/80 bg-surface/50 p-4 transition-colors hover:bg-surface">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-text-secondary">Especie / Raza</span>
+            <div class="flex flex-col">
               <span class="break-words text-sm font-bold text-text-primary">{{ buildSpeciesLabel() }}</span>
               <span class="break-words text-xs text-text-secondary">{{ buildBreedLabel() }}</span>
             </div>
-
-            <div class="flex min-w-0 flex-col gap-1 rounded-2xl border border-border bg-surface p-4 shadow-sm">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-text-secondary">
-                Sexo / Peso
-              </span>
+          </div>
+          
+          <div class="flex min-w-0 flex-col gap-1.5 rounded-2xl border border-border/80 bg-surface/50 p-4 transition-colors hover:bg-surface">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-text-secondary">Sexo / Peso</span>
+            <div class="flex flex-col">
               <span class="break-words text-sm font-bold text-text-primary">{{ buildSexLabel() }}</span>
               <span class="break-words text-xs text-text-secondary">{{ buildWeightLabel() }}</span>
             </div>
-
-            <div class="flex min-w-0 flex-col gap-1 rounded-2xl border border-border bg-surface p-4 shadow-sm">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-text-secondary">
-                Edad / Nacimiento
-              </span>
+          </div>
+          
+          <div class="flex min-w-0 flex-col gap-1.5 rounded-2xl border border-border/80 bg-surface/50 p-4 transition-colors hover:bg-surface">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-text-secondary">Edad / Nacimiento</span>
+            <div class="flex flex-col">
               <span class="break-words text-sm font-bold text-text-primary">{{ buildAgeLabel() }}</span>
               <span class="break-words text-xs text-text-secondary">{{ buildBirthDateLabel() }}</span>
             </div>
-
-            <div class="flex min-w-0 flex-col gap-1 rounded-2xl border border-border bg-surface p-4 shadow-sm">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-text-secondary">
-                Color / Esterilizado
-              </span>
+          </div>
+    
+          <div class="flex min-w-0 flex-col gap-1.5 rounded-2xl border border-border/80 bg-surface/50 p-4 transition-colors hover:bg-surface">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-text-secondary">Color / Esterilizado</span>
+            <div class="flex flex-col">
               <span class="break-words text-sm font-bold text-text-primary">{{ buildColorLabel() }}</span>
-              <span class="break-words text-xs text-text-secondary">
-                Esterilizado: {{ buildSterilizedLabel() }}
-              </span>
+              <span class="break-words text-xs text-text-secondary">Esterilizado: {{ buildSterilizedLabel() }}</span>
             </div>
           </div>
         </div>

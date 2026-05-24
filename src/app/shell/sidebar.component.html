@@ -5,15 +5,6 @@
   [attr.aria-hidden]="!isOpen"
   [attr.inert]="isOpen ? null : ''"
 >
-  <div class="sidebar-logo">
-    <a
-      routerLink="/dashboard"
-      class="sidebar-logo__link"
-      aria-label="Ir al inicio"
-    >
-      <app-logo [className]="'scale-90'"></app-logo>
-    </a>
-  </div>
 
   <nav class="sidebar-nav">
     @for (item of navItems; track item.id) {

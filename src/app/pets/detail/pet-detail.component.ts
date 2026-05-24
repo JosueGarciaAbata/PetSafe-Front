@@ -463,6 +463,14 @@ export class PetDetailComponent implements OnInit, AfterViewInit {
     return this.pet?.color?.name?.trim() || 'Sin color registrado';
   }
 
+  protected buildMicrochipLabel(): string {
+    return this.pet?.microchipCode?.trim() || 'Sin registrar';
+  }
+
+  protected buildCodeLabel(): string {
+    return this.pet?.code?.trim() || 'Sin registrar';
+  }
+
   protected buildSterilizedLabel(): string {
     if (this.pet?.sterilized === true) {
       return 'Si';

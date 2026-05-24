@@ -15,6 +15,17 @@ export function getTodayKey(): string {
   ].join('-');
 }
 
+/** Devuelve una fecha futura (hoy + offsetDays) en formato YYYY-MM-DD */
+export function getFutureDateKey(offsetDays = 30): string {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, '0'),
+    String(d.getDate()).padStart(2, '0'),
+  ].join('-');
+}
+
 export async function getTokenFromPage(page: Page): Promise<string> {
   return (
     (await page.evaluate(() => localStorage.getItem('petsafe.auth.access-token'))) ?? ''
@@ -33,14 +44,20 @@ export async function createTestAppointment(
   patientId: number,
   overrides: Record<string, unknown> = {},
 ): Promise<CreatedAppointment> {
-  const today = getTodayKey();
+  // Usa una fecha futura para evitar colisiones con citas de hoy del seed
+  const futureDate = getFutureDateKey(30);
+  // Hora aleatoria dentro de horario laboral para evitar solapamiento entre tests paralelos
+  const hour = 8 + Math.floor(Math.random() * 8);
+  const startTime = `${String(hour).padStart(2, '0')}:00`;
+  const endTime   = `${String(hour).padStart(2, '0')}:30`;
+
   const res = await request.post(`${API_URL}/appointments`, {
     headers: { Authorization: `Bearer ${token}` },
     data: {
       patientId,
-      scheduledDate: today,
-      scheduledTime: '14:00',
-      endTime: '14:30',
+      scheduledDate: futureDate,
+      scheduledTime: startTime,
+      endTime,
       reason: 'CONSULTA_GENERAL',
       notes: '[TEST SYSTEM] Generado automáticamente — se puede eliminar',
       ...overrides,

@@ -43,12 +43,17 @@ import {
   SpeciesApiResponse,
   SpeciesBreedApiResponse,
 } from '../models/species.model';
+import { ZootecnicalGroupApiResponse } from '../models/zootecnical-group.model';
 import { UpdatePetBasicRequest } from '../models/update-pet-basic.model';
 import { PatientVaccinationApiService } from '../vaccination/services/patient-vaccination-api.service';
 import { ColorsApiService } from '../services/colors-api.service';
 import { PetImageUploadService } from '../services/pet-image-upload.service';
 import { PetsApiService } from '../services/pets-api.service';
 import { SpeciesApiService } from '../services/species-api.service';
+import { ZootecnicalGroupsApiService } from '../services/zootecnical-groups-api.service';
+import { ZootecniaCatalogApiService } from '../../catalogs/admin/api/zootecnia-catalog-api.service';
+import { ZootecniaFormModalComponent, ZootecniaFormPayload } from '../../catalogs/admin/pages/zootecnia-form-modal.component';
+import { BreedFormPayload } from '../../catalogs/admin/models/zootecnia-catalog.model';
 
 type EditPetGender = 'Macho' | 'Hembra';
 type EditPetSterilized = 'Si' | 'No';
@@ -73,6 +78,7 @@ class ManualFieldErrorStateMatcher implements ErrorStateMatcher {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    ZootecniaFormModalComponent,
   ],
   templateUrl: './edit-pet-modal.component.html',
   styleUrl: './edit-pet-modal.component.css',
@@ -83,11 +89,14 @@ export class EditPetModalComponent implements OnDestroy {
   private readonly petImageUploadService = inject(PetImageUploadService);
   private readonly petsApi = inject(PetsApiService);
   private readonly speciesApi = inject(SpeciesApiService);
+  private readonly zootecnicalGroupsApi = inject(ZootecnicalGroupsApiService);
   private readonly vaccinationAdminApi = inject(VaccinationAdminApiService);
   private readonly patientVaccinationApi = inject(PatientVaccinationApiService);
+  private readonly zootecniaCatalogApi = inject(ZootecniaCatalogApiService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly toast = inject(AppToastService);
-  private readonly speciesPageSize = 20;
+  private readonly zootecnicalGroupsPageSize = 100;
+  private readonly speciesPageSize = 100;
   private readonly colorsPageSize = 20;
   private speciesRequestVersion = 0;
   private vaccinationSchemeRequestVersion = 0;
@@ -107,6 +116,9 @@ export class EditPetModalComponent implements OnDestroy {
   protected readonly weightStep = PET_WEIGHT_STEP;
   protected readonly nameErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
     this.isNameRequiredInvalid() || this.isNameInvalid(),
+  );
+  protected readonly zootecnicalGroupErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
+    this.isZootecnicalGroupInvalid(),
   );
   protected readonly speciesErrorStateMatcher = new ManualFieldErrorStateMatcher(() =>
     this.isSpeciesInvalid(),
@@ -134,9 +146,11 @@ export class EditPetModalComponent implements OnDestroy {
   );
 
   protected name = '';
+  protected zootecnicalGroupValue = '';
   protected speciesValue = '';
   protected vaccinationSchemeValue = '';
   protected breedId: number | null = null;
+  protected breedValue = '';
   protected birthDate = '';
   protected weightKg = '';
   protected colorValue = '';
@@ -144,6 +158,8 @@ export class EditPetModalComponent implements OnDestroy {
   protected generalHistory = '';
   protected editGender: EditPetGender = 'Macho';
   protected editSterilized: EditPetSterilized = 'No';
+  protected zootecnicalGroups: ZootecnicalGroupApiResponse[] = [];
+  protected isZootecnicalGroupsLoading = false;
   protected species: SpeciesApiResponse[] = [];
   protected isSpeciesLoading = false;
   protected vaccinationSchemes: VaccinationScheme[] = [];
@@ -156,8 +172,13 @@ export class EditPetModalComponent implements OnDestroy {
   protected isColorsLoading = false;
   protected isCreatingColor = false;
   protected isSaving = false;
+  protected isBreedModalOpen = false;
+  protected isBreedSaving = false;
+  protected breedModalError: string | null = null;
+  protected breedItemToCreate: any = null;
   protected showValidationErrors = false;
   protected hasTouchedName = false;
+  protected hasTouchedZootecnicalGroup = false;
   protected hasTouchedSpecies = false;
   protected submitError: string | null = null;
   protected colorCreateError: string | null = null;
@@ -170,7 +191,9 @@ export class EditPetModalComponent implements OnDestroy {
     this._pet = value;
     this.name = value.name ?? '';
     this.speciesValue = value.species?.name ?? '';
+    this.zootecnicalGroupValue = '';
     this.breedId = value.breed?.id ?? null;
+    this.breedValue = value.breed?.name ?? '';
     this.birthDate = value.birthDate?.slice(0, 10) ?? '';
     this.weightKg =
       value.currentWeight === null || value.currentWeight === undefined
@@ -193,12 +216,14 @@ export class EditPetModalComponent implements OnDestroy {
     this.editSterilized = value.sterilized === true ? 'Si' : 'No';
     this.showValidationErrors = false;
     this.hasTouchedName = false;
+    this.hasTouchedZootecnicalGroup = false;
     this.hasTouchedSpecies = false;
     this.submitError = null;
     this.colorCreateError = null;
     this.vaccinationPlanLoadError = null;
     this.imageSelectionError = null;
     this.clearSelectedImage();
+    void this.loadZootecnicalGroups(value.species?.zootecnicalGroupId ?? null);
     void this.loadSpecies(this.speciesValue);
     void this.loadVaccinationPlanContext(value.id, value.species?.id ?? null);
     void this.loadColors(this.colorValue);
@@ -324,11 +349,63 @@ export class EditPetModalComponent implements OnDestroy {
   }
 
   protected speciesOptions(): SpeciesApiResponse[] {
-    return this.species;
+    const searchTerm = this.speciesValue.trim().toLocaleLowerCase();
+    const list = this.species.filter((item) => this.speciesBelongsToSelectedGroup(item));
+    if (!searchTerm) {
+      return list;
+    }
+    return list.filter((item) => item.name.toLocaleLowerCase().includes(searchTerm));
   }
 
-  protected breedOptions(): SpeciesBreedApiResponse[] {
-    return this.resolveSpeciesByName(this.speciesValue)?.breeds ?? [];
+  protected get speciesOptionsForModal(): any[] {
+    return this.species.map((sp) => ({
+      id: sp.id,
+      name: sp.name,
+      description: null,
+      zootecnicalGroupId: sp.zootecnicalGroupId,
+      createdAt: '',
+      updatedAt: '',
+    }));
+  }
+
+  protected zootecnicalGroupOptions(): ZootecnicalGroupApiResponse[] {
+    const searchTerm = this.zootecnicalGroupValue.trim().toLocaleLowerCase();
+    if (!searchTerm) {
+      return this.zootecnicalGroups;
+    }
+
+    return this.zootecnicalGroups.filter((item) =>
+      item.name.toLocaleLowerCase().includes(searchTerm),
+    );
+  }
+
+  protected breedOptions(): { id: number; name: string; speciesName: string }[] {
+    const searchTerm = this.breedValue.trim().toLocaleLowerCase();
+    let list: { id: number; name: string; speciesName: string }[] = [];
+
+    const selectedSpecies = this.resolveSpeciesByName(this.speciesValue);
+    if (selectedSpecies) {
+      list = selectedSpecies.breeds.map((b) => ({
+        id: b.id,
+        name: b.name,
+        speciesName: selectedSpecies.name,
+      }));
+    } else {
+      this.species.forEach((sp) => {
+        sp.breeds.forEach((b) => {
+          list.push({
+            id: b.id,
+            name: b.name,
+            speciesName: sp.name,
+          });
+        });
+      });
+    }
+
+    if (!searchTerm) {
+      return list;
+    }
+    return list.filter((item) => item.name.toLocaleLowerCase().includes(searchTerm));
   }
 
   protected vaccinationSchemeOptions(): VaccinationScheme[] {
@@ -350,17 +427,11 @@ export class EditPetModalComponent implements OnDestroy {
   }
 
   protected isBreedDisabled(): boolean {
-    return this.breedOptions().length === 0;
+    return false; // Always enabled!
   }
 
   protected breedPlaceholder(): string {
-    if (!this.speciesValue.trim()) {
-      return 'Selecciona una especie primero';
-    }
-
-    return this.breedOptions().length > 0
-      ? 'Selecciona una raza'
-      : 'Sin razas disponibles';
+    return 'Buscar raza';
   }
 
   protected vaccinationSchemePlaceholder(): string {
@@ -383,6 +454,26 @@ export class EditPetModalComponent implements OnDestroy {
     return this.resolveSpeciesByName(this.speciesValue) !== null;
   }
 
+  protected onZootecnicalGroupChanged(value: string): void {
+    this.hasTouchedZootecnicalGroup = true;
+    this.zootecnicalGroupValue = value;
+    this.submitError = null;
+
+    const selectedGroup = this.resolveZootecnicalGroupByName(value);
+    const selectedSpecies = this.resolveSpeciesByName(this.speciesValue);
+    if (
+      this.speciesValue.trim() &&
+      (!selectedSpecies || !this.speciesBelongsToGroup(selectedSpecies, selectedGroup))
+    ) {
+      this.resetSpeciesSelection();
+    }
+  }
+
+  protected selectZootecnicalGroup(value: string): void {
+    this.zootecnicalGroupValue = value;
+    this.onZootecnicalGroupChanged(value);
+  }
+
   protected isVaccinationSchemeDisabled(): boolean {
     return (
       !this.hasSelectedSpecies()
@@ -396,7 +487,7 @@ export class EditPetModalComponent implements OnDestroy {
     this.speciesValue = value;
     this.submitError = null;
     const matchedSpecies =
-      this.species.find((item) => item.name === value.trim()) ?? null;
+      this.species.find((item) => item.name.toLocaleLowerCase() === value.trim().toLocaleLowerCase()) ?? null;
 
     if (matchedSpecies) {
       if (
@@ -404,6 +495,13 @@ export class EditPetModalComponent implements OnDestroy {
         !matchedSpecies.breeds.some((breed) => breed.id === this.breedId)
       ) {
         this.breedId = null;
+        this.breedValue = '';
+      }
+
+      // Auto-complete Zootecnia
+      const group = this.zootecnicalGroups.find((g) => g.id === matchedSpecies.zootecnicalGroupId);
+      if (group) {
+        this.zootecnicalGroupValue = group.name;
       }
 
       void this.loadVaccinationSchemes(
@@ -415,13 +513,13 @@ export class EditPetModalComponent implements OnDestroy {
     }
 
     this.breedId = null;
+    this.breedValue = '';
     this.cancelVaccinationSchemeRequests();
     this.resetVaccinationSchemes();
-    this.scheduleSpeciesSearch();
   }
 
   protected selectSpecies(value: string): void {
-    const selected = this.species.find((item) => item.name === value) ?? null;
+    const selected = this.species.find((item) => item.name.toLocaleLowerCase() === value.trim().toLocaleLowerCase()) ?? null;
     this.speciesValue = selected?.name ?? value;
     this.submitError = null;
 
@@ -431,9 +529,16 @@ export class EditPetModalComponent implements OnDestroy {
       !selected.breeds.some((breed) => breed.id === this.breedId)
     ) {
       this.breedId = null;
+      this.breedValue = '';
     }
 
     if (selected) {
+      // Auto-complete Zootecnia
+      const group = this.zootecnicalGroups.find((g) => g.id === selected.zootecnicalGroupId);
+      if (group) {
+        this.zootecnicalGroupValue = group.name;
+      }
+
       void this.loadVaccinationSchemes(
         selected.id,
         this.preferredVaccinationSchemeIdForSpecies(selected.id),
@@ -443,6 +548,149 @@ export class EditPetModalComponent implements OnDestroy {
 
     this.cancelVaccinationSchemeRequests();
     this.resetVaccinationSchemes();
+  }
+
+  protected onBreedChanged(value: string): void {
+    this.breedValue = value;
+    this.submitError = null;
+
+    let matchedBreed: SpeciesBreedApiResponse | null = null;
+    let matchedSpecies: SpeciesApiResponse | null = null;
+
+    for (const sp of this.species) {
+      const br = sp.breeds.find((b) => b.name.toLocaleLowerCase() === value.trim().toLocaleLowerCase());
+      if (br) {
+        matchedBreed = br;
+        matchedSpecies = sp;
+        break;
+      }
+    }
+
+    if (matchedBreed && matchedSpecies) {
+      this.breedId = matchedBreed.id;
+      this.speciesValue = matchedSpecies.name;
+
+      const group = this.zootecnicalGroups.find((g) => g.id === matchedSpecies!.zootecnicalGroupId);
+      if (group) {
+        this.zootecnicalGroupValue = group.name;
+      }
+
+      void this.loadVaccinationSchemes(
+        matchedSpecies.id,
+        this.preferredVaccinationSchemeIdForSpecies(matchedSpecies.id),
+      );
+    } else {
+      this.breedId = null;
+    }
+  }
+
+  protected selectBreed(breedName: string): void {
+    this.breedValue = breedName;
+    this.submitError = null;
+
+    let matchedBreed: SpeciesBreedApiResponse | null = null;
+    let matchedSpecies: SpeciesApiResponse | null = null;
+
+    for (const sp of this.species) {
+      const br = sp.breeds.find((b) => b.name === breedName);
+      if (br) {
+        matchedBreed = br;
+        matchedSpecies = sp;
+        break;
+      }
+    }
+
+    if (matchedBreed && matchedSpecies) {
+      this.breedId = matchedBreed.id;
+      this.speciesValue = matchedSpecies.name;
+
+      const group = this.zootecnicalGroups.find((g) => g.id === matchedSpecies!.zootecnicalGroupId);
+      if (group) {
+        this.zootecnicalGroupValue = group.name;
+      }
+
+      void this.loadVaccinationSchemes(
+        matchedSpecies.id,
+        this.preferredVaccinationSchemeIdForSpecies(matchedSpecies.id),
+      );
+    }
+  }
+
+  protected showCreateBreedOption(): boolean {
+    const value = this.breedValue.trim();
+    return value.length > 0 && this.breedOptions().length === 0;
+  }
+
+  protected onBreedOptionSelection(isUserInput: boolean, breedName: string): void {
+    if (!isUserInput) {
+      return;
+    }
+    this.selectBreed(breedName);
+  }
+
+  protected onCreateBreedOptionSelection(isUserInput: boolean): void {
+    if (!isUserInput) {
+      return;
+    }
+    const selectedSpecies = this.resolveSpeciesByName(this.speciesValue);
+    this.breedItemToCreate = {
+      name: this.breedValue.trim(),
+      speciesId: selectedSpecies ? selectedSpecies.id : null,
+    };
+    this.isBreedModalOpen = true;
+    this.breedModalError = null;
+    this.cdr.detectChanges();
+  }
+
+  protected async onBreedCreated(payload: ZootecniaFormPayload): Promise<void> {
+    this.isBreedSaving = true;
+    this.breedModalError = null;
+    this.cdr.detectChanges();
+
+    try {
+      const createdBreed = await firstValueFrom(
+        this.zootecniaCatalogApi.createBreed(payload as BreedFormPayload),
+      );
+
+      this.toast.success('Raza creada correctamente.');
+
+      this.speciesApi.clearCache();
+      await this.loadSpecies('');
+
+      const allSpecies = this.species;
+      let foundSpecies: SpeciesApiResponse | null = null;
+      for (const sp of allSpecies) {
+        if (sp.id === createdBreed.speciesId) {
+          foundSpecies = sp;
+          break;
+        }
+      }
+
+      if (foundSpecies) {
+        this.speciesValue = foundSpecies.name;
+        void this.loadVaccinationSchemes(
+          foundSpecies.id,
+          this.preferredVaccinationSchemeIdForSpecies(foundSpecies.id),
+        );
+
+        const group = this.zootecnicalGroups.find((g) => g.id === foundSpecies!.zootecnicalGroupId);
+        if (group) {
+          this.zootecnicalGroupValue = group.name;
+        }
+      }
+
+      this.breedValue = createdBreed.name;
+      this.breedId = createdBreed.id;
+      this.isBreedModalOpen = false;
+    } catch (error) {
+      this.breedModalError = resolveApiErrorMessage(error, {
+        defaultMessage: 'No se pudo crear la raza.',
+      });
+      this.toast.error(this.breedModalError);
+    } finally {
+      this.isBreedSaving = false;
+      this.cdr.detectChanges();
+    }
   }
 
   protected onVaccinationSchemeChanged(value: string): void {
@@ -499,14 +747,15 @@ export class EditPetModalComponent implements OnDestroy {
     this.hasTouchedName = true;
   }
 
+  protected markZootecnicalGroupTouched(): void {
+    this.hasTouchedZootecnicalGroup = true;
+  }
+
   protected markSpeciesTouched(): void {
     this.hasTouchedSpecies = true;
   }
 
-  protected onBreedChanged(value: number | null): void {
-    this.breedId = value;
-    this.submitError = null;
-  }
+
 
   protected onBirthDateChanged(value: string): void {
     this.birthDate = value;
@@ -600,6 +849,13 @@ export class EditPetModalComponent implements OnDestroy {
     );
   }
 
+  protected isZootecnicalGroupInvalid(): boolean {
+    return (
+      (this.showValidationErrors || this.hasTouchedZootecnicalGroup) &&
+      !this.resolveZootecnicalGroupByName(this.zootecnicalGroupValue)
+    );
+  }
+
   protected isBreedInvalid(): boolean {
     return (
       this.breedId !== null &&
@@ -675,6 +931,30 @@ export class EditPetModalComponent implements OnDestroy {
     this.colorSearchTimer = undefined;
   }
 
+  private async loadZootecnicalGroups(selectedGroupId: number | null): Promise<void> {
+    this.isZootecnicalGroupsLoading = true;
+    this.cdr.detectChanges();
+
+    try {
+      const response = await firstValueFrom(
+        this.zootecnicalGroupsApi.list({
+          page: 1,
+          limit: this.zootecnicalGroupsPageSize,
+        }),
+      );
+
+      this.zootecnicalGroups = response.data;
+      const selectedGroup =
+        this.zootecnicalGroups.find((item) => item.id === selectedGroupId) ?? null;
+      this.zootecnicalGroupValue = selectedGroup?.name ?? this.zootecnicalGroupValue;
+    } catch {
+      this.zootecnicalGroups = [];
+    } finally {
+      this.isZootecnicalGroupsLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
   private async loadSpecies(search: string): Promise<void> {
     const requestToken = ++this.speciesRequestVersion;
     this.isSpeciesLoading = true;
@@ -685,8 +965,8 @@ export class EditPetModalComponent implements OnDestroy {
       const response = await firstValueFrom(
         this.speciesApi.list({
           page: 1,
-          limit: this.speciesPageSize,
-          search: search.trim() || undefined,
+          limit: 1000,
+          search: '',
         }),
       );
 
@@ -697,14 +977,6 @@ export class EditPetModalComponent implements OnDestroy {
       this.species = response.data;
 
       const matchedSpecies = this.resolveSpeciesByName(this.speciesValue);
-      if (
-        this.breedId !== null &&
-        matchedSpecies &&
-        !matchedSpecies.breeds.some((breed) => breed.id === this.breedId)
-      ) {
-        this.breedId = null;
-      }
-
       if (matchedSpecies) {
         void this.loadVaccinationSchemes(
           matchedSpecies.id,
@@ -733,12 +1005,42 @@ export class EditPetModalComponent implements OnDestroy {
   }
 
   private resolveSpeciesByName(name: string): SpeciesApiResponse | null {
+    const normalizedName = name.trim().toLocaleLowerCase();
+    if (!normalizedName) {
+      return null;
+    }
+
+    return this.species.find((item) => item.name.toLocaleLowerCase() === normalizedName) ?? null;
+  }
+
+  protected resolveZootecnicalGroupByName(name: string): ZootecnicalGroupApiResponse | null {
     const normalizedName = name.trim();
     if (!normalizedName) {
       return null;
     }
 
-    return this.species.find((item) => item.name === normalizedName) ?? null;
+    return this.zootecnicalGroups.find((item) => item.name === normalizedName) ?? null;
+  }
+
+  private speciesBelongsToSelectedGroup(species: SpeciesApiResponse): boolean {
+    return this.speciesBelongsToGroup(
+      species,
+      this.resolveZootecnicalGroupByName(this.zootecnicalGroupValue),
+    );
+  }
+
+  private speciesBelongsToGroup(
+    species: SpeciesApiResponse,
+    group: ZootecnicalGroupApiResponse | null,
+  ): boolean {
+    return !group || species.zootecnicalGroupId === group.id;
+  }
+
+  private resetSpeciesSelection(): void {
+    this.speciesValue = '';
+    this.breedId = null;
+    this.cancelVaccinationSchemeRequests();
+    this.resetVaccinationSchemes();
   }
 
   private resolveBreedById(
@@ -983,6 +1285,7 @@ export class EditPetModalComponent implements OnDestroy {
 
   private buildPayload(): UpdatePetBasicRequest | null {
     const name = normalizePetText(this.name);
+    const selectedZootecnicalGroup = this.resolveZootecnicalGroupByName(this.zootecnicalGroupValue);
     const selectedSpecies = this.resolveSpeciesByName(this.speciesValue);
     const selectedBreed = this.resolveBreedById(selectedSpecies, this.breedId);
     const currentWeight = this.parseWeight();
@@ -993,6 +1296,7 @@ export class EditPetModalComponent implements OnDestroy {
 
     if (
       !isValidPetName(name) ||
+      !selectedZootecnicalGroup ||
       !selectedSpecies ||
       !isValidPetBirthDate(birthDate) ||
       (this.breedId !== null && !selectedBreed) ||
@@ -1006,6 +1310,7 @@ export class EditPetModalComponent implements OnDestroy {
 
     const payload: UpdatePetBasicRequest = {
       name,
+      zootecnicalGroupId: selectedZootecnicalGroup.id,
       speciesId: selectedSpecies.id,
       sex: this.editGender === 'Hembra' ? 'HEMBRA' : 'MACHO',
       sterilized: this.editSterilized === 'Si',

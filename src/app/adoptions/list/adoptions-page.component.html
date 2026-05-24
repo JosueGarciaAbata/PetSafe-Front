@@ -163,7 +163,7 @@
 
                 <td class="px-8 py-6 text-right">
                   <div class="flex items-center justify-end gap-2">
-                    @if (adoption.status?.toUpperCase() !== 'ADOPTADO') {
+                    @if (adoption.status.toUpperCase() !== 'ADOPTADO') {
                       <button
                         type="button"
                         (click)="markAsAdopted($event, adoption.id)"

@@ -173,6 +173,7 @@ export class PetsApiService {
     const formData = new FormData();
 
     this.appendPrimitive(formData, 'name', payload.name);
+    this.appendPrimitive(formData, 'zootecnicalGroupId', payload.zootecnicalGroupId);
     this.appendPrimitive(formData, 'speciesId', payload.speciesId);
     this.appendPrimitive(formData, 'breedId', payload.breedId);
     this.appendPrimitive(formData, 'colorId', payload.colorId);
@@ -193,6 +194,10 @@ export class PetsApiService {
       this.appendPrimitive(formData, 'microchipCode', payload.microchipCode);
     }
 
+    if ('code' in payload) {
+      this.appendPrimitive(formData, 'code', payload.code);
+    }
+
     if (payload.image) {
       formData.append('image', payload.image, payload.image.name);
     }
@@ -204,6 +209,7 @@ export class PetsApiService {
     const formData = new FormData();
 
     this.appendPrimitive(formData, 'name', payload.name);
+    this.appendPrimitive(formData, 'zootecnicalGroupId', payload.zootecnicalGroupId);
     this.appendPrimitive(formData, 'speciesId', payload.speciesId);
     this.appendPrimitive(formData, 'vaccinationSchemeId', payload.vaccinationSchemeId);
     this.appendPrimitive(formData, 'breedId', payload.breedId);
@@ -247,6 +253,8 @@ export class PetsApiService {
     return {
       id: response.id,
       name: response.name,
+      code: response.code ?? '',
+      microchipCode: response.microchipCode ?? null,
       qrToken: response.qrToken ?? null,
       species: this.mapCatalog(response.species),
       breed: this.mapCatalog(response.breed),
@@ -280,6 +288,7 @@ export class PetsApiService {
     return {
       id: value.id,
       name: value.name,
+      zootecnicalGroupId: value.zootecnicalGroupId ?? null,
     };
   }
 
@@ -324,11 +333,14 @@ export class PetsApiService {
 interface PatientDetailCatalogResponse {
   id: number;
   name: string;
+  zootecnicalGroupId?: number | null;
 }
 
 interface PatientDetailResponse {
   id: number;
   name: string;
+  code?: string;
+  microchipCode?: string | null;
   qrToken?: string | null;
   sex: string | null;
   birthDate: string | Date | null;

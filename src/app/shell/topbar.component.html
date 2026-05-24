@@ -1,5 +1,8 @@
 <div class="topbar-panel">
   <div class="topbar-cluster">
+    <a routerLink="/dashboard" class="mr-8 flex items-center" aria-label="Ir al inicio">
+      <app-logo [className]="'scale-[1.1] origin-left'"></app-logo>
+    </a>
     <button
       type="button"
       (click)="toggleSidebar.emit()"
@@ -8,8 +11,7 @@
     >
       <app-shell-icon name="sidebarToggle" [size]="20"></app-shell-icon>
     </button>
-
-    <div class="topbar-date">
+    <div class="topbar-date ml-3 hidden sm:flex">
       <app-shell-icon name="calendar" [size]="16"></app-shell-icon>
       <span class="capitalize">{{ today }}</span>
     </div>
@@ -60,8 +62,6 @@
         <span class="topbar-user-avatar">{{ initials() }}</span>
         <span class="topbar-user-button__copy">
           <span class="topbar-user-button__name">{{ userName() }}</span>
-          <span class="topbar-user-divider"></span>
-          <span class="topbar-user-button__role">{{ userRole() }}</span>
         </span>
         <app-shell-icon
           name="chevronDown"
@@ -74,7 +74,6 @@
         <div class="topbar-menu" role="menu">
           <div class="topbar-menu__header">
             <p class="topbar-menu__name">{{ userName() }}</p>
-            <p class="topbar-menu__role">{{ userRole() }}</p>
           </div>
 
           <button

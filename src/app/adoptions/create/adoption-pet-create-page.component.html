@@ -115,11 +115,28 @@
             </div>
 
             <div class="flex flex-col gap-2">
+              <label class="text-sm font-semibold text-text-primary">Zootecnia</label>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
+                <mat-select formControlName="zootecnicalGroupId" (selectionChange)="onZootecnicalGroupChange()">
+                  <mat-option [value]="0">Selecciona una zootecnia</mat-option>
+                  @for (group of zootecnicalGroups; track group.id) {
+                    <mat-option [value]="group.id">{{ group.name }}</mat-option>
+                  }
+                </mat-select>
+                @if (shouldShowError(form.controls.zootecnicalGroupId) && form.controls.zootecnicalGroupId.hasError('min')) {
+                  <mat-error>Selecciona una zootecnia valida.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="flex flex-col gap-2">
               <label class="text-sm font-semibold text-text-primary">Especie</label>
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="pet-create-field w-full">
-                <mat-select formControlName="speciesId" (selectionChange)="onSpeciesChange()">
-                  <mat-option [value]="0">Selecciona una especie</mat-option>
-                  @for (speciesItem of species; track speciesItem.id) {
+                <mat-select formControlName="speciesId" (selectionChange)="onSpeciesChange()" [disabled]="form.controls.zootecnicalGroupId.value < 1">
+                  <mat-option [value]="0">
+                    {{ form.controls.zootecnicalGroupId.value < 1 ? 'Selecciona zootecnia primero' : 'Selecciona una especie' }}
+                  </mat-option>
+                  @for (speciesItem of speciesOptions; track speciesItem.id) {
                     <mat-option [value]="speciesItem.id">{{ speciesItem.name }}</mat-option>
                   }
                 </mat-select>

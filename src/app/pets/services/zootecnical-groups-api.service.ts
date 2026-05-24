@@ -3,17 +3,20 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
 import { buildApiUrl } from '@app/core/config/api.config';
-import { SpeciesListApiResponse, SpeciesListQuery } from '../models/species.model';
+import {
+  ZootecnicalGroupListApiResponse,
+  ZootecnicalGroupListQuery,
+} from '../models/zootecnical-group.model';
 
 @Injectable({
   providedIn: 'root',
 })
-export class SpeciesApiService {
+export class ZootecnicalGroupsApiService {
   private readonly http = inject(HttpClient);
-  private readonly listUrl = buildApiUrl('species');
-  private cachedAllResponse: SpeciesListApiResponse | null = null;
+  private readonly listUrl = buildApiUrl('zootecnical-groups');
+  private cachedAllResponse: ZootecnicalGroupListApiResponse | null = null;
 
-  list(query: SpeciesListQuery): Observable<SpeciesListApiResponse> {
+  list(query: ZootecnicalGroupListQuery): Observable<ZootecnicalGroupListApiResponse> {
     if (this.cachedAllResponse) {
       return of(this.filterLocalResponse(this.cachedAllResponse, query));
     }
@@ -23,7 +26,7 @@ export class SpeciesApiService {
       .set('page', 1)
       .set('limit', 1000);
 
-    return this.http.get<SpeciesListApiResponse>(this.listUrl, { params }).pipe(
+    return this.http.get<ZootecnicalGroupListApiResponse>(this.listUrl, { params }).pipe(
       tap((response) => {
         this.cachedAllResponse = response;
       }),
@@ -36,9 +39,9 @@ export class SpeciesApiService {
   }
 
   private filterLocalResponse(
-    response: SpeciesListApiResponse,
-    query: SpeciesListQuery,
-  ): SpeciesListApiResponse {
+    response: ZootecnicalGroupListApiResponse,
+    query: ZootecnicalGroupListQuery,
+  ): ZootecnicalGroupListApiResponse {
     let filteredData = [...response.data];
     const searchTerm = query.search?.trim().toLocaleLowerCase();
 

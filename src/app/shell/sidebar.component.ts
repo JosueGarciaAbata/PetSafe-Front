@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { LogoComponent } from '@app/logo/logo';
 import { ShellIconComponent, ShellIconName } from './shell-icon.component';
 
 interface SidebarLeafItem {
@@ -26,7 +25,7 @@ interface SidebarItem {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [LogoComponent, RouterLink, RouterLinkActive, ShellIconComponent],
+  imports: [RouterLink, RouterLinkActive, ShellIconComponent],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,6 +58,16 @@ export class SidebarComponent {
       children: [
         { label: 'Procedimientos', path: '/catalogs/procedures' },
         { label: 'Cirugías', path: '/catalogs/surgeries' },
+      ],
+    },
+    {
+      id: 'zootecnia',
+      icon: 'dog',
+      label: 'Zootecnia',
+      children: [
+        { label: 'Grupos Zootécnicos', path: '/catalogs/zootecnical-groups' },
+        { label: 'Especies', path: '/catalogs/species' },
+        { label: 'Razas', path: '/catalogs/breeds' },
       ],
     },
     { id: 'treatments', icon: 'syringe', label: 'Tratamientos', path: '/treatments' },
