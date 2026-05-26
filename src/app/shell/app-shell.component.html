@@ -1,8 +1,8 @@
-<div class="flex h-screen w-full overflow-hidden bg-background font-sans antialiased text-text-primary">
-  <app-sidebar [isOpen]="sidebarOpen"></app-sidebar>
+<div class="flex h-screen w-full flex-col overflow-hidden bg-background font-sans antialiased text-text-primary">
+  <app-topbar class="shrink-0 z-20" [sidebarOpen]="sidebarOpen" (toggleSidebar)="toggleSidebar()"></app-topbar>
 
-  <div class="relative flex h-full min-w-0 flex-1 flex-col">
-    <app-topbar [sidebarOpen]="sidebarOpen" (toggleSidebar)="toggleSidebar()"></app-topbar>
+  <div class="relative flex min-h-0 flex-1 flex-row">
+    <app-sidebar [isOpen]="sidebarOpen"></app-sidebar>
 
     <main class="relative flex-1 overflow-y-auto p-4 sm:p-8 lg:p-8 xl:p-10">
       <div class="pointer-events-none absolute right-0 top-0 -z-10 h-[500px] w-[500px] rounded-full bg-brand/8 blur-[120px]"></div>

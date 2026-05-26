@@ -37,10 +37,12 @@ import { CreatePetWithoutTutorRequest } from '@app/pets/models/create-pet.model'
 import { PetImageUploadValue } from '@app/pets/models/pet-image.model';
 import { PetCreateResponseApiResponse } from '@app/pets/models/pet-create-response.model';
 import { SpeciesApiResponse } from '@app/pets/models/species.model';
+import { ZootecnicalGroupApiResponse } from '@app/pets/models/zootecnical-group.model';
 import { ColorsApiService } from '@app/pets/services/colors-api.service';
 import { PetImageUploadService } from '@app/pets/services/pet-image-upload.service';
 import { PetsApiService } from '@app/pets/services/pets-api.service';
 import { SpeciesApiService } from '@app/pets/services/species-api.service';
+import { ZootecnicalGroupsApiService } from '@app/pets/services/zootecnical-groups-api.service';
 
 @Component({
   selector: 'app-adoption-pet-create-page',
@@ -54,6 +56,7 @@ export class AdoptionPetCreatePageComponent implements OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly petsApi = inject(PetsApiService);
   private readonly speciesApi = inject(SpeciesApiService);
+  private readonly zootecnicalGroupsApi = inject(ZootecnicalGroupsApiService);
   private readonly colorsApi = inject(ColorsApiService);
   private readonly petImageUploadService = inject(PetImageUploadService);
   private readonly router = inject(Router);
@@ -73,6 +76,7 @@ export class AdoptionPetCreatePageComponent implements OnDestroy {
       '',
       [Validators.required, Validators.maxLength(PET_NAME_MAX_LENGTH), petNameValidator()],
     ],
+    zootecnicalGroupId: [0, [Validators.min(1)]],
     speciesId: [0, [Validators.min(1)]],
     breedId: [0],
     colorId: [0],
@@ -86,6 +90,7 @@ export class AdoptionPetCreatePageComponent implements OnDestroy {
     generalHistory: ['', [Validators.maxLength(PET_TEXTAREA_MAX_LENGTH)]],
   });
 
+  protected zootecnicalGroups: ZootecnicalGroupApiResponse[] = [];
   protected species: SpeciesApiResponse[] = [];
   protected colors: ColorApiResponse[] = [];
   protected isLoadingCatalogs = true;
@@ -103,11 +108,16 @@ export class AdoptionPetCreatePageComponent implements OnDestroy {
   }
 
   protected get selectedSpecies(): SpeciesApiResponse | null {
-    return this.species.find((item) => item.id === this.form.controls.speciesId.value) ?? null;
+    return this.speciesOptions.find((item) => item.id === this.form.controls.speciesId.value) ?? null;
   }
 
   protected get breedOptions() {
     return this.selectedSpecies?.breeds ?? [];
+  }
+
+  protected get speciesOptions(): SpeciesApiResponse[] {
+    const groupId = this.form.controls.zootecnicalGroupId.value;
+    return this.species.filter((item) => groupId > 0 && item.zootecnicalGroupId === groupId);
   }
 
   protected setSex(value: 'MACHO' | 'HEMBRA'): void {
@@ -123,6 +133,13 @@ export class AdoptionPetCreatePageComponent implements OnDestroy {
     if (!this.breedOptions.some((breed) => breed.id === selectedBreedId)) {
       this.form.controls.breedId.setValue(0);
     }
+  }
+
+  protected onZootecnicalGroupChange(): void {
+    if (!this.speciesOptions.some((item) => item.id === this.form.controls.speciesId.value)) {
+      this.form.controls.speciesId.setValue(0);
+    }
+    this.form.controls.breedId.setValue(0);
   }
 
   protected async onImageSelected(event: Event): Promise<void> {
@@ -224,11 +241,13 @@ export class AdoptionPetCreatePageComponent implements OnDestroy {
     this.cdr.markForCheck();
 
     try {
-      const [speciesResponse, colorsResponse] = await Promise.all([
+      const [zootecnicalGroupsResponse, speciesResponse, colorsResponse] = await Promise.all([
+        firstValueFrom(this.zootecnicalGroupsApi.list({ page: 1, limit: 100 })),
         firstValueFrom(this.speciesApi.list({ page: 1, limit: 100 })),
         firstValueFrom(this.colorsApi.list({ page: 1, limit: 100 })),
       ]);
 
+      this.zootecnicalGroups = zootecnicalGroupsResponse.data;
       this.species = speciesResponse.data;
       this.colors = colorsResponse.data;
     } catch {
@@ -242,6 +261,7 @@ export class AdoptionPetCreatePageComponent implements OnDestroy {
   private buildPayload(): CreatePetWithoutTutorRequest | null {
     const rawValue = this.form.getRawValue();
     const name = normalizePetText(rawValue.name);
+    const zootecnicalGroupId = rawValue.zootecnicalGroupId;
     const speciesId = rawValue.speciesId;
     const breedId = rawValue.breedId > 0 ? rawValue.breedId : undefined;
     const colorId = rawValue.colorId > 0 ? rawValue.colorId : undefined;
@@ -255,7 +275,9 @@ export class AdoptionPetCreatePageComponent implements OnDestroy {
 
     if (
       !isValidPetName(name) ||
+      zootecnicalGroupId < 1 ||
       speciesId < 1 ||
+      !this.speciesOptions.some((item) => item.id === speciesId) ||
       (birthDate.length > 0 && !isValidPetBirthDate(birthDate)) ||
       (normalizedWeight.length > 0 && currentWeight === null)
     ) {
@@ -264,6 +286,7 @@ export class AdoptionPetCreatePageComponent implements OnDestroy {
 
     return {
       name,
+      zootecnicalGroupId,
       speciesId,
       sex: rawValue.sex,
       breedId,

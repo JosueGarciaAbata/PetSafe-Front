@@ -30,6 +30,7 @@ export interface PatientVaccineRecord {
   isExternal: boolean;
   batchNumber: string | null;
   nextDoseDate: string | null;
+  weightKg: number | null;
   notes: string | null;
   encounterId: number | null;
   planDoseId: number | null;
@@ -113,6 +114,7 @@ export interface CreatePatientVaccineApplicationRequest {
   isExternal?: boolean;
   batchNumber?: string;
   nextDoseDate?: string;
+  weightKg?: number;
   notes?: string;
 }
 

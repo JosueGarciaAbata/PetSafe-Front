@@ -7,6 +7,12 @@ export interface SpeciesListApiResponse {
 
 export interface SpeciesApiResponse {
   id: number;
+  zootecnicalGroupId: number;
+  zootecnicalGroup?: {
+    id: number;
+    name: string;
+    description?: string | null;
+  } | null;
   name: string;
   breeds: SpeciesBreedApiResponse[];
 }

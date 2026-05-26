@@ -13,7 +13,8 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { LogoComponent } from '@app/logo/logo';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '@app/core/auth/auth.service';
 import { ThemeService } from '@app/core/ui/theme.service';
@@ -25,7 +26,7 @@ import { ShellIconComponent } from './shell-icon.component';
 @Component({
   selector: 'app-topbar',
   standalone: true,
-  imports: [ShellIconComponent],
+  imports: [ShellIconComponent, LogoComponent, RouterLink],
   templateUrl: './topbar.component.html',
   styleUrl: './topbar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

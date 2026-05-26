@@ -104,6 +104,7 @@ export interface EncounterVaccinationEvent {
   vaccineName: string | null;
   applicationDate: string;
   suggestedNextDate: string | null;
+  weightKg?: number | null;
   notes: string | null;
 }
 
@@ -114,6 +115,7 @@ export interface EncounterVaccinationDraft {
   vaccineName: string | null;
   applicationDate: string;
   suggestedNextDate: string | null;
+  weightKg?: number | null;
   notes: string | null;
 }
 
@@ -236,6 +238,7 @@ export interface CreateEncounterVaccinationRequest {
   vaccineId: number;
   applicationDate: string;
   suggestedNextDate?: string;
+  weightKg?: number;
   notes?: string;
 }
 

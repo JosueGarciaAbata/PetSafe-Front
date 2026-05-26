@@ -22,6 +22,7 @@ export interface PetCreateResponseApiResponse {
 export interface PetCreateCatalogApiResponse {
   id: number;
   name: string;
+  zootecnicalGroupId?: number | null;
 }
 
 export interface PetCreateConditionApiResponse {

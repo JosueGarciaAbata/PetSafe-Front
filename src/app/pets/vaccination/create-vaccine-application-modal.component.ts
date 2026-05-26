@@ -109,6 +109,7 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
     administeredAt: this.fb.nonNullable.control('', [Validators.maxLength(180)]),
     isExternal: this.fb.nonNullable.control(false),
     batchNumber: this.fb.nonNullable.control('', [Validators.maxLength(80)]),
+    weightKg: this.fb.control<number | null>(null, [Validators.min(0.01), Validators.max(999.99)]),
     nextDoseDate: this.fb.nonNullable.control(''),
     notes: this.fb.nonNullable.control(''),
   });
@@ -188,6 +189,10 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
 
     if (this.showBatchNumberField && batchNumber) {
       payload.batchNumber = batchNumber;
+    }
+
+    if (value.weightKg !== undefined && value.weightKg !== null) {
+      payload.weightKg = value.weightKg;
     }
 
     if (nextDoseDate) {
@@ -405,6 +410,7 @@ export class CreateVaccineApplicationModalComponent implements OnChanges {
       administeredAt: '',
       isExternal: this.showExternalToggle ? false : false,
       batchNumber: '',
+      weightKg: null,
       nextDoseDate: this.initialNextDoseDate?.trim() || '',
       notes: this.initialNotes?.trim() || '',
     });

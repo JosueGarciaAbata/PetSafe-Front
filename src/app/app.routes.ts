@@ -182,6 +182,33 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'catalogs/zootecnical-groups',
+        canActivate: [authGuard],
+        data: { roles: staffRoles, catalogKind: 'ZOOTECNICAL_GROUP' },
+        loadComponent: () =>
+          import('@app/catalogs/admin/pages/zootecnia-catalog-page.component').then(
+            (m) => m.ZootecniaCatalogPageComponent,
+          ),
+      },
+      {
+        path: 'catalogs/species',
+        canActivate: [authGuard],
+        data: { roles: staffRoles, catalogKind: 'SPECIES' },
+        loadComponent: () =>
+          import('@app/catalogs/admin/pages/zootecnia-catalog-page.component').then(
+            (m) => m.ZootecniaCatalogPageComponent,
+          ),
+      },
+      {
+        path: 'catalogs/breeds',
+        canActivate: [authGuard],
+        data: { roles: staffRoles, catalogKind: 'BREED' },
+        loadComponent: () =>
+          import('@app/catalogs/admin/pages/zootecnia-catalog-page.component').then(
+            (m) => m.ZootecniaCatalogPageComponent,
+          ),
+      },
+      {
         path: 'pets/:id/vaccination',
         canActivate: [authGuard],
         data: { roles: staffRoles },
