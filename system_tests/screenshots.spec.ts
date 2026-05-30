@@ -39,4 +39,21 @@ test.describe('Generación de Capturas de Pantalla', () => {
     await page.waitForLoadState('networkidle');
     await page.screenshot({ path: '../../docs-latex/system_tests/images/screenshot_notificaciones.png' });
   });
+  test('Catálogos: Procedimientos', async ({ page }) => {
+    await page.goto('/catalogs/procedures');
+    await page.waitForLoadState('networkidle');
+    await page.screenshot({ path: '../../docs-latex/system_tests/pictures/catalogos/procedimientos_cirugias.png' });
+  });
+
+  test('Catálogos: Especies', async ({ page }) => {
+    await page.goto('/catalogs/species');
+    await page.waitForLoadState('networkidle');
+    await page.screenshot({ path: '../../docs-latex/system_tests/pictures/catalogos/especies_razas.png' });
+  });
+
+  test('Catálogos: Grupos Zootécnicos', async ({ page }) => {
+    await page.goto('/catalogs/zootecnical-groups');
+    await page.waitForLoadState('networkidle');
+    await page.screenshot({ path: '../../docs-latex/system_tests/pictures/catalogos/grupos_zootecnicos.png' });
+  });
 });
